@@ -83,17 +83,22 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWSSECRETACCESSKEY }}
         aws-region: ${{ secrets.AWSREGION }}
 
-    - name: Deploy to AWS
+    - name: Get ECS task definition
       run: |
-        # AWS deployment commands go here - this will depend on your specific AWS setup
-        # For ECS:
-        # aws ecs update-service --cluster your-cluster --service your-service --force-new-deployment
+        aws ecs describe-task-definition --task-definition lynqe-task --query taskDefinition > task-definition.json
 
-        # For Elastic Beanstalk:
-        # aws elasticbeanstalk update-environment --application-name your-app --environment-name your-env --version-label ${{ github.sha }}
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: taskdef
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: lynqe-container
+        image: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:${{ github.sha }}
 
-        # For EKS:
-        # aws eks update-kubeconfig --name your-cluster
-        # kubectl set image deployment/your-deployment container=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
-
-        echo "Deployment to AWS services completed"
+    - name: Deploy Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.taskdef.outputs.taskdefinition }}
+        service: lynqe-service
+        cluster: lynqe-cluster
+        wait-for-service-stability: true

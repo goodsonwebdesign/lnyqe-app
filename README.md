@@ -96,19 +96,21 @@ This project uses GitHub Actions for CI/CD with AWS. The pipeline includes:
 
 1. **Build and Test**: Runs tests and builds the application
 2. **Build Docker Images**: Builds and pushes the Docker image to Amazon ECR
-3. **Deploy**: Deploys the application to AWS (ECS, EKS, or Elastic Beanstalk)
+3. **Deploy**: Deploys the application to AWS ECS
 
 ### Required Secrets for CI/CD
 
 Set these secrets in your GitHub repository:
 
-- `AWS_ACCESS_KEY_ID`: Your AWS access key ID
-- `AWS_SECRET_ACCESS_KEY`: Your AWS secret access key
-- `AWS_REGION`: The AWS region you're using (e.g., us-east-1)
-- `ECR_REPOSITORY`: The name of your ECR repository
+- `AWSACCESSKEYID`: Your AWS access key ID
+- `AWSSECRETACCESSKEY`: Your AWS secret access key
+- `AWSREGION`: The AWS region you're using (e.g., us-east-2)
+- `ECRREPOSITORY`: The name of your ECR repository (lynqe-app)
 
-For specific AWS deployment:
-- Additional secrets may be needed depending on your AWS deployment method
+For the ECS deployment:
+- Make sure you have an ECS cluster named `lynqe-cluster`
+- Ensure you have a service named `lynqe-service` 
+- Verify you have a task definition named `lynqe-task` with a container named `lynqe-container`
 
 ## Manual Commands
 
