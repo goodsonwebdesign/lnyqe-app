@@ -29,7 +29,7 @@ jobs:
       run: npm run ci:build
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: dist
         path: dist/
@@ -50,7 +50,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWSACCESSKEYID }}
         aws-secret-access-key: ${{ secrets.AWSSECRETACCESSKEY }}
-       
+        aws-region: ${{ secrets.AWSREGION }}
 
     - name: Login to Amazon ECR
       id: login-ecr
@@ -63,8 +63,8 @@ jobs:
         file: ./Dockerfile.prod
         push: true
         tags: |
-          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:latest
-          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:latest
+          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:${{ github.sha }}
 
     - name: Update deployment status
       run: |
@@ -81,7 +81,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWSACCESSKEYID }}
         aws-secret-access-key: ${{ secrets.AWSSECRETACCESSKEY }}
-
+        aws-region: ${{ secrets.AWSREGION }}
 
     - name: Deploy to AWS
       run: |
