@@ -55,6 +55,8 @@ jobs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
+      with:
+        mask-password: true
 
     - name: Build and push Production Docker image
       uses: docker/build-push-action@v4
@@ -76,6 +78,8 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
     steps:
+    - uses: actions/checkout@v3
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
@@ -83,12 +87,18 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWSSECRETACCESSKEY }}
         aws-region: ${{ secrets.AWSREGION }}
 
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+      with:
+        mask-password: true
+
     - name: Get ECS task definition
       run: |
         aws ecs describe-task-definition --task-definition lynqe-app --query taskDefinition > task-definition.json
 
     - name: Fill in the new image ID in the Amazon ECS task definition
-      id: taskdef
+      id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: task-definition.json
@@ -98,7 +108,7 @@ jobs:
     - name: Deploy Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
-        task-definition: ${{ steps.taskdef.outputs.taskdefinition }}
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
         service: lynqe-service
         cluster: lynqe-cluster
         wait-for-service-stability: true
