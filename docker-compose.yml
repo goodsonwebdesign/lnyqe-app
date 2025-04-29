@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # Development environment
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: lnyqe-app-dev
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    ports:
+      - "4200:4200"
+    environment:
+      - NODE_ENV=development
+
+  # Production environment
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: lnyqe-app-prod
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
