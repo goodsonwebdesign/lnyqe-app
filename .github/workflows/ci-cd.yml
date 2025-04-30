@@ -81,18 +81,12 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWSSECRETACCESSKEY }}
         aws-region: ${{ secrets.AWSREGION }}
 
-    # Add security group to ECS service
-    - name: Update ECS security groups
-      run: |
-        aws ecs update-service --cluster ${{ secrets.ECSCLUSTER }} \
-                              --service ${{ secrets.ECSSERVICE }} \
-                              --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.ECSSUBNETS }}],securityGroups=[${{ secrets.ECSSECURITYGROUPS }}],assignPublicIp=ENABLED}"
-
-    # For ECS deployment
+    # Update ECS service with explicit subnet and security group IDs
     - name: Update ECS service
       run: |
         aws ecs update-service --cluster ${{ secrets.ECSCLUSTER }} \
                               --service ${{ secrets.ECSSERVICE }} \
+                              --network-configuration "awsvpcConfiguration={subnets=['subnet-xxxxx','subnet-yyyyy'],securityGroups=['sg-zzzzz'],assignPublicIp=ENABLED}" \
                               --force-new-deployment
 
     # For deployment status check with timeout
