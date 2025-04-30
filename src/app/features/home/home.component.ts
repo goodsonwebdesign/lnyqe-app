@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CardComponent } from '../../shared/components/ui/card/card.component';
 import { ButtonComponent } from '../../shared/components/ui/button/button.component';
 
@@ -23,12 +24,25 @@ interface Testimonial {
   imports: [
     CommonModule,
     CardComponent,
-    ButtonComponent
+    ButtonComponent,
+    ReactiveFormsModule
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
+  form!: FormGroup;
+
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit(): void {
+    this.form = this.fb.group({
+      username: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', Validators.required]
+    });
+  }
+
   // Latest updates data - using current date (April 29, 2025)
   latestUpdates: Update[] = [
     {
