@@ -1,4 +1,29 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* Import the fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Add base styles */
+@layer base {
+  html {
+    @apply text-neutral-900 bg-white;
+  }
+
+  .dark {
+    @apply text-neutral-100 bg-neutral-900;
+  }
+
+  body {
+    @apply font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold;
+  }
+}
+
+/* Add any additional custom styles below */
