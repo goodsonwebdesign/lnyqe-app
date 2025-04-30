@@ -42,17 +42,52 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWSACCESSKEYID }}
+        aws-secret-access-key: ${{ secrets.AWSSECRETACCESSKEY }}
+        aws-region: ${{ secrets.AWSREGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Build Docker image (without pushing)
+    - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
         context: .
         file: ./Dockerfile.prod
-        push: false
-        tags: lnyqe-app:latest
+        push: true
+        tags: |
+          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:latest
+          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:${{ github.sha }}
 
-    - name: Update build status
+  deploy-to-aws:
+    needs: build-docker-images
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWSACCESSKEYID }}
+        aws-secret-access-key: ${{ secrets.AWSSECRETACCESSKEY }}
+        aws-region: ${{ secrets.AWSREGION }}
+
+    # For ECS deployment
+    - name: Update ECS service
       run: |
-        echo "Docker image built successfully with tag lnyqe-app:latest"
+        aws ecs update-service --cluster ${{ secrets.ECSCLUSTER }} \
+                              --service ${{ secrets.ECSSERVICE }} \
+                              --force-new-deployment
+
+    # For deployment status check
+    - name: Wait for service to stabilize
+      run: |
+        aws ecs wait services-stable --cluster ${{ secrets.ECSCLUSTER }} \
+                                    --services ${{ secrets.ECSSERVICE }}
