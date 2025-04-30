@@ -81,6 +81,35 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWSSECRETACCESSKEY }}
         aws-region: ${{ secrets.AWSREGION }}
 
+    # Create CloudWatch log group if it doesn't exist
+    - name: Create CloudWatch log group
+      id: create-log-group
+      run: |
+        echo "Creating CloudWatch log group for ECS logs if it doesn't exist..."
+        
+        # First, extract the cluster name to create appropriate log group
+        CLUSTER_NAME=$(aws ecs describe-clusters \
+          --clusters ${{ secrets.ECSCLUSTER }} \
+          --query 'clusters[0].clusterName' \
+          --output text)
+        
+        # Create log group if it doesn't exist
+        LOG_GROUP_NAME="/ecs/$CLUSTER_NAME"
+        echo "Checking for log group: $LOG_GROUP_NAME"
+        
+        # Try to describe the log group to check if it exists
+        if ! aws logs describe-log-groups --log-group-name-prefix "$LOG_GROUP_NAME" | grep -q "$LOG_GROUP_NAME"; then
+          echo "Log group doesn't exist. Creating it now..."
+          aws logs create-log-group --log-group-name "$LOG_GROUP_NAME"
+          
+          # Set retention policy to 14 days to manage storage costs
+          aws logs put-retention-policy --log-group-name "$LOG_GROUP_NAME" --retention-in-days 14
+          
+          echo "Log group created successfully!"
+        else
+          echo "Log group already exists."
+        fi
+
     # Verify ECS task definition and inspect it for potential issues
     - name: Verify ECS task definition
       id: check-task-def
@@ -91,6 +120,10 @@ jobs:
         
         echo "Task definition details:"
         jq '.taskDefinition.containerDefinitions[0].image, .taskDefinition.containerDefinitions[0].essential, .taskDefinition.containerDefinitions[0].portMappings' task_def.json
+        
+        # Check logging configuration
+        echo "Logging configuration:"
+        jq '.taskDefinition.containerDefinitions[0].logConfiguration' task_def.json
         
         # Check if there are any required environment variables
         echo "Environment variables:"
@@ -190,9 +223,16 @@ jobs:
           for TASK_ARN in $TASK_ARNS; do
             TASK_ID=$(echo $TASK_ARN | cut -d'/' -f2)
             echo "Attempting to get logs for task $TASK_ID..."
+            # Use the log group we created earlier
+            CLUSTER_NAME=$(aws ecs describe-clusters \
+              --clusters ${{ secrets.ECSCLUSTER }} \
+              --query 'clusters[0].clusterName' \
+              --output text)
+            LOG_GROUP_NAME="/ecs/$CLUSTER_NAME"
+            
             aws logs get-log-events \
-              --log-group-name "/ecs/${{ secrets.ECSCLUSTER }}" \
-              --log-stream-name "ecs/container-name/$TASK_ID" \
+              --log-group-name "$LOG_GROUP_NAME" \
+              --log-stream-name "ecs/lynqe-app-container/$TASK_ID" \
               --limit 20 || echo "No logs available for this task"
           done
         else
