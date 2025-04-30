@@ -81,6 +81,13 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWSSECRETACCESSKEY }}
         aws-region: ${{ secrets.AWSREGION }}
 
+    # Add security group to ECS service
+    - name: Update ECS security groups
+      run: |
+        aws ecs update-service --cluster ${{ secrets.ECSCLUSTER }} \
+                              --service ${{ secrets.ECSSERVICE }} \
+                              --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.ECSSUBNETS }}],securityGroups=[${{ secrets.ECSSECURITYGROUPS }}],assignPublicIp=ENABLED}"
+
     # For ECS deployment
     - name: Update ECS service
       run: |
@@ -88,8 +95,28 @@ jobs:
                               --service ${{ secrets.ECSSERVICE }} \
                               --force-new-deployment
 
-    # For deployment status check
+    # For deployment status check with timeout
     - name: Wait for service to stabilize
+      id: wait-for-deployment
       run: |
-        aws ecs wait services-stable --cluster ${{ secrets.ECSCLUSTER }} \
-                                    --services ${{ secrets.ECSSERVICE }}
+        echo "Waiting for ECS service to stabilize (timeout after 5 minutes)..."
+        timeout 300 aws ecs wait services-stable \
+          --cluster ${{ secrets.ECSCLUSTER }} \
+          --services ${{ secrets.ECSSERVICE }} || ec=$?
+        
+        if [ ${ec:-0} -eq 124 ]; then
+          echo "Timeout reached while waiting for service to stabilize"
+          
+          # Get service status for debugging
+          aws ecs describe-services \
+            --cluster ${{ secrets.ECSCLUSTER }} \
+            --services ${{ secrets.ECSSERVICE }}
+          
+          echo "::warning::ECS service did not stabilize within the timeout period. You may need to check the ECS console for errors."
+          exit 1
+        elif [ ${ec:-0} -ne 0 ]; then
+          echo "Error occurred while waiting for service to stabilize"
+          exit $ec
+        fi
+        
+        echo "ECS service has stabilized successfully!"
