@@ -109,6 +109,23 @@ jobs:
         else
           echo "Log group already exists."
         fi
+        
+        # Also create application-specific log group
+        APP_LOG_GROUP_NAME="/ecs/lynqe-app"
+        echo "Checking for application log group: $APP_LOG_GROUP_NAME"
+        
+        # Try to describe the app log group to check if it exists
+        if ! aws logs describe-log-groups --log-group-name-prefix "$APP_LOG_GROUP_NAME" | grep -q "$APP_LOG_GROUP_NAME"; then
+          echo "Application log group doesn't exist. Creating it now..."
+          aws logs create-log-group --log-group-name "$APP_LOG_GROUP_NAME"
+          
+          # Set retention policy to 14 days to manage storage costs
+          aws logs put-retention-policy --log-group-name "$APP_LOG_GROUP_NAME" --retention-in-days 14
+          
+          echo "Application log group created successfully!"
+        else
+          echo "Application log group already exists."
+        fi
 
     # Verify ECS task definition and inspect it for potential issues
     - name: Verify ECS task definition
@@ -133,6 +150,53 @@ jobs:
         echo "Container resource limits:"
         jq '.taskDefinition.containerDefinitions[0].cpu, .taskDefinition.containerDefinitions[0].memory' task_def.json
 
+    # Check load balancer subnets to ensure compatibility with ECS service
+    - name: Check load balancer configuration
+      id: check-lb
+      run: |
+        echo "Checking load balancer configuration to ensure subnet compatibility..."
+        
+        # Get target group ARN from ECS service
+        TARGET_GROUP_ARN=$(aws ecs describe-services \
+          --cluster ${{ secrets.ECSCLUSTER }} \
+          --services ${{ secrets.ECSSERVICE }} \
+          --query 'services[0].loadBalancers[0].targetGroupArn' \
+          --output text)
+        
+        echo "Target Group ARN: $TARGET_GROUP_ARN"
+        
+        # Get load balancer ARN from target group
+        LOAD_BALANCER_ARN=$(aws elbv2 describe-target-groups \
+          --target-group-arns $TARGET_GROUP_ARN \
+          --query 'TargetGroups[0].LoadBalancerArns[0]' \
+          --output text)
+        
+        echo "Load Balancer ARN: $LOAD_BALANCER_ARN"
+        
+        # Get availability zones and subnets used by the load balancer
+        aws elbv2 describe-load-balancers \
+          --load-balancer-arns $LOAD_BALANCER_ARN > lb_info.json
+        
+        LB_SUBNETS=$(jq -r '.LoadBalancers[0].AvailabilityZones[].SubnetId' lb_info.json)
+        echo "Load balancer is using the following subnets:"
+        echo "$LB_SUBNETS"
+        
+        # Format subnets for AWS CLI command
+        SUBNET_CONFIG="["
+        first=true
+        for subnet in $LB_SUBNETS; do
+          if [ "$first" = true ]; then
+            SUBNET_CONFIG="${SUBNET_CONFIG}'${subnet}'"
+            first=false
+          else
+            SUBNET_CONFIG="${SUBNET_CONFIG},'${subnet}'"
+          fi
+        done
+        SUBNET_CONFIG="${SUBNET_CONFIG}]"
+        
+        echo "Formatted subnet configuration: $SUBNET_CONFIG"
+        echo "subnet_config=$SUBNET_CONFIG" >> $GITHUB_ENV
+
     # Check ECS service configuration
     - name: Check ECS service status
       id: check-service
@@ -156,6 +220,10 @@ jobs:
         # Check if there are any issues with the VPC configuration
         echo "Network configuration:"
         jq '.services[0].networkConfiguration' service_status.json
+        
+        # Extract security groups to reuse
+        SECURITY_GROUPS=$(jq -r '.services[0].networkConfiguration.awsvpcConfiguration.securityGroups | join(",")' service_status.json | sed "s/,/','/g")
+        echo "security_groups=['$SECURITY_GROUPS']" >> $GITHUB_ENV
 
     # Update ECS service with retries and improved error handling
     - name: Update ECS service
@@ -165,13 +233,17 @@ jobs:
         attempt=1
         backoff_seconds=30
         
+        # Use the correct subnets identified from the load balancer
+        echo "Using subnet configuration: ${{ env.subnet_config }}"
+        echo "Using security groups: ${{ env.security_groups }}"
+        
         while [ $attempt -le $max_attempts ]; do
           echo "Attempt $attempt of $max_attempts to update ECS service..."
           
           if aws ecs update-service \
             --cluster ${{ secrets.ECSCLUSTER }} \
             --service ${{ secrets.ECSSERVICE }} \
-            --network-configuration "awsvpcConfiguration={subnets=['subnet-06f217639afe889bb','subnet-0f56cdbfc696f03a8'],securityGroups=['sg-060182ba59dbd20e1'],assignPublicIp=ENABLED}" \
+            --network-configuration "awsvpcConfiguration={subnets=${{ env.subnet_config }},securityGroups=${{ env.security_groups }},assignPublicIp=ENABLED}" \
             --force-new-deployment; then
               echo "ECS service update initiated successfully!"
               break
