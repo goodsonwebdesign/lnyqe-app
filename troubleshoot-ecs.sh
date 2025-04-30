@@ -27,7 +27,7 @@ if [ -z "$STOPPED_TASKS" ] || [ "$STOPPED_TASKS" == "[]" ]; then
   echo "No recently stopped tasks found."
 else
   echo "Found stopped tasks. Checking reason for failure..."
-  
+
   # For each stopped task, get the stop reason
   echo "Task stop reasons:"
   for TASK_ARN in $(echo $STOPPED_TASKS | jq -r '.[]'); do
@@ -35,7 +35,7 @@ else
     STOP_REASON=$(echo "$TASK_INFO" | jq -r '.tasks[0].stoppedReason')
     echo "$STOP_REASON"
   done
-  
+
   # Check container exit codes
   echo "Container stop details:"
   for TASK_ARN in $(echo $STOPPED_TASKS | jq -r '.[]'); do
@@ -43,12 +43,12 @@ else
     CONTAINERS=$(echo "$TASK_INFO" | jq -r '.tasks[0].containers')
     echo "$CONTAINERS"
   done
-  
+
   # Try to get logs for stopped tasks (might not be available if logs couldn't be sent)
   for TASK_ARN in $(echo $STOPPED_TASKS | jq -r '.[]'); do
     TASK_ID=$(echo $TASK_ARN | cut -d'/' -f3)
     echo "Attempting to get logs for task $TASK_ID..."
-    
+
     LOG_STREAM="ecs/lynqe-app-container/$TASK_ID"
     aws logs get-log-events --log-group-name "/ecs/lynqe-app" --log-stream-name "$LOG_STREAM" --query 'events[].message' --output text || echo "No logs available for this task"
   done
@@ -60,7 +60,7 @@ if [ -n "$TARGET_GROUP_ARN" ] && [ "$TARGET_GROUP_ARN" != "null" ]; then
   echo "Checking Load Balancer target health..."
   TARGET_HEALTH=$(aws elbv2 describe-target-health --target-group-arn "$TARGET_GROUP_ARN")
   echo "$TARGET_HEALTH"
-  
+
   # Check which AZs the load balancer is using
   LB_ARN=$(aws elbv2 describe-target-groups --target-group-arns "$TARGET_GROUP_ARN" --query 'TargetGroups[0].LoadBalancerArns[0]' --output text)
   if [ -n "$LB_ARN" ] && [ "$LB_ARN" != "None" ]; then

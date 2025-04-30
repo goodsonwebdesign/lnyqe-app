@@ -55,7 +55,7 @@ if [ -n "$ALB_ARN" ]; then
   echo "Found ALB: $ALB_ARN"
   ALB_SUBNETS=$(aws elbv2 describe-load-balancers --load-balancer-arns $ALB_ARN --query "LoadBalancers[0].AvailabilityZones[].SubnetId" --output json)
   echo "ALB is using the following subnets: $ALB_SUBNETS"
-  
+
   # Use the same subnets for ECS service
   SUBNET_CONFIG="["
   FIRST=true
@@ -81,14 +81,14 @@ max_attempts=3
 attempt=1
 while [ $attempt -le $max_attempts ]; do
   echo "Attempt $attempt of $max_attempts to update ECS service..."
-  
+
   update_result=$(aws ecs update-service \
     --cluster $CLUSTER_NAME \
     --service $SERVICE_NAME \
     --task-definition $NEW_TASK_ARN \
     --network-configuration "awsvpcConfiguration={subnets=$SUBNET_CONFIG,securityGroups=$SECURITY_GROUPS,assignPublicIp=ENABLED}" \
     --desired-count 1 2>&1)
-  
+
   if [ $? -eq 0 ]; then
     echo "ECS service update initiated successfully!"
     break
@@ -114,24 +114,24 @@ max_checks=30
 
 while [ $check_count -le $max_checks ] && [ "$(date +%s)" -lt $end_time ]; do
   echo "Check $check_count of $max_checks: Verifying service stability..."
-  
+
   service_info=$(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME)
   deployment_status=$(echo $service_info | jq -r '.services[0].deployments[0].status')
   running_count=$(echo $service_info | jq -r '.services[0].runningCount')
   desired_count=$(echo $service_info | jq -r '.services[0].desiredCount')
-  
+
   echo "Deployment status: $deployment_status, Running: $running_count, Desired: $desired_count"
-  
+
   recent_events=$(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME --query 'services[0].events[0:3].message' --output text)
   echo "Recent events:"
   echo "$recent_events"
-  
+
   if [ "$deployment_status" = "PRIMARY" ] && [ "$running_count" -eq "$desired_count" ] && [ "$desired_count" -gt 0 ]; then
     echo "Service has stabilized successfully!"
     stabilized=true
     break
   fi
-  
+
   echo "Waiting 30 seconds before checking again..."
   sleep 30
   ((check_count++))

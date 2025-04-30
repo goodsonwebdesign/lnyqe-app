@@ -9,7 +9,7 @@ DASHBOARD_NAME="lynqe-dashboard"
 
 echo "Creating CloudWatch dashboard for ECS monitoring in region $AWS_REGION..."
 
-# Get the service ARN 
+# Get the service ARN
 SERVICE_ARN=$(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME --region $AWS_REGION | jq -r '.services[0].serviceArn')
 echo "Service ARN: $SERVICE_ARN"
 

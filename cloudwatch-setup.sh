@@ -15,11 +15,11 @@ if aws logs describe-log-groups --log-group-name-prefix "$LOG_GROUP_NAME" --regi
 else
   echo "Creating log group $LOG_GROUP_NAME..."
   aws logs create-log-group --log-group-name "$LOG_GROUP_NAME" --region $AWS_REGION
-  
+
   # Set retention policy to manage costs
   echo "Setting retention policy to $RETENTION_DAYS days..."
   aws logs put-retention-policy --log-group-name "$LOG_GROUP_NAME" --retention-in-days $RETENTION_DAYS --region $AWS_REGION
-  
+
   echo "Log group created successfully!"
 fi
 
@@ -33,11 +33,11 @@ if aws logs describe-log-groups --log-group-name-prefix "$CLUSTER_LOG_GROUP" --r
 else
   echo "Creating cluster log group $CLUSTER_LOG_GROUP..."
   aws logs create-log-group --log-group-name "$CLUSTER_LOG_GROUP" --region $AWS_REGION
-  
+
   # Set retention policy to manage costs
   echo "Setting retention policy to $RETENTION_DAYS days..."
   aws logs put-retention-policy --log-group-name "$CLUSTER_LOG_GROUP" --retention-in-days $RETENTION_DAYS --region $AWS_REGION
-  
+
   echo "Cluster log group created successfully!"
 fi
 

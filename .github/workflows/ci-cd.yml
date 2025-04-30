@@ -86,42 +86,42 @@ jobs:
       id: create-log-group
       run: |
         echo "Creating CloudWatch log group for ECS logs if it doesn't exist..."
-        
+
         # First, extract the cluster name to create appropriate log group
         CLUSTER_NAME=$(aws ecs describe-clusters \
           --clusters ${{ secrets.ECSCLUSTER }} \
           --query 'clusters[0].clusterName' \
           --output text)
-        
+
         # Create log group if it doesn't exist
         LOG_GROUP_NAME="/ecs/$CLUSTER_NAME"
         echo "Checking for log group: $LOG_GROUP_NAME"
-        
+
         # Try to describe the log group to check if it exists
         if ! aws logs describe-log-groups --log-group-name-prefix "$LOG_GROUP_NAME" | grep -q "$LOG_GROUP_NAME"; then
           echo "Log group doesn't exist. Creating it now..."
           aws logs create-log-group --log-group-name "$LOG_GROUP_NAME"
-          
+
           # Set retention policy to 14 days to manage storage costs
           aws logs put-retention-policy --log-group-name "$LOG_GROUP_NAME" --retention-in-days 14
-          
+
           echo "Log group created successfully!"
         else
           echo "Log group already exists."
         fi
-        
+
         # Also create application-specific log group
         APP_LOG_GROUP_NAME="/ecs/lynqe-app"
         echo "Checking for application log group: $APP_LOG_GROUP_NAME"
-        
+
         # Try to describe the app log group to check if it exists
         if ! aws logs describe-log-groups --log-group-name-prefix "$APP_LOG_GROUP_NAME" | grep -q "$APP_LOG_GROUP_NAME"; then
           echo "Application log group doesn't exist. Creating it now..."
           aws logs create-log-group --log-group-name "$APP_LOG_GROUP_NAME"
-          
+
           # Set retention policy to 14 days to manage storage costs
           aws logs put-retention-policy --log-group-name "$APP_LOG_GROUP_NAME" --retention-in-days 14
-          
+
           echo "Application log group created successfully!"
         else
           echo "Application log group already exists."
@@ -134,18 +134,18 @@ jobs:
         echo "Retrieving task definition..."
         TASK_DEF_ARN=$(aws ecs describe-services --cluster ${{ secrets.ECSCLUSTER }} --services ${{ secrets.ECSSERVICE }} | jq -r '.services[0].taskDefinition')
         aws ecs describe-task-definition --task-definition $TASK_DEF_ARN > task_def.json
-        
+
         echo "Task definition details:"
         jq '.taskDefinition.containerDefinitions[0].image, .taskDefinition.containerDefinitions[0].essential, .taskDefinition.containerDefinitions[0].portMappings' task_def.json
-        
+
         # Check logging configuration
         echo "Logging configuration:"
         jq '.taskDefinition.containerDefinitions[0].logConfiguration' task_def.json
-        
+
         # Check if there are any required environment variables
         echo "Environment variables:"
         jq '.taskDefinition.containerDefinitions[0].environment' task_def.json
-        
+
         # Check resource limits
         echo "Container resource limits:"
         jq '.taskDefinition.containerDefinitions[0].cpu, .taskDefinition.containerDefinitions[0].memory' task_def.json
@@ -155,32 +155,32 @@ jobs:
       id: check-lb
       run: |
         echo "Checking load balancer configuration to ensure subnet compatibility..."
-        
+
         # Get target group ARN from ECS service
         TARGET_GROUP_ARN=$(aws ecs describe-services \
           --cluster ${{ secrets.ECSCLUSTER }} \
           --services ${{ secrets.ECSSERVICE }} \
           --query 'services[0].loadBalancers[0].targetGroupArn' \
           --output text)
-        
+
         echo "Target Group ARN: $TARGET_GROUP_ARN"
-        
+
         # Get load balancer ARN from target group
         LOAD_BALANCER_ARN=$(aws elbv2 describe-target-groups \
           --target-group-arns $TARGET_GROUP_ARN \
           --query 'TargetGroups[0].LoadBalancerArns[0]' \
           --output text)
-        
+
         echo "Load Balancer ARN: $LOAD_BALANCER_ARN"
-        
+
         # Get availability zones and subnets used by the load balancer
         aws elbv2 describe-load-balancers \
           --load-balancer-arns $LOAD_BALANCER_ARN > lb_info.json
-        
+
         LB_SUBNETS=$(jq -r '.LoadBalancers[0].AvailabilityZones[].SubnetId' lb_info.json)
         echo "Load balancer is using the following subnets:"
         echo "$LB_SUBNETS"
-        
+
         # Format subnets for AWS CLI command
         SUBNET_CONFIG="["
         first=true
@@ -193,7 +193,7 @@ jobs:
           fi
         done
         SUBNET_CONFIG="${SUBNET_CONFIG}]"
-        
+
         echo "Formatted subnet configuration: $SUBNET_CONFIG"
         echo "subnet_config=$SUBNET_CONFIG" >> $GITHUB_ENV
 
@@ -205,22 +205,22 @@ jobs:
         aws ecs describe-services \
           --cluster ${{ secrets.ECSCLUSTER }} \
           --services ${{ secrets.ECSSERVICE }} > service_status.json
-        
+
         # Check if service is already being deployed
         pending_count=$(jq '.services[0].deployments | length' service_status.json)
         if [ $pending_count -gt 1 ]; then
           echo "::warning::There is already a deployment in progress. Waiting before attempting new deployment."
           sleep 60
         fi
-        
+
         # Check if the service has any events that might indicate issues
         echo "Recent service events:"
         jq -r '.services[0].events[:5][] | .message' service_status.json
-        
+
         # Check if there are any issues with the VPC configuration
         echo "Network configuration:"
         jq '.services[0].networkConfiguration' service_status.json
-        
+
         # Extract security groups to reuse
         SECURITY_GROUPS=$(jq -r '.services[0].networkConfiguration.awsvpcConfiguration.securityGroups | join(",")' service_status.json | sed "s/,/','/g")
         echo "security_groups=['$SECURITY_GROUPS']" >> $GITHUB_ENV
@@ -232,14 +232,14 @@ jobs:
         max_attempts=3
         attempt=1
         backoff_seconds=30
-        
+
         # Use the correct subnets identified from the load balancer
         echo "Using subnet configuration: ${{ env.subnet_config }}"
         echo "Using security groups: ${{ env.security_groups }}"
-        
+
         while [ $attempt -le $max_attempts ]; do
           echo "Attempt $attempt of $max_attempts to update ECS service..."
-          
+
           if aws ecs update-service \
             --cluster ${{ secrets.ECSCLUSTER }} \
             --service ${{ secrets.ECSSERVICE }} \
@@ -250,7 +250,7 @@ jobs:
           else
             exit_code=$?
             echo "Update failed with exit code: $exit_code"
-            
+
             if [ $attempt -lt $max_attempts ]; then
               echo "Waiting ${backoff_seconds} seconds before retry..."
               sleep $backoff_seconds
@@ -260,10 +260,10 @@ jobs:
               exit 1
             fi
           fi
-          
+
           attempt=$((attempt + 1))
         done
- 
+
     # Check for stopped tasks to diagnose the root cause
     - name: Check for stopped tasks
       id: check-stopped-tasks
@@ -274,23 +274,23 @@ jobs:
           --family $(aws ecs describe-services --cluster ${{ secrets.ECSCLUSTER }} --services ${{ secrets.ECSSERVICE }} | jq -r '.services[0].taskDefinition' | cut -d'/' -f2 | cut -d':' -f1) \
           --desired-status STOPPED \
           --output json)
-        
+
         TASK_ARNS=$(echo $STOPPED_TASKS | jq -r '.taskArns[]')
-        
+
         if [ -n "$TASK_ARNS" ]; then
           echo "Found stopped tasks. Checking reason for failure..."
           aws ecs describe-tasks \
             --cluster ${{ secrets.ECSCLUSTER }} \
             --tasks $TASK_ARNS > stopped_tasks.json
-          
+
           # Display the task stop reason
           echo "Task stop reasons:"
           jq -r '.tasks[] | .stoppedReason' stopped_tasks.json
-          
+
           # Display container stop reason
           echo "Container stop details:"
           jq -r '.tasks[] | .containers[] | {name: .name, reason: .reason, exitCode: .exitCode}' stopped_tasks.json
-          
+
           # If there are any container insights, get the logs
           for TASK_ARN in $TASK_ARNS; do
             TASK_ID=$(echo $TASK_ARN | cut -d'/' -f2)
@@ -301,7 +301,7 @@ jobs:
               --query 'clusters[0].clusterName' \
               --output text)
             LOG_GROUP_NAME="/ecs/$CLUSTER_NAME"
-            
+
             aws logs get-log-events \
               --log-group-name "$LOG_GROUP_NAME" \
               --log-stream-name "ecs/lynqe-app-container/$TASK_ID" \
@@ -317,27 +317,27 @@ jobs:
       timeout-minutes: 15
       run: |
         echo "Waiting for ECS service to stabilize (timeout after 15 minutes)..."
-        
+
         max_checks=30
         check=1
         wait_time=30
         deployment_failed=false
-        
+
         while [ $check -le $max_checks ]; do
           echo "Check $check of $max_checks: Verifying service stability..."
-          
+
           # Get detailed service status
           aws ecs describe-services \
             --cluster ${{ secrets.ECSCLUSTER }} \
             --services ${{ secrets.ECSSERVICE }} > current_status.json
-            
+
           # Check for failed deployments
           deployment_status=$(jq -r '.services[0].deployments[0].status' current_status.json)
           running_count=$(jq -r '.services[0].deployments[0].runningCount' current_status.json)
           desired_count=$(jq -r '.services[0].deployments[0].desiredCount' current_status.json)
-          
+
           echo "Deployment status: $deployment_status, Running: $running_count, Desired: $desired_count"
-          
+
           # Check for any failed tasks
           failed_tasks=$(jq -r '.services[0].failures | length' current_status.json)
           if [ "$failed_tasks" -gt 0 ] || [ "$deployment_status" = "FAILED" ]; then
@@ -346,11 +346,11 @@ jobs:
             deployment_failed=true
             break
           fi
-          
+
           # Check service events for any errors
           echo "Recent events:"
           jq -r '.services[0].events[0:2][] | .message' current_status.json
-          
+
           # Check if deployment is stable
           if [ "$running_count" -eq "$desired_count" ] && [ "$desired_count" -gt 0 ]; then
             # Use the wait command as an additional verification
@@ -362,7 +362,7 @@ jobs:
                 exit 0
             fi
           fi
-          
+
           # If we've checked multiple times and running count is still 0 despite desired > 0,
           # then check for task placement issues
           if [ $check -gt 5 ] && [ "$running_count" -eq 0 ] && [ "$desired_count" -gt 0 ]; then
@@ -372,30 +372,30 @@ jobs:
               --service-name ${{ secrets.ECSSERVICE }} \
               --desired-status RUNNING \
               --output json | jq -r '.taskArns[]')
-            
+
             if [ -z "$TASK_ARNS" ]; then
               echo "No running tasks found. Checking for task placement failures..."
               latest_service_event=$(jq -r '.services[0].events[0].message' current_status.json)
               echo "Latest service event: $latest_service_event"
-              
+
               echo "Setting desired count to 0 and then back to 1 to force redeployment..."
               aws ecs update-service \
                 --cluster ${{ secrets.ECSCLUSTER }} \
                 --service ${{ secrets.ECSSERVICE }} \
                 --desired-count 0
-              
+
               echo "Waiting 30 seconds before setting desired count back to 1..."
               sleep 30
-              
+
               aws ecs update-service \
                 --cluster ${{ secrets.ECSCLUSTER }} \
                 --service ${{ secrets.ECSSERVICE }} \
                 --desired-count 1
-              
+
               echo "Reset desired count to 1. Continuing to monitor..."
             fi
           fi
-          
+
           if [ $check -lt $max_checks ]; then
             echo "Waiting ${wait_time} seconds before checking again..."
             sleep $wait_time
@@ -403,16 +403,16 @@ jobs:
             echo "::warning::ECS service did not stabilize within allowed time."
             deployment_failed=true
           fi
-          
+
           check=$((check + 1))
         done
-        
+
         if [ "$deployment_failed" = true ]; then
           echo "::error::Deployment failed to stabilize. Please check ECS console for details."
-          
+
           # As a last attempt, get any CloudWatch logs if available
           echo "Attempting to fetch container logs..."
           aws logs describe-log-groups --log-group-name-prefix "/ecs/${{ secrets.ECSCLUSTER }}" || echo "No log groups found"
-          
+
           exit 1
         fi
