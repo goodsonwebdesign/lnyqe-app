@@ -4,6 +4,7 @@ import { provideMockStore, MockStore } from '@ngrx/store/testing';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('AppComponent', () => {
   let store: MockStore;
@@ -11,7 +12,13 @@ describe('AppComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppComponent, CommonModule, FormsModule, RouterOutlet],
+      imports: [
+        AppComponent, 
+        CommonModule, 
+        FormsModule, 
+        RouterOutlet,
+        RouterTestingModule
+      ],
       providers: [
         provideMockStore({ initialState })
       ]
@@ -32,10 +39,10 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('lnyqe-app');
   });
 
-  it('should render title', () => {
+  it('should have a router-outlet', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.text-2xl')?.textContent).toContain('NgRx Counter Example');
+    expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
 });

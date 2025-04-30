@@ -2,19 +2,42 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MainLayoutComponent } from './main-layout.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Component } from '@angular/core';
+import { provideMockStore } from '@ngrx/store/testing';
+import { AuthService } from '../../core/services/auth/auth.service';
+import { of } from 'rxjs';
 
 // Create mock components for dependencies
 @Component({
   selector: 'app-container',
-  template: '<div><ng-content></ng-content></div>'
+  template: '<div><ng-content></ng-content></div>',
+  standalone: true
 })
 class MockContainerComponent {}
 
 @Component({
   selector: 'app-theme-toggle',
-  template: '<div></div>'
+  template: '<div></div>',
+  standalone: true
 })
 class MockThemeToggleComponent {}
+
+@Component({
+  selector: 'app-user-menu',
+  template: '<div></div>',
+  standalone: true
+})
+class MockUserMenuComponent {}
+
+// Create a mock AuthService
+class MockAuthService {
+  isAuthenticated$ = of(false);
+  user$ = of(null);
+  
+  login() {}
+  logout() {}
+  getUser() { return of(null); }
+  isAuthenticated() { return of(false); }
+}
 
 describe('MainLayoutComponent', () => {
   let component: MainLayoutComponent;
@@ -24,11 +47,14 @@ describe('MainLayoutComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         MainLayoutComponent,
-        RouterTestingModule
-      ],
-      declarations: [
+        RouterTestingModule,
         MockContainerComponent,
-        MockThemeToggleComponent
+        MockThemeToggleComponent,
+        MockUserMenuComponent
+      ],
+      providers: [
+        provideMockStore({ initialState: {} }),
+        { provide: AuthService, useClass: MockAuthService }
       ]
     }).compileComponents();
 
