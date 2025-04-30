@@ -139,39 +139,64 @@ jobs:
     # For deployment status check with timeout and retries
     - name: Wait for service to stabilize
       id: wait-for-deployment
+      timeout-minutes: 15
       run: |
-        echo "Waiting for ECS service to stabilize (timeout after 10 minutes)..."
+        echo "Waiting for ECS service to stabilize (timeout after 15 minutes)..."
         
-        max_checks=20
+        max_checks=30
         check=1
         wait_time=30
+        deployment_failed=false
         
         while [ $check -le $max_checks ]; do
           echo "Check $check of $max_checks: Verifying service stability..."
           
-          if timeout 60 aws ecs wait services-stable \
+          # Get detailed service status
+          aws ecs describe-services \
             --cluster ${{ secrets.ECSCLUSTER }} \
-            --services ${{ secrets.ECSSERVICE }}; then
-              echo "ECS service has stabilized successfully!"
-              exit 0
-          else
-            ec=$?
-            # Get service status for debugging
-            echo "Service not yet stable. Getting current status..."
-            aws ecs describe-services \
-              --cluster ${{ secrets.ECSCLUSTER }} \
-              --services ${{ secrets.ECSSERVICE }}
+            --services ${{ secrets.ECSSERVICE }} > current_status.json
             
-            if [ $check -lt $max_checks ]; then
-              echo "Waiting ${wait_time} seconds before checking again..."
-              sleep $wait_time
-            else
-              echo "::warning::ECS service did not stabilize within allowed time. Deployment may still be in progress."
-              echo "Check the AWS ECS console for more details."
-              # This is a warning, not an error, since the deployment might still succeed eventually
-              exit 1
+          # Check for failed deployments
+          deployment_status=$(jq -r '.services[0].deployments[0].status' current_status.json)
+          running_count=$(jq -r '.services[0].deployments[0].runningCount' current_status.json)
+          desired_count=$(jq -r '.services[0].deployments[0].desiredCount' current_status.json)
+          
+          echo "Deployment status: $deployment_status, Running: $running_count, Desired: $desired_count"
+          
+          # Check for any failed tasks
+          failed_tasks=$(jq -r '.services[0].failures | length' current_status.json)
+          if [ "$failed_tasks" -gt 0 ] || [ "$deployment_status" = "FAILED" ]; then
+            echo "::error::Deployment failed. Found $failed_tasks failed tasks."
+            jq '.services[0].failures' current_status.json
+            deployment_failed=true
+            break
+          fi
+          
+          # Check if deployment is stable
+          if [ "$running_count" -eq "$desired_count" ] && [ "$desired_count" -gt 0 ]; then
+            # Use the wait command as an additional verification
+            if aws ecs wait services-stable \
+              --cluster ${{ secrets.ECSCLUSTER }} \
+              --services ${{ secrets.ECSSERVICE }}; then
+                echo "ECS service has stabilized successfully!"
+                # Verify the service is actually responding
+                echo "Deployment completed successfully!"
+                exit 0
             fi
+          fi
+          
+          if [ $check -lt $max_checks ]; then
+            echo "Waiting ${wait_time} seconds before checking again..."
+            sleep $wait_time
+          else
+            echo "::warning::ECS service did not stabilize within allowed time."
+            deployment_failed=true
           fi
           
           check=$((check + 1))
         done
+        
+        if [ "$deployment_failed" = true ]; then
+          echo "::error::Deployment failed to stabilize. Please check ECS console for details."
+          exit 1
+        fi
