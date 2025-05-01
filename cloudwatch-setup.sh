@@ -4,7 +4,7 @@
 # Configurable variables
 LOG_GROUP_NAME="/ecs/lynqe-app"
 RETENTION_DAYS=14
-AWS_REGION=${1:-"us-east-1"}  # Default to us-east-1 if not specified
+AWS_REGION=${1:-"us-east-2"}  # Default to us-east-2 if not specified
 
 echo "Setting up CloudWatch logs for ECS in region $AWS_REGION..."
 

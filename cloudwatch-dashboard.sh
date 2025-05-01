@@ -1,7 +1,7 @@
 #!/bin/bash
 # cloudwatch-dashboard.sh - Create a CloudWatch dashboard for ECS monitoring
 
-AWS_REGION=${1:-"us-east-1"}  # Default to us-east-1 if not specified
+AWS_REGION=${1:-"us-east-2"}  # Default to us-east-2 if not specified
 CLUSTER_NAME="lynqe-cluster"
 SERVICE_NAME="lynqe-service"
 APP_NAME="lynqe-app"
