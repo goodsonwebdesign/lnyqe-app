@@ -12,6 +12,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Get all history to ensure we have latest changes
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
@@ -41,6 +43,19 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Get all history to ensure we have latest changes
+
+    # Download the build artifacts from the previous job
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist
+
+    - name: Display structure of downloaded files
+      run: ls -R
+      working-directory: dist
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
@@ -58,12 +73,23 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
+    - name: Generate Build Info
+      id: build-info
+      run: |
+        echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+        echo "Creating build-info.txt file"
+        echo "Build date: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" > build-info.txt
+        echo "Commit: ${{ github.sha }}" >> build-info.txt
+        echo "Branch: ${{ github.ref_name }}" >> build-info.txt
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./Dockerfile.prod
         push: true
+        build-args: |
+          BUILD_DATE=${{ env.BUILD_DATE }}
         tags: |
           ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:latest
           ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:${{ github.sha }}
