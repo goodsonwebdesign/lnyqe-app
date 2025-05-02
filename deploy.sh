@@ -24,7 +24,8 @@ aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --
 echo "Building Docker image..."
 COMMIT_HASH=$(git rev-parse --short HEAD)
 IMAGE_TAG="${COMMIT_HASH}-$(date +%Y%m%d%H%M%S)"  # Added timestamp for uniqueness
-docker build -t ${ECR_REPOSITORY}:${IMAGE_TAG} -f Dockerfile.prod .
+BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+docker build --no-cache --build-arg BUILD_DATE="${BUILD_DATE}" -t ${ECR_REPOSITORY}:${IMAGE_TAG} -f Dockerfile.prod .
 
 # Step 4: Tag and push the image
 echo "Tagging and pushing image to ECR..."
