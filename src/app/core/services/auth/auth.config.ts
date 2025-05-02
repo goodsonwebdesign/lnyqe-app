@@ -18,6 +18,6 @@ export const AUTH_CONFIG: AuthConfig = {
   // Add these to improve reliability
   skipRedirectCallback: true,
   errorPath: '/',
-  // Bypass secure origin check in development environment
+  // Use form data only in development - ensure secure origin in production
   useFormData: !environment.production
 };

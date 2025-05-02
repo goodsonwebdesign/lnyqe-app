@@ -14,6 +14,7 @@ export class AuthService {
   private router = inject(Router);
   private store = inject(Store);
   private ngZone = inject(NgZone);
+  private isLoggingOut = false;
 
   constructor() {
     // Subscribe to authentication state changes from Auth0
@@ -25,7 +26,7 @@ export class AuthService {
         ).subscribe(user => {
           console.log('User authenticated:', user);
           this.store.dispatch(AuthActions.loginSuccess({ user }));
-          
+
           // Check if we're on the home page or callback page, and redirect to dashboard if so
           const currentPath = window.location.pathname;
           if (currentPath === '/' || currentPath === '/callback') {
@@ -35,7 +36,9 @@ export class AuthService {
             });
           }
         });
-      } else {
+      } else if (!this.isLoggingOut) {
+        // Only dispatch logout if we're not in the process of logging out
+        // This prevents double-logout when auth0Service.logout() triggers isAuthenticated$ to emit false
         this.store.dispatch(AuthActions.logout());
       }
     });
@@ -54,9 +57,20 @@ export class AuthService {
 
   // Logout method
   logout(): void {
+    // Set flag to prevent double logout
+    this.isLoggingOut = true;
+
+    // First dispatch the logout action to update application state
+    this.store.dispatch(AuthActions.logout());
+
+    // First navigate to home page
+    this.router.navigate(['/']);
+
+    // Then perform the Auth0 logout with explicit return URL
     this.auth0Service.logout({
       logoutParams: {
-        returnTo: window.location.origin
+        returnTo: window.location.origin,
+        clientId: 'jaxCqNsBtZmpnpbjXBsAzYkhygDKg4TM'
       }
     });
   }
