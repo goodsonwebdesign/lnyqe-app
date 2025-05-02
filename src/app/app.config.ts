@@ -6,6 +6,7 @@ import { provideStore } from '@ngrx/store';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { provideEffects } from '@ngrx/effects';
 import { provideRouterStore } from '@ngrx/router-store';
+import { HttpClientModule } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { reducers, metaReducers } from './store/reducers';
@@ -58,7 +59,8 @@ export const appConfig: ApplicationConfig = {
   providers: [
     importProvidersFrom(
       BrowserModule,
-      AuthModule.forRoot(AUTH_CONFIG)
+      AuthModule.forRoot(AUTH_CONFIG),
+      HttpClientModule
     ),
     provideRouter(routes),
     provideStore(reducers, { metaReducers }),

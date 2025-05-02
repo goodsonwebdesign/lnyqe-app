@@ -5,6 +5,7 @@ import { Component } from '@angular/core';
 import { provideMockStore } from '@ngrx/store/testing';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { of } from 'rxjs';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 // Create mock components for dependencies
 @Component({
@@ -50,7 +51,8 @@ describe('MainLayoutComponent', () => {
         RouterTestingModule,
         MockContainerComponent,
         MockThemeToggleComponent,
-        MockUserMenuComponent
+        MockUserMenuComponent,
+        HttpClientTestingModule
       ],
       providers: [
         provideMockStore({ initialState: {} }),
