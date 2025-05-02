@@ -1,4 +1,5 @@
 import { AuthConfig } from '@auth0/auth0-angular';
+import { environment } from '../../../environments/environment';
 
 // Auth0 configuration - simplified to minimize state errors
 export const AUTH_CONFIG: AuthConfig = {
@@ -16,5 +17,7 @@ export const AUTH_CONFIG: AuthConfig = {
   },
   // Add these to improve reliability
   skipRedirectCallback: true,
-  errorPath: '/'
+  errorPath: '/',
+  // Bypass secure origin check in development environment
+  useFormData: !environment.production
 };
