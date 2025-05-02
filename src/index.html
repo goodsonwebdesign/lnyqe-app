@@ -6,6 +6,11 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <!-- Cache busting with dynamic version -->
+  <script src="version.js?v=<%=new Date().getTime()%>"></script>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 </head>
 <body>
   <app-root></app-root>

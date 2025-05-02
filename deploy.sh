@@ -20,11 +20,21 @@ ECR_REPOSITORY_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_
 echo "Logging in to Amazon ECR..."
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
-# Step 3: Build Docker image
+# Step 3: Build Docker image with --no-cache to ensure fresh build
 echo "Building Docker image..."
 COMMIT_HASH=$(git rev-parse --short HEAD)
-IMAGE_TAG="${COMMIT_HASH}-$(date +%Y%m%d%H%M%S)"  # Added timestamp for uniqueness
+TIMESTAMP=$(date +%Y%m%d%H%M%S)
+IMAGE_TAG="${COMMIT_HASH}-${TIMESTAMP}"
 BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+echo "Using build timestamp: ${BUILD_DATE}"
+echo "Using image tag: ${IMAGE_TAG}"
+
+# Force removing any existing image with the same name to ensure clean build
+echo "Removing any existing images with the same name..."
+docker rmi -f ${ECR_REPOSITORY}:latest || true
+docker rmi -f ${ECR_REPOSITORY_URI}:latest || true
+
+# Build with no-cache to ensure clean build
 docker build --no-cache --build-arg BUILD_DATE="${BUILD_DATE}" -t ${ECR_REPOSITORY}:${IMAGE_TAG} -f Dockerfile.prod .
 
 # Step 4: Tag and push the image

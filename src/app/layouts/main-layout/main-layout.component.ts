@@ -20,6 +20,7 @@ export class MainLayoutComponent implements OnInit {
   private http = inject(HttpClient);
   
   buildInfo: string = 'Loading...';
+  deployedOn: string = '';
 
   // Replace these URLs with your actual S3 bucket image URLs
   lightModeLogo = 'https://img-lynqe.s3.us-east-2.amazonaws.com/logo-blk.png';
@@ -30,14 +31,31 @@ export class MainLayoutComponent implements OnInit {
   }
   
   private loadBuildInfo() {
-    this.http.get('/build-info.txt', { responseType: 'text' })
+    // Add random query parameter to prevent caching
+    const noCacheParam = `?nocache=${new Date().getTime()}`;
+    
+    this.http.get(`/build-info.txt${noCacheParam}`, { responseType: 'text' })
       .subscribe({
         next: (data) => {
           this.buildInfo = data.trim();
+          // Extract timestamp from the build info if possible
+          if (data.includes('Build date:')) {
+            const dateStr = data.replace('Build date:', '').trim();
+            this.deployedOn = this.formatDate(dateStr);
+          }
         },
         error: () => {
           this.buildInfo = 'Unknown';
         }
       });
+  }
+  
+  private formatDate(dateStr: string): string {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleString();
+    } catch (e) {
+      return dateStr;
+    }
   }
 }

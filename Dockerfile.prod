@@ -16,6 +16,9 @@ ARG BUILD_DATE=unknown
 ENV BUILD_DATE=${BUILD_DATE}
 RUN echo "Build date: $BUILD_DATE" > build-info.txt
 
+# Add version.js with timestamp to force cache busting
+RUN echo "window.APP_VERSION = '${BUILD_DATE}';" > src/version.js
+
 # Build the application
 RUN npm run build -- --configuration production
 
@@ -30,6 +33,7 @@ RUN mkdir -p /var/log/nginx && \
 # Copy the build output from builder stage
 COPY --from=builder /app/dist/lnyqe-app/browser /usr/share/nginx/html
 COPY --from=builder /app/build-info.txt /usr/share/nginx/html/build-info.txt
+COPY --from=builder /app/src/version.js /usr/share/nginx/html/version.js
 
 # Copy custom nginx config
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf

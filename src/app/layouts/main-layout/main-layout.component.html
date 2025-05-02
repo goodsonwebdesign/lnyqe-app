@@ -43,7 +43,12 @@
     <app-container>
       <div class="text-center text-neutral-500 dark:text-neutral-400">
         <p>&copy; {{ currentYear }} LNYQE. All rights reserved.</p>
-        <p class="text-xs mt-1">Build: {{ buildInfo }}</p>
+        <div class="flex justify-center items-center mt-1">
+          <span class="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
+            Build: {{ buildInfo }} 
+            <span *ngIf="deployedOn">| Deployed: {{ deployedOn }}</span>
+          </span>
+        </div>
       </div>
     </app-container>
   </footer>
