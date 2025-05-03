@@ -1,11 +1,11 @@
 #!/bin/bash
-# deploy.sh - Script to build, push and deploy the lynqe-app to ECS
+# deploy.sh - Script to build, push and deploy the lynqe-app to ECS with forced updates
 
 set -e
 
 # Configuration
 ECR_REPOSITORY="lynqe-app"
-AWS_REGION="us-east-2"  # Updated to the correct region
+AWS_REGION="us-east-2"
 CLUSTER_NAME="lynqe-cluster"
 SERVICE_NAME="lynqe-service"
 TASK_FAMILY="lynqe-app"
@@ -20,22 +20,24 @@ ECR_REPOSITORY_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_
 echo "Logging in to Amazon ECR..."
 aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
-# Step 3: Build Docker image with --no-cache to ensure fresh build
+# Step 3: Build Docker image with a unique timestamp and deploy marker
 echo "Building Docker image..."
 COMMIT_HASH=$(git rev-parse --short HEAD)
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 IMAGE_TAG="${COMMIT_HASH}-${TIMESTAMP}"
 BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+DEPLOY_ID="DEPLOY-${TIMESTAMP}"
 echo "Using build timestamp: ${BUILD_DATE}"
 echo "Using image tag: ${IMAGE_TAG}"
+echo "Using deploy ID: ${DEPLOY_ID}"
 
 # Force removing any existing image with the same name to ensure clean build
 echo "Removing any existing images with the same name..."
 docker rmi -f ${ECR_REPOSITORY}:latest || true
 docker rmi -f ${ECR_REPOSITORY_URI}:latest || true
 
-# Build with no-cache to ensure clean build
-docker build --no-cache --build-arg BUILD_DATE="${BUILD_DATE}" -t ${ECR_REPOSITORY}:${IMAGE_TAG} -f Dockerfile.prod .
+# Build with no-cache to ensure clean build and pass the deploy ID as a build argument
+docker build --no-cache --build-arg BUILD_DATE="${BUILD_DATE}" --build-arg DEPLOY_ID="${DEPLOY_ID}" -t ${ECR_REPOSITORY}:${IMAGE_TAG} -f Dockerfile.prod .
 
 # Step 4: Tag and push the image
 echo "Tagging and pushing image to ECR..."
@@ -44,15 +46,17 @@ docker tag ${ECR_REPOSITORY}:${IMAGE_TAG} ${ECR_REPOSITORY_URI}:latest
 docker push ${ECR_REPOSITORY_URI}:${IMAGE_TAG}
 docker push ${ECR_REPOSITORY_URI}:latest
 
-# Step 5: Update the ECS task definition
+# Step 5: Update the ECS task definition with the specific image tag (not latest)
 echo "Updating ECS task definition..."
 TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY --query "taskDefinition" --output json --region $AWS_REGION)
 NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION | jq --arg IMAGE "${ECR_REPOSITORY_URI}:${IMAGE_TAG}" \
-    '.containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
+    --arg DEPLOY_ID "${DEPLOY_ID}" \
+    '.containerDefinitions[0].image = $IMAGE | .containerDefinitions[0].environment += [{"name": "DEPLOY_ID", "value": $DEPLOY_ID}] | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
 
 # Step 6: Register the new task definition
 echo "Registering new task definition..."
 NEW_TASK_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION" --query "taskDefinition.taskDefinitionArn" --output text --region $AWS_REGION)
+echo "New task definition: $NEW_TASK_ARN"
 
 # Step 7: Ensure CloudWatch Log Groups exist
 echo "Ensuring CloudWatch Log Groups exist..."
@@ -74,8 +78,8 @@ echo "Using security groups: $SECURITY_GROUPS"
 echo "Checking for existing load balancer configuration..."
 LB_CONFIG=$(echo $SERVICE_INFO | jq '.services[0].loadBalancers')
 
-# Step 10: Update the service
-echo "Updating ECS service with new task definition..."
+# Step 10: Update the service with force-new-deployment flag
+echo "Updating ECS service with new task definition and forcing new deployment..."
 max_attempts=3
 attempt=1
 while [ $attempt -le $max_attempts ]; do
@@ -93,6 +97,7 @@ while [ $attempt -le $max_attempts ]; do
       --network-configuration "awsvpcConfiguration={subnets=$SUBNET_ARR,securityGroups=$SECURITY_GROUPS,assignPublicIp=ENABLED}" \
       --load-balancers "targetGroupArn=$TARGET_GROUP_ARN,containerName=$CONTAINER_NAME,containerPort=80" \
       --desired-count 1 \
+      --force-new-deployment \
       --region $AWS_REGION 2>&1)
   else
     echo "Updating service without load balancer configuration..."
@@ -102,6 +107,7 @@ while [ $attempt -le $max_attempts ]; do
       --task-definition $NEW_TASK_ARN \
       --network-configuration "awsvpcConfiguration={subnets=$SUBNET_ARR,securityGroups=$SECURITY_GROUPS,assignPublicIp=ENABLED}" \
       --desired-count 1 \
+      --force-new-deployment \
       --region $AWS_REGION 2>&1)
   fi
 
@@ -138,13 +144,31 @@ while [ $check_count -le $max_checks ] && [ "$(date +%s)" -lt $end_time ]; do
 
   echo "Deployment status: $deployment_status, Running: $running_count, Desired: $desired_count"
 
+  # Check specifically for the new deployment
+  running_tasks=$(aws ecs list-tasks --cluster $CLUSTER_NAME --service-name $SERVICE_NAME --desired-status RUNNING --region $AWS_REGION)
+  task_arns=$(echo $running_tasks | jq -r '.taskArns[]')
+  
+  if [ -n "$task_arns" ]; then
+    echo "Verifying DEPLOY_ID in task environment variables..."
+    for task_arn in $task_arns; do
+      task_details=$(aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $task_arn --region $AWS_REGION)
+      task_deploy_id=$(echo $task_details | jq -r '.tasks[0].containers[0].environment[] | select(.name=="DEPLOY_ID") | .value')
+      
+      if [ "$task_deploy_id" == "$DEPLOY_ID" ]; then
+        echo "Confirmed new deployment with DEPLOY_ID: $DEPLOY_ID is running!"
+        stabilized=true
+      else
+        echo "Warning: Task is running but with older deployment ID: $task_deploy_id"
+      fi
+    done
+  fi
+
   recent_events=$(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME --query 'services[0].events[0:3].message' --output text --region $AWS_REGION)
   echo "Recent events:"
   echo "$recent_events"
 
-  if [[ "$deployment_status" == "COMPLETED" || "$deployment_status" == "null" ]] && [ "$running_count" -eq "$desired_count" ] && [ "$desired_count" -gt 0 ]; then
-    echo "Service has stabilized successfully!"
-    stabilized=true
+  if [[ "$deployment_status" == "COMPLETED" || "$deployment_status" == "null" ]] && [ "$running_count" -eq "$desired_count" ] && [ "$desired_count" -gt 0 ] && [ "$stabilized" == true ]; then
+    echo "Service has stabilized successfully with the new deployment!"
     break
   fi
 
@@ -160,7 +184,7 @@ if [ "$stabilized" = true ]; then
   ALB_ARN=$(aws elbv2 describe-load-balancers --query "LoadBalancers[?contains(DNSName, 'lynqe')].LoadBalancerArn" --output text --region $AWS_REGION)
   if [ -n "$ALB_ARN" ]; then
     ALB_DNS=$(aws elbv2 describe-load-balancers --load-balancer-arns $ALB_ARN --query "LoadBalancers[0].DNSName" --output text --region $AWS_REGION)
-    echo "The new application should be accessible at: http://$ALB_DNS"
+    echo "The new application should be accessible at: https://$ALB_DNS"
   else
     echo "The new application should be accessible through your load balancer."
   fi
@@ -169,4 +193,13 @@ else
   echo "Please check the AWS ECS console or run troubleshooting commands."
 fi
 
+# Print a clear verification message with the deploy ID
+echo "============================================================"
+echo "DEPLOYMENT COMPLETED WITH ID: $DEPLOY_ID"
+echo "IMAGE TAG: ${IMAGE_TAG}"
+echo "DATE/TIME: ${BUILD_DATE}"
+echo "============================================================"
+echo "To verify this deployment has reached production, look for this"
+echo "DEPLOY_ID in your application's build information footer."
+echo "If you don't see this ID, your ALB may still be routing to an old task."
 echo "Deployment process completed."

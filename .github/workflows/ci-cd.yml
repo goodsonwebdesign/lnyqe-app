@@ -73,14 +73,23 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Generate Build Info
+    - name: Generate unique deployment ID and build info
       id: build-info
       run: |
-        echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+        TIMESTAMP=$(date +%Y%m%d%H%M%S)
+        BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+        DEPLOY_ID="DEPLOY-${{ github.run_id }}-${TIMESTAMP}"
+        
+        echo "BUILD_DATE=${BUILD_DATE}" >> $GITHUB_ENV
+        echo "DEPLOY_ID=${DEPLOY_ID}" >> $GITHUB_ENV
+        echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+        
         echo "Creating build-info.txt file"
-        echo "Build date: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" > build-info.txt
+        echo "Build date: ${BUILD_DATE}" > build-info.txt
+        echo "Deploy ID: ${DEPLOY_ID}" >> build-info.txt
         echo "Commit: ${{ github.sha }}" >> build-info.txt
         echo "Branch: ${{ github.ref_name }}" >> build-info.txt
+        echo "Workflow Run: ${{ github.run_id }}" >> build-info.txt
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -90,9 +99,11 @@ jobs:
         push: true
         build-args: |
           BUILD_DATE=${{ env.BUILD_DATE }}
+          DEPLOY_ID=${{ env.DEPLOY_ID }}
         tags: |
           ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:latest
           ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:${{ github.sha }}
+          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:${{ github.sha }}-${{ env.TIMESTAMP }}
 
   deploy-to-aws:
     needs: build-docker-images
@@ -153,28 +164,57 @@ jobs:
           echo "Application log group already exists."
         fi
 
-    # Verify ECS task definition and inspect it for potential issues
-    - name: Verify ECS task definition
-      id: check-task-def
+    # Register new task definition with specific image tag and deploy ID
+    - name: Register new task definition
+      id: register-task-def
       run: |
-        echo "Retrieving task definition..."
-        TASK_DEF_ARN=$(aws ecs describe-services --cluster ${{ secrets.ECSCLUSTER }} --services ${{ secrets.ECSSERVICE }} | jq -r '.services[0].taskDefinition')
-        aws ecs describe-task-definition --task-definition $TASK_DEF_ARN > task_def.json
-
-        echo "Task definition details:"
-        jq '.taskDefinition.containerDefinitions[0].image, .taskDefinition.containerDefinitions[0].essential, .taskDefinition.containerDefinitions[0].portMappings' task_def.json
-
-        # Check logging configuration
-        echo "Logging configuration:"
-        jq '.taskDefinition.containerDefinitions[0].logConfiguration' task_def.json
-
-        # Check if there are any required environment variables
-        echo "Environment variables:"
-        jq '.taskDefinition.containerDefinitions[0].environment' task_def.json
-
-        # Check resource limits
-        echo "Container resource limits:"
-        jq '.taskDefinition.containerDefinitions[0].cpu, .taskDefinition.containerDefinitions[0].memory' task_def.json
+        # Get the current task definition
+        echo "Retrieving current task definition..."
+        TASK_DEF_ARN=$(aws ecs describe-services --cluster ${{ secrets.ECSCLUSTER }} --services ${{ secrets.ECSSERVICE }} --query 'services[0].taskDefinition' --output text --region ${{ secrets.AWSREGION }})
+        aws ecs describe-task-definition --task-definition $TASK_DEF_ARN --region ${{ secrets.AWSREGION }} > task_def.json
+        
+        # Get the timestamp from previous job
+        TIMESTAMP="${{ needs.build-docker-images.outputs.TIMESTAMP || env.TIMESTAMP }}"
+        if [ -z "$TIMESTAMP" ]; then
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+        fi
+        
+        # Create a unique deploy ID
+        DEPLOY_ID="DEPLOY-${{ github.run_id }}-${TIMESTAMP}"
+        echo "Using deploy ID: ${DEPLOY_ID}"
+        
+        # Define the specific image tag (not using latest)
+        IMAGE_TAG="${{ github.sha }}-${TIMESTAMP}"
+        ECR_REPOSITORY="${{ steps.login-ecr.outputs.registry || secrets.AWSACCOUNTID }}.dkr.ecr.${{ secrets.AWSREGION }}.amazonaws.com/${{ secrets.ECRREPOSITORY }}"
+        FULL_IMAGE="${ECR_REPOSITORY}:${IMAGE_TAG}"
+        
+        # If can't get specific tag, fall back to commit SHA
+        if ! aws ecr describe-images --repository-name ${{ secrets.ECRREPOSITORY }} --image-ids imageTag=${IMAGE_TAG} --region ${{ secrets.AWSREGION }} &>/dev/null; then
+          echo "Image with tag ${IMAGE_TAG} not found, falling back to commit SHA"
+          FULL_IMAGE="${ECR_REPOSITORY}:${{ github.sha }}"
+        fi
+        
+        # If still can't find, fall back to latest as last resort
+        if ! aws ecr describe-images --repository-name ${{ secrets.ECRREPOSITORY }} --image-ids imageTag=${{ github.sha }} --region ${{ secrets.AWSREGION }} &>/dev/null; then
+          echo "Image with tag ${{ github.sha }} not found, falling back to latest"
+          FULL_IMAGE="${ECR_REPOSITORY}:latest"
+        fi
+        
+        echo "Using image: ${FULL_IMAGE}"
+        
+        # Update the task definition with the new image and deploy ID
+        echo "Updating task definition with new image and deploy ID..."
+        NEW_TASK_DEF=$(cat task_def.json | jq --arg IMAGE "${FULL_IMAGE}" \
+          --arg DEPLOY_ID "${DEPLOY_ID}" \
+          '.taskDefinition | .containerDefinitions[0].image = $IMAGE | .containerDefinitions[0].environment += [{"name": "DEPLOY_ID", "value": $DEPLOY_ID}] | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
+        
+        # Register the new task definition
+        echo "Registering new task definition..."
+        NEW_TASK_ARN=$(aws ecs register-task-definition --cli-input-json "${NEW_TASK_DEF}" --region ${{ secrets.AWSREGION }} --query 'taskDefinition.taskDefinitionArn' --output text)
+        
+        echo "New task definition registered: ${NEW_TASK_ARN}"
+        echo "task_arn=${NEW_TASK_ARN}" >> $GITHUB_ENV
+        echo "deploy_id=${DEPLOY_ID}" >> $GITHUB_ENV
 
     # Check load balancer subnets to ensure compatibility with ECS service
     - name: Check load balancer configuration
@@ -252,7 +292,7 @@ jobs:
         echo "security_groups=['$SECURITY_GROUPS']" >> $GITHUB_ENV
 
     # Update ECS service with retries and improved error handling
-    - name: Update ECS service
+    - name: Update ECS service with force-new-deployment
       id: update-service
       run: |
         max_attempts=3
@@ -262,29 +302,59 @@ jobs:
         # Use the correct subnets identified from the load balancer
         echo "Using subnet configuration: ${{ env.subnet_config }}"
         echo "Using security groups: ${{ env.security_groups }}"
+        echo "Using task definition: ${{ env.task_arn }}"
+        echo "Using deploy ID: ${{ env.deploy_id }}"
 
         while [ $attempt -le $max_attempts ]; do
           echo "Attempt $attempt of $max_attempts to update ECS service..."
 
-          if aws ecs update-service \
+          # Get target group ARN for load balancer configuration
+          TARGET_GROUP_ARN=$(aws ecs describe-services \
             --cluster ${{ secrets.ECSCLUSTER }} \
-            --service ${{ secrets.ECSSERVICE }} \
-            --network-configuration "awsvpcConfiguration={subnets=${{ env.subnet_config }},securityGroups=${{ env.security_groups }},assignPublicIp=ENABLED}" \
-            --force-new-deployment; then
-              echo "ECS service update initiated successfully!"
-              break
-          else
-            exit_code=$?
-            echo "Update failed with exit code: $exit_code"
+            --services ${{ secrets.ECSSERVICE }} \
+            --region ${{ secrets.AWSREGION }} \
+            --query 'services[0].loadBalancers[0].targetGroupArn' \
+            --output text)
 
-            if [ $attempt -lt $max_attempts ]; then
-              echo "Waiting ${backoff_seconds} seconds before retry..."
-              sleep $backoff_seconds
-              backoff_seconds=$(( backoff_seconds * 2 ))
-            else
-              echo "::error::Failed to update ECS service after $max_attempts attempts."
-              exit 1
+          if [ -n "$TARGET_GROUP_ARN" ] && [ "$TARGET_GROUP_ARN" != "null" ]; then
+            echo "Updating service with load balancer configuration..."
+            
+            if aws ecs update-service \
+              --cluster ${{ secrets.ECSCLUSTER }} \
+              --service ${{ secrets.ECSSERVICE }} \
+              --task-definition ${{ env.task_arn }} \
+              --load-balancers "targetGroupArn=${TARGET_GROUP_ARN},containerName=lynqe-app-container,containerPort=80" \
+              --network-configuration "awsvpcConfiguration={subnets=${{ env.subnet_config }},securityGroups=${{ env.security_groups }},assignPublicIp=ENABLED}" \
+              --force-new-deployment \
+              --region ${{ secrets.AWSREGION }}; then
+                echo "ECS service update initiated successfully!"
+                break
             fi
+          else
+            echo "Updating service without load balancer configuration..."
+            
+            if aws ecs update-service \
+              --cluster ${{ secrets.ECSCLUSTER }} \
+              --service ${{ secrets.ECSSERVICE }} \
+              --task-definition ${{ env.task_arn }} \
+              --network-configuration "awsvpcConfiguration={subnets=${{ env.subnet_config }},securityGroups=${{ env.security_groups }},assignPublicIp=ENABLED}" \
+              --force-new-deployment \
+              --region ${{ secrets.AWSREGION }}; then
+                echo "ECS service update initiated successfully!"
+                break
+            fi
+          fi
+          
+          exit_code=$?
+          echo "Update failed with exit code: $exit_code"
+
+          if [ $attempt -lt $max_attempts ]; then
+            echo "Waiting ${backoff_seconds} seconds before retry..."
+            sleep $backoff_seconds
+            backoff_seconds=$(( backoff_seconds * 2 ))
+          else
+            echo "::error::Failed to update ECS service after $max_attempts attempts."
+            exit 1
           fi
 
           attempt=$((attempt + 1))
@@ -338,24 +408,28 @@ jobs:
         fi
 
     # For deployment status check with improved diagnostics
-    - name: Wait for service to stabilize
+    - name: Wait for service to stabilize with verification
       id: wait-for-deployment
       timeout-minutes: 15
       run: |
         echo "Waiting for ECS service to stabilize (timeout after 15 minutes)..."
-
+        deploy_id="${{ env.deploy_id }}"
+        echo "Looking for deploy ID: ${deploy_id}"
+        
         max_checks=30
         check=1
         wait_time=30
         deployment_failed=false
+        stabilized=false
 
-        while [ $check -le $max_checks ]; do
+        while [ $check -le $max_checks ] && [ "$stabilized" != "true" ]; do
           echo "Check $check of $max_checks: Verifying service stability..."
 
           # Get detailed service status
           aws ecs describe-services \
             --cluster ${{ secrets.ECSCLUSTER }} \
-            --services ${{ secrets.ECSSERVICE }} > current_status.json
+            --services ${{ secrets.ECSSERVICE }} \
+            --region ${{ secrets.AWSREGION }} > current_status.json
 
           # Check for failed deployments
           deployment_status=$(jq -r '.services[0].deployments[0].status' current_status.json)
@@ -364,81 +438,91 @@ jobs:
 
           echo "Deployment status: $deployment_status, Running: $running_count, Desired: $desired_count"
 
-          # Check for any failed tasks
-          failed_tasks=$(jq -r '.services[0].failures | length' current_status.json)
-          if [ "$failed_tasks" -gt 0 ] || [ "$deployment_status" = "FAILED" ]; then
-            echo "::error::Deployment failed. Found $failed_tasks failed tasks."
-            jq '.services[0].failures' current_status.json
-            deployment_failed=true
-            break
+          # Verify running tasks have the correct deploy ID
+          if [ "$running_count" -gt 0 ]; then
+            echo "Checking running tasks for deploy ID..."
+            running_tasks=$(aws ecs list-tasks \
+              --cluster ${{ secrets.ECSCLUSTER }} \
+              --service-name ${{ secrets.ECSSERVICE }} \
+              --desired-status RUNNING \
+              --region ${{ secrets.AWSREGION }})
+              
+            task_arns=$(echo $running_tasks | jq -r '.taskArns[]')
+            
+            for task_arn in $task_arns; do
+              echo "Checking task: $task_arn"
+              task_details=$(aws ecs describe-tasks \
+                --cluster ${{ secrets.ECSCLUSTER }} \
+                --tasks $task_arn \
+                --region ${{ secrets.AWSREGION }})
+                
+              task_deploy_id=$(echo $task_details | jq -r '.tasks[0].containers[0].environment[] | select(.name=="DEPLOY_ID") | .value')
+              
+              if [ "$task_deploy_id" == "$deploy_id" ]; then
+                echo "✅ Found task with matching deploy ID: $deploy_id"
+                stabilized=true
+                break
+              else
+                echo "⚠️ Task has a different deploy ID: $task_deploy_id (expected: $deploy_id)"
+              fi
+            done
           fi
 
           # Check service events for any errors
           echo "Recent events:"
-          jq -r '.services[0].events[0:2][] | .message' current_status.json
+          jq -r '.services[0].events[0:2][] | .message' current_status.json || echo "No recent events found"
 
-          # Check if deployment is stable
-          if [ "$running_count" -eq "$desired_count" ] && [ "$desired_count" -gt 0 ]; then
-            # Use the wait command as an additional verification
-            if aws ecs wait services-stable \
-              --cluster ${{ secrets.ECSCLUSTER }} \
-              --services ${{ secrets.ECSSERVICE }}; then
-                echo "ECS service has stabilized successfully!"
-                echo "Deployment completed successfully!"
-                exit 0
-            fi
-          fi
-
-          # If we've checked multiple times and running count is still 0 despite desired > 0,
-          # then check for task placement issues
-          if [ $check -gt 5 ] && [ "$running_count" -eq 0 ] && [ "$desired_count" -gt 0 ]; then
-            echo "Container is failing to start. Checking task placement..."
-            TASK_ARNS=$(aws ecs list-tasks \
-              --cluster ${{ secrets.ECSCLUSTER }} \
-              --service-name ${{ secrets.ECSSERVICE }} \
-              --desired-status RUNNING \
-              --output json | jq -r '.taskArns[]')
-
-            if [ -z "$TASK_ARNS" ]; then
-              echo "No running tasks found. Checking for task placement failures..."
-              latest_service_event=$(jq -r '.services[0].events[0].message' current_status.json)
-              echo "Latest service event: $latest_service_event"
-
-              echo "Setting desired count to 0 and then back to 1 to force redeployment..."
-              aws ecs update-service \
-                --cluster ${{ secrets.ECSCLUSTER }} \
-                --service ${{ secrets.ECSSERVICE }} \
-                --desired-count 0
-
-              echo "Waiting 30 seconds before setting desired count back to 1..."
-              sleep 30
-
-              aws ecs update-service \
-                --cluster ${{ secrets.ECSCLUSTER }} \
-                --service ${{ secrets.ECSSERVICE }} \
-                --desired-count 1
-
-              echo "Reset desired count to 1. Continuing to monitor..."
-            fi
+          if [[ "$deployment_status" == "COMPLETED" || "$deployment_status" == "null" ]] && \
+             [ "$running_count" -eq "$desired_count" ] && [ "$desired_count" -gt 0 ] && \
+             [ "$stabilized" == "true" ]; then
+            echo "Service has stabilized successfully with the new deployment!"
+            break
           fi
 
           if [ $check -lt $max_checks ]; then
             echo "Waiting ${wait_time} seconds before checking again..."
             sleep $wait_time
           else
-            echo "::warning::ECS service did not stabilize within allowed time."
-            deployment_failed=true
+            echo "::warning::Maximum checks reached. Deployment may not be complete."
+            if [ "$stabilized" != "true" ]; then
+              deployment_failed=true
+            fi
           fi
 
           check=$((check + 1))
         done
 
-        if [ "$deployment_failed" = true ]; then
-          echo "::error::Deployment failed to stabilize. Please check ECS console for details."
-
-          # As a last attempt, get any CloudWatch logs if available
-          echo "Attempting to fetch container logs..."
-          aws logs describe-log-groups --log-group-name-prefix "/ecs/${{ secrets.ECSCLUSTER }}" || echo "No log groups found"
-
+        if [ "$stabilized" = true ]; then
+          echo "==================================================="
+          echo "✅ DEPLOYMENT VERIFIED SUCCESSFULLY"
+          echo "Deploy ID: $deploy_id"
+          echo "==================================================="
+          
+          # Get the ALB DNS name to display
+          ALB_ARN=$(aws elbv2 describe-load-balancers --query "LoadBalancers[?contains(DNSName, 'lynqe')].LoadBalancerArn" --output text --region ${{ secrets.AWSREGION }})
+          if [ -n "$ALB_ARN" ]; then
+            ALB_DNS=$(aws elbv2 describe-load-balancers --load-balancer-arns $ALB_ARN --query "LoadBalancers[0].DNSName" --output text --region ${{ secrets.AWSREGION }})
+            echo "The application is now live at: https://$ALB_DNS"
+          fi
+        else
+          echo "::error::Deployment failed to stabilize or verification failed"
+          
+          # Try to get logs from any running tasks as a last resort
+          RUNNING_TASKS=$(aws ecs list-tasks \
+            --cluster ${{ secrets.ECSCLUSTER }} \
+            --service-name ${{ secrets.ECSSERVICE }} \
+            --desired-status RUNNING \
+            --region ${{ secrets.AWSREGION }} --query 'taskArns[0]' --output text)
+            
+          if [ -n "$RUNNING_TASKS" ] && [ "$RUNNING_TASKS" != "None" ]; then
+            TASK_ID=$(echo $RUNNING_TASKS | cut -d'/' -f3)
+            echo "Fetching logs from task: $TASK_ID"
+            aws logs get-log-events \
+              --log-group-name "/ecs/lynqe-app" \
+              --log-stream-name "ecs/lynqe-app-container/$TASK_ID" \
+              --limit 30 \
+              --region ${{ secrets.AWSREGION }} || echo "Could not retrieve logs"
+          fi
+          
           exit 1
         fi
