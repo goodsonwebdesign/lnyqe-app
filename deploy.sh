@@ -136,6 +136,7 @@ end_time=$((start_time + timeout))
 env_check_successful=false
 deployment_stabilized=false
 consecutive_completed=0
+consecutive_in_progress=0
 
 check_count=1
 max_checks=30
@@ -156,6 +157,7 @@ while [ $check_count -le $max_checks ] && [ "$(date +%s)" -lt $end_time ]; do
 
     # Count consecutive COMPLETED status checks
     consecutive_completed=$((consecutive_completed+1))
+    consecutive_in_progress=0
     echo "Deployment is COMPLETED ($consecutive_completed consecutive checks)"
 
     # Force exit after 2 consecutive COMPLETED checks even if we can't verify DEPLOY_ID
@@ -163,8 +165,21 @@ while [ $check_count -le $max_checks ] && [ "$(date +%s)" -lt $end_time ]; do
       echo "Service has been COMPLETED for $consecutive_completed consecutive checks. Considering deployment successful!"
       break
     fi
+  elif [[ "$deployment_status" == "IN_PROGRESS" ]] && [ "$running_count" -eq "$desired_count" ] && [ "$desired_count" -gt 0 ]; then
+    # Track consecutive IN_PROGRESS states with correct task count
+    consecutive_in_progress=$((consecutive_in_progress+1))
+    consecutive_completed=0
+    echo "Deployment is IN_PROGRESS with desired task count ($consecutive_in_progress consecutive checks)"
+    
+    # Consider deployment stable after 6 consecutive IN_PROGRESS checks with full desired count (3 minutes)
+    if [ $consecutive_in_progress -ge 6 ]; then
+      echo "Service has been IN_PROGRESS with desired task count for $consecutive_in_progress consecutive checks. Considering deployment successful!"
+      deployment_stabilized=true
+      break
+    fi
   else
     consecutive_completed=0
+    consecutive_in_progress=0
   fi
 
   # Check specifically for the new deployment

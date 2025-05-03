@@ -417,6 +417,7 @@ jobs:
         stabilized=false
         deployment_id_verified=false
         consecutive_completed=0
+        consecutive_in_progress=0
 
         while [ $total_time -lt $MAX_WAIT_TIME ]; do
           # Check deployment status
@@ -443,16 +444,29 @@ jobs:
           # Track consecutive COMPLETED status checks
           if [ "$DEPLOYMENT_STATUS" == "COMPLETED" ] && [ "$RUNNING_COUNT" -eq "$DESIRED_COUNT" ]; then
             consecutive_completed=$((consecutive_completed+1))
+            consecutive_in_progress=0
             echo "Deployment is COMPLETED ($consecutive_completed consecutive checks)"
-
+            
             # Force exit after 2 consecutive COMPLETED checks even if we can't verify DEPLOY_ID
             if [ $consecutive_completed -ge 2 ]; then
               echo "Service has been COMPLETED for $consecutive_completed consecutive checks. Considering deployment successful!"
               stabilized=true
               break
             fi
+          elif [ "$DEPLOYMENT_STATUS" == "IN_PROGRESS" ] && [ "$RUNNING_COUNT" -eq "$DESIRED_COUNT" ]; then
+            consecutive_in_progress=$((consecutive_in_progress+1))
+            consecutive_completed=0
+            echo "Deployment is IN_PROGRESS with desired task count ($consecutive_in_progress consecutive checks)"
+            
+            # Consider stable after 6 consecutive IN_PROGRESS checks with full desired count (90 seconds)
+            if [ $consecutive_in_progress -ge 6 ]; then
+              echo "Service has been IN_PROGRESS with desired task count for $consecutive_in_progress consecutive checks. Considering deployment successful!"
+              stabilized=true
+              break
+            fi
           else
             consecutive_completed=0
+            consecutive_in_progress=0
           fi
 
           # Verify DEPLOY_ID in running tasks - important to confirm correct version is deployed
