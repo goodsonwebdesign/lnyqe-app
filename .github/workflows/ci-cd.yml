@@ -1,4 +1,4 @@
-name: LNYQE CI/CD Pipeline
+name: LNYQE CI/CD Pipeline with HTTPS Support
 
 on:
   push:
@@ -78,7 +78,7 @@ jobs:
       run: |
         TIMESTAMP=$(date +%Y%m%d%H%M%S)
         BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-        DEPLOY_ID="DEPLOY-${{ github.run_id }}-${TIMESTAMP}"
+        DEPLOY_ID="HTTPS-${{ github.run_id }}-${TIMESTAMP}"
         
         echo "BUILD_DATE=${BUILD_DATE}" >> $GITHUB_ENV
         echo "DEPLOY_ID=${DEPLOY_ID}" >> $GITHUB_ENV
@@ -90,6 +90,7 @@ jobs:
         echo "Commit: ${{ github.sha }}" >> build-info.txt
         echo "Branch: ${{ github.ref_name }}" >> build-info.txt
         echo "Workflow Run: ${{ github.run_id }}" >> build-info.txt
+        echo "HTTPS Enabled: Yes" >> build-info.txt
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -525,4 +526,72 @@ jobs:
           fi
           
           exit 1
+        fi
+
+    # Verify HTTPS configuration after deployment
+    - name: Verify HTTPS configuration
+      id: verify-https
+      if: success()
+      run: |
+        echo "Verifying HTTPS configuration..."
+        
+        # Get the load balancer ARN
+        ALB_ARN=$(aws elbv2 describe-load-balancers --query "LoadBalancers[?contains(DNSName, 'lynqe')].LoadBalancerArn" --output text --region ${{ secrets.AWSREGION }})
+        
+        if [ -n "$ALB_ARN" ]; then
+          # Check for HTTPS listener
+          HTTPS_LISTENER=$(aws elbv2 describe-listeners --load-balancer-arn $ALB_ARN --query "Listeners[?Port==\`443\`]" --output text --region ${{ secrets.AWSREGION }})
+          
+          if [ -n "$HTTPS_LISTENER" ]; then
+            echo "✅ HTTPS Listener is properly configured on port 443"
+            
+            # Get the certificate ARN
+            CERT_ARN=$(aws elbv2 describe-listeners --load-balancer-arn $ALB_ARN --query "Listeners[?Port==\`443\`].Certificates[0].CertificateArn" --output text --region ${{ secrets.AWSREGION }})
+            
+            if [ -n "$CERT_ARN" ]; then
+              echo "✅ SSL Certificate is attached to the HTTPS listener"
+              
+              # Check certificate expiration
+              CERT_DETAILS=$(aws acm describe-certificate --certificate-arn $CERT_ARN --region ${{ secrets.AWSREGION }})
+              EXPIRY=$(echo $CERT_DETAILS | jq -r '.Certificate.NotAfter')
+              
+              if [ -n "$EXPIRY" ]; then
+                EXPIRY_DATE=$(date -d "@$EXPIRY" +"%Y-%m-%d")
+                CURRENT_DATE=$(date +"%Y-%m-%d")
+                EXPIRY_SECONDS=$(date -d "$EXPIRY_DATE" +%s)
+                CURRENT_SECONDS=$(date -d "$CURRENT_DATE" +%s)
+                DAYS_DIFF=$(( ($EXPIRY_SECONDS - $CURRENT_SECONDS) / 86400 ))
+                
+                if [ $DAYS_DIFF -lt 30 ]; then
+                  echo "⚠️ WARNING: SSL Certificate expires in $DAYS_DIFF days on $EXPIRY_DATE"
+                else
+                  echo "✅ SSL Certificate is valid until $EXPIRY_DATE ($DAYS_DIFF days remaining)"
+                fi
+              fi
+            else
+              echo "⚠️ SSL Certificate not found on HTTPS listener"
+            fi
+            
+            # Check HTTP to HTTPS redirection
+            HTTP_LISTENER=$(aws elbv2 describe-listeners --load-balancer-arn $ALB_ARN --query "Listeners[?Port==\`80\`]" --output json --region ${{ secrets.AWSREGION }})
+            REDIRECT_CONFIG=$(echo $HTTP_LISTENER | jq -r '.[0].DefaultActions[0].RedirectConfig')
+            
+            if [[ "$REDIRECT_CONFIG" == *"HTTPS"* ]]; then
+              echo "✅ HTTP to HTTPS redirection is properly configured"
+            else
+              echo "⚠️ HTTP to HTTPS redirection may not be configured correctly"
+            fi
+          else
+            echo "⚠️ WARNING: No HTTPS listener found on port 443"
+          fi
+          
+          # Get the load balancer DNS name
+          ALB_DNS=$(aws elbv2 describe-load-balancers --load-balancer-arns $ALB_ARN --query "LoadBalancers[0].DNSName" --output text --region ${{ secrets.AWSREGION }})
+          
+          echo "==================================================="
+          echo "🌐 Your application is now live at: https://lynqe.io"
+          echo "🌐 ALB Endpoint: https://$ALB_DNS"
+          echo "==================================================="
+        else
+          echo "⚠️ WARNING: Could not find load balancer"
         fi
