@@ -193,53 +193,46 @@ jobs:
             echo "Error: No task definitions found for family $TASK_FAMILY"
             echo "Will try to create a new one using template..."
             
-            # Use a basic template for the task definition
-            cat > task_def_template.json << 'EOF'
-{
-  "family": "TASK_FAMILY_PLACEHOLDER",
-  "networkMode": "awsvpc",
-  "executionRoleArn": "ecsTaskExecutionRole",
-  "containerDefinitions": [
-    {
-      "name": "CONTAINER_NAME_PLACEHOLDER",
-      "image": "PLACEHOLDER_IMAGE",
-      "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 80,
-          "hostPort": 80,
-          "protocol": "tcp"
-        }
-      ],
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "/ecs/lynqe-app",
-          "awslogs-region": "REGION_PLACEHOLDER",
-          "awslogs-stream-prefix": "ecs"
-        }
-      },
-      "environment": [],
-      "secrets": [],
-      "healthCheck": {
-        "command": ["CMD-SHELL", "curl -f http://localhost/ || exit 1"],
-        "interval": 30,
-        "timeout": 5,
-        "retries": 3,
-        "startPeriod": 60
-      }
-    }
-  ],
-  "requiresCompatibilities": ["FARGATE"],
-  "cpu": "256",
-  "memory": "512"
-}
-EOF
-
-            # Replace placeholders with actual values
-            sed -i "s/TASK_FAMILY_PLACEHOLDER/$TASK_FAMILY/g" task_def_template.json
-            sed -i "s/CONTAINER_NAME_PLACEHOLDER/${{ env.CONTAINER_NAME }}/g" task_def_template.json
-            sed -i "s/REGION_PLACEHOLDER/${{ env.AWS_REGION }}/g" task_def_template.json
+            # Create the task definition template using echo commands to avoid YAML heredoc issues
+            echo '{' > task_def_template.json
+            echo '  "family": "'"$TASK_FAMILY"'",' >> task_def_template.json
+            echo '  "networkMode": "awsvpc",' >> task_def_template.json
+            echo '  "executionRoleArn": "ecsTaskExecutionRole",' >> task_def_template.json
+            echo '  "containerDefinitions": [' >> task_def_template.json
+            echo '    {' >> task_def_template.json
+            echo '      "name": "'"${{ env.CONTAINER_NAME }}"'",' >> task_def_template.json
+            echo '      "image": "PLACEHOLDER_IMAGE",' >> task_def_template.json
+            echo '      "essential": true,' >> task_def_template.json
+            echo '      "portMappings": [' >> task_def_template.json
+            echo '        {' >> task_def_template.json
+            echo '          "containerPort": 80,' >> task_def_template.json
+            echo '          "hostPort": 80,' >> task_def_template.json
+            echo '          "protocol": "tcp"' >> task_def_template.json
+            echo '        }' >> task_def_template.json
+            echo '      ],' >> task_def_template.json
+            echo '      "logConfiguration": {' >> task_def_template.json
+            echo '        "logDriver": "awslogs",' >> task_def_template.json
+            echo '        "options": {' >> task_def_template.json
+            echo '          "awslogs-group": "/ecs/lynqe-app",' >> task_def_template.json
+            echo '          "awslogs-region": "'"${{ env.AWS_REGION }}"'",' >> task_def_template.json
+            echo '          "awslogs-stream-prefix": "ecs"' >> task_def_template.json
+            echo '        }' >> task_def_template.json
+            echo '      },' >> task_def_template.json
+            echo '      "environment": [],' >> task_def_template.json
+            echo '      "secrets": [],' >> task_def_template.json
+            echo '      "healthCheck": {' >> task_def_template.json
+            echo '        "command": ["CMD-SHELL", "curl -f http://localhost/ || exit 1"],' >> task_def_template.json
+            echo '        "interval": 30,' >> task_def_template.json
+            echo '        "timeout": 5,' >> task_def_template.json
+            echo '        "retries": 3,' >> task_def_template.json
+            echo '        "startPeriod": 60' >> task_def_template.json
+            echo '      }' >> task_def_template.json
+            echo '    }' >> task_def_template.json
+            echo '  ],' >> task_def_template.json
+            echo '  "requiresCompatibilities": ["FARGATE"],' >> task_def_template.json
+            echo '  "cpu": "256",' >> task_def_template.json
+            echo '  "memory": "512"' >> task_def_template.json
+            echo '}' >> task_def_template.json
             
             TASK_DEF_JSON=$(cat task_def_template.json)
           else
