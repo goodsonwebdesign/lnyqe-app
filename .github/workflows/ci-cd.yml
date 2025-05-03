@@ -177,23 +177,23 @@ jobs:
         # Get the current task definition with error handling
         echo "Retrieving current task definition..."
         TASK_DEFINITION=$(aws ecs describe-services --cluster ${{ env.CLUSTER_NAME }} --services ${{ env.SERVICE_NAME }} --query "taskDefinition" --output text --region ${{ env.AWS_REGION }})
-        
+
         # Check if task definition retrieval was successful
-        if [ -z "$TASK_DEFINITION" ] || [ "$TASK_DEFINITION" == "None" ]; then
+        if [ -z "$TASK_DEFINITION" ] || [ "$TASK_DEFINITION" = "None" ]; then
           echo "Warning: Couldn't retrieve current task definition from service. Will try to find latest task definition by family."
           
-          # Find the task definition family from the service name
+          # Find the task definition family from the service name or ECR repository
           TASK_FAMILY="${{ secrets.ECRREPOSITORY }}"
           echo "Using task family: $TASK_FAMILY"
           
           # List task definitions and get the latest one
           LATEST_TASK_DEF=$(aws ecs list-task-definitions --family-prefix $TASK_FAMILY --sort DESC --max-items 1 --region ${{ env.AWS_REGION }} --query 'taskDefinitionArns[0]' --output text)
           
-          if [ -z "$LATEST_TASK_DEF" ] || [ "$LATEST_TASK_DEF" == "None" ]; then
+          if [ -z "$LATEST_TASK_DEF" ] || [ "$LATEST_TASK_DEF" = "None" ]; then
             echo "Error: No task definitions found for family $TASK_FAMILY"
             echo "Will try to create a new one using template..."
             
-            # Create the task definition template using echo commands to avoid YAML heredoc issues
+            # Create the task definition template using echo commands
             echo '{' > task_def_template.json
             echo '  "family": "'"$TASK_FAMILY"'",' >> task_def_template.json
             echo '  "networkMode": "awsvpc",' >> task_def_template.json
@@ -237,13 +237,17 @@ jobs:
             TASK_DEF_JSON=$(cat task_def_template.json)
           else
             echo "Found latest task definition: $LATEST_TASK_DEF"
-            TASK_DEFINITION=$LATEST_TASK_DEF
             
-            # Get details of the current task definition to use as a base
-            TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $TASK_DEFINITION --query "taskDefinition" --output json --region ${{ env.AWS_REGION }})
+            # Get details of the latest task definition to use as a base
+            TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY --query "taskDefinition" --output json --region ${{ env.AWS_REGION }})
             if [ $? -ne 0 ]; then
-              echo "Error: Failed to describe task definition $TASK_DEFINITION"
-              exit 1
+              echo "Error: Failed to describe task definition $LATEST_TASK_DEF, trying with family name only"
+              TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY --query "taskDefinition" --output json --region ${{ env.AWS_REGION }})
+              
+              if [ $? -ne 0 ]; then
+                echo "Error: Failed to describe task definition by family $TASK_FAMILY"
+                exit 1
+              fi
             fi
           fi
         else
@@ -251,29 +255,37 @@ jobs:
           echo "Using task definition: $TASK_DEFINITION"
           TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $TASK_DEFINITION --query "taskDefinition" --output json --region ${{ env.AWS_REGION }})
           if [ $? -ne 0 ]; then
-            echo "Error: Failed to describe task definition $TASK_DEFINITION"
-            echo "Will try to find latest task definition by family..."
+            echo "Error: Failed to describe task definition $TASK_DEFINITION, trying with family name"
             
-            # Find the task definition family from the service name
-            TASK_FAMILY="${{ secrets.ECRREPOSITORY }}"
+            # Try to get the task family from the ARN
+            TASK_FAMILY=$(echo $TASK_DEFINITION | cut -d'/' -f2 | cut -d':' -f1)
+            if [ -z "$TASK_FAMILY" ]; then
+              TASK_FAMILY="${{ secrets.ECRREPOSITORY }}"
+            fi
             echo "Using task family: $TASK_FAMILY"
             
-            # List task definitions and get the latest one
-            LATEST_TASK_DEF=$(aws ecs list-task-definitions --family-prefix $TASK_FAMILY --sort DESC --max-items 1 --region ${{ env.AWS_REGION }} --query 'taskDefinitionArns[0]' --output text)
-            
-            if [ -z "$LATEST_TASK_DEF" ] || [ "$LATEST_TASK_DEF" == "None" ]; then
-              echo "Error: No task definitions found for family $TASK_FAMILY"
-              echo "Exiting with failure"
-              exit 1
-            else
-              echo "Found latest task definition: $LATEST_TASK_DEF"
-              TASK_DEFINITION=$LATEST_TASK_DEF
+            # Try to describe using just the family name
+            TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY --query "taskDefinition" --output json --region ${{ env.AWS_REGION }})
+            if [ $? -ne 0 ]; then
+              echo "Error: Failed to describe task definition using family $TASK_FAMILY"
+              echo "Trying to find latest task definition in the family..."
               
-              # Get details of the current task definition to use as a base
-              TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $TASK_DEFINITION --query "taskDefinition" --output json --region ${{ env.AWS_REGION }})
-              if [ $? -ne 0 ]; then
-                echo "Error: Failed to describe task definition $TASK_DEFINITION"
+              # List task definitions and get the latest one
+              LATEST_TASK_DEF=$(aws ecs list-task-definitions --family-prefix $TASK_FAMILY --sort DESC --max-items 1 --region ${{ env.AWS_REGION }} --query 'taskDefinitionArns[0]' --output text)
+              
+              if [ -z "$LATEST_TASK_DEF" ] || [ "$LATEST_TASK_DEF" = "None" ]; then
+                echo "Error: No task definitions found for family $TASK_FAMILY"
+                echo "Exiting with failure"
                 exit 1
+              else
+                echo "Found latest task definition: $LATEST_TASK_DEF"
+                
+                # Get details of the current task definition to use as a base
+                TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $LATEST_TASK_DEF --query "taskDefinition" --output json --region ${{ env.AWS_REGION }})
+                if [ $? -ne 0 ]; then
+                  echo "Error: Failed to describe task definition $LATEST_TASK_DEF"
+                  exit 1
+                fi
               fi
             fi
           fi
