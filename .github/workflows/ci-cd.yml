@@ -344,6 +344,18 @@ jobs:
               --force-new-deployment \
               --region ${{ secrets.AWSREGION }}; then
                 echo "ECS service update initiated successfully!"
+                
+                # Force deregistration of any old tasks to ensure they're replaced
+                echo "Forcing deregistration of any prior tasks in target group..."
+                aws elbv2 describe-target-health \
+                  --target-group-arn ${TARGET_GROUP_ARN} \
+                  --query 'TargetHealthDescriptions[*].Target.Id' \
+                  --output text | tr '\t' '\n' | while read -r target_id; do
+                    echo "Deregistering old target: $target_id"
+                    aws elbv2 deregister-targets \
+                      --target-group-arn ${TARGET_GROUP_ARN} \
+                      --targets Id=${target_id}
+                done
                 break
             fi
           else

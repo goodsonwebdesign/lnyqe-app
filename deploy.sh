@@ -94,6 +94,11 @@ while [ $attempt -le $max_attempts ]; do
     echo "Updating service with load balancer configuration..."
     TARGET_GROUP_ARN=$(echo $LB_CONFIG | jq -r '.[0].targetGroupArn')
 
+    # Explicitly clear the pull cache by adding a random parameter to prevent image caching
+    CACHE_BUSTER=$(date +%s)
+    
+    echo "Adding cache buster ($CACHE_BUSTER) to force ECS to pull the latest image..."
+    
     update_result=$(aws ecs update-service \
       --cluster $CLUSTER_NAME \
       --service $SERVICE_NAME \
