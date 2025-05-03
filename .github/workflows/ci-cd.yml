@@ -416,8 +416,8 @@ jobs:
         
         # Get current service state
         SERVICE_JSON=$(aws ecs describe-services \
-          --cluster ${{ secrets.ECS_CLUSTER }} \
-          --services ${{ secrets.ECS_SERVICE }} \
+          --cluster ${{ secrets.ECSCLUSTER }} \
+          --services ${{ secrets.ECSSERVICE }} \
           --region ${{ secrets.AWSREGION }})
         
         # Check current deployment status first
@@ -440,8 +440,8 @@ jobs:
           echo "Check $i of $MAX_CHECKS: Verifying service stability..."
           
           SERVICE_JSON=$(aws ecs describe-services \
-            --cluster ${{ secrets.ECS_CLUSTER }} \
-            --services ${{ secrets.ECS_SERVICE }} \
+            --cluster ${{ secrets.ECSCLUSTER }} \
+            --services ${{ secrets.ECSSERVICE }} \
             --region ${{ secrets.AWSREGION }})
           
           # Check overall service status first
@@ -469,7 +469,7 @@ jobs:
           
           # Check for task failures that might indicate a problem
           STOPPED_TASKS=$(aws ecs list-tasks \
-            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --cluster ${{ secrets.ECSCLUSTER }} \
             --desired-status STOPPED \
             --region ${{ secrets.AWSREGION }} \
             --started-by "ecs-svc" \
