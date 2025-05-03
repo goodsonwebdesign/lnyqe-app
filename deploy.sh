@@ -179,7 +179,8 @@ while [ $check_count -le $max_checks ] && [ "$(date +%s)" -lt $end_time ]; do
       # Check if environment exists before trying to process it
       has_env=$(echo $task_details | jq '.tasks[0].containers[0].environment != null' 2>/dev/null)
       if [ "$has_env" == "true" ]; then
-        task_deploy_id=$(echo $task_details | jq -r '.tasks[0].containers[0].environment[] | select(.name=="DEPLOY_ID") | .value' 2>/dev/null)
+        # Use -r to avoid parsing errors and provide a default value if not found
+        task_deploy_id=$(echo $task_details | jq -r '.tasks[0].containers[0].environment | if . == null then "" else .[] | select(.name=="DEPLOY_ID") | .value end' 2>/dev/null || echo "")
 
         if [ -n "$task_deploy_id" ] && [ "$task_deploy_id" == "$DEPLOY_ID" ]; then
           echo "Confirmed new deployment with DEPLOY_ID: $DEPLOY_ID is running!"

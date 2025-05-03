@@ -473,15 +473,20 @@ jobs:
                   --tasks $task_arn \
                   --region ${{ secrets.AWSREGION }})
 
-                task_deploy_id=$(echo $task_details | jq -r '.tasks[0].containers[0].environment[] | select(.name=="DEPLOY_ID") | .value')
+                # Safely check if environment exists and avoid the jq null error
+                has_env=$(echo $task_details | jq '.tasks[0].containers[0].environment != null' 2>/dev/null)
+                if [ "$has_env" == "true" ]; then
+                  # Use -r to avoid parsing errors and provide a default value if not found
+                  task_deploy_id=$(echo $task_details | jq -r '.tasks[0].containers[0].environment | if . == null then "" else .[] | select(.name=="DEPLOY_ID") | .value end' 2>/dev/null || echo "")
 
-                if [ "$task_deploy_id" == "${{ env.deploy_id }}" ]; then
-                  echo "Confirmed new deployment with DEPLOY_ID: ${{ env.deploy_id }} is running!"
-                  deployment_id_verified=true
-                  stabilized=true
-                  break
-                else
-                  echo "Warning: Task is running but with older deployment ID: $task_deploy_id"
+                  if [ "$task_deploy_id" == "${{ env.deploy_id }}" ]; then
+                    echo "Confirmed new deployment with DEPLOY_ID: ${{ env.deploy_id }} is running!"
+                    deployment_id_verified=true
+                    stabilized=true
+                    break
+                  else
+                    echo "Warning: Task is running but with older deployment ID: $task_deploy_id"
+                  fi
                 fi
               done
             fi
