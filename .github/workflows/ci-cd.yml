@@ -343,16 +343,20 @@ jobs:
         echo "Retrieving current ECS service configuration..."
         SERVICE_INFO=$(aws ecs describe-services --cluster ${{ env.CLUSTER_NAME }} --services ${{ env.SERVICE_NAME }} --region ${{ env.AWS_REGION }})
         
-        # Extract subnet IDs directly from the current service
-        SUBNETS=$(echo $SERVICE_INFO | jq -r '.services[0].networkConfiguration.awsvpcConfiguration.subnets[]' | tr '\n' ',' | sed 's/,$//')
-        SUBNET_ARR=$(echo $SERVICE_INFO | jq '.services[0].networkConfiguration.awsvpcConfiguration.subnets')
-        SECURITY_GROUPS=$(echo $SERVICE_INFO | jq '.services[0].networkConfiguration.awsvpcConfiguration.securityGroups')
+        # Extract subnet IDs directly from the current service and format them properly
+        SUBNETS=$(echo $SERVICE_INFO | jq -r '.services[0].networkConfiguration.awsvpcConfiguration.subnets[] | select(. != null)' | tr '\n' ' ' | sed 's/ $//')
         
-        echo "Using subnets: $SUBNET_ARR"
-        echo "Using security groups: $SECURITY_GROUPS"
+        # Format for AWS CLI: convert from array to comma-separated list
+        SUBNET_STRING=$(echo $SUBNETS | sed 's/ /,/g')
+        echo "Using subnet string: $SUBNET_STRING"
         
-        echo "subnet_config=$SUBNET_ARR" >> $GITHUB_ENV
-        echo "security_groups=$SECURITY_GROUPS" >> $GITHUB_ENV
+        # Format security groups correctly
+        SECURITY_GROUP_LIST=$(echo $SERVICE_INFO | jq -r '.services[0].networkConfiguration.awsvpcConfiguration.securityGroups[] | select(. != null)' | tr '\n' ' ' | sed 's/ $//')
+        SECURITY_GROUP_STRING=$(echo $SECURITY_GROUP_LIST | sed 's/ /,/g')
+        echo "Using security groups: $SECURITY_GROUP_STRING"
+        
+        echo "subnet_string=$SUBNET_STRING" >> $GITHUB_ENV
+        echo "security_group_string=$SECURITY_GROUP_STRING" >> $GITHUB_ENV
 
     # Get load balancer configuration
     - name: Get load balancer configuration
@@ -392,7 +396,7 @@ jobs:
               --cluster ${{ env.CLUSTER_NAME }} \
               --service ${{ env.SERVICE_NAME }} \
               --task-definition ${{ env.task_arn }} \
-              --network-configuration "awsvpcConfiguration={subnets=${{ env.subnet_config }},securityGroups=${{ env.security_groups }},assignPublicIp=ENABLED}" \
+              --network-configuration "awsvpcConfiguration={subnets=${{ env.subnet_string }},securityGroups=${{ env.security_group_string }},assignPublicIp=ENABLED}" \
               --load-balancers "targetGroupArn=${{ env.target_group_arn }},containerName=${{ env.CONTAINER_NAME }},containerPort=80" \
               --desired-count 1 \
               --force-new-deployment \
@@ -423,7 +427,7 @@ jobs:
               --cluster ${{ env.CLUSTER_NAME }} \
               --service ${{ env.SERVICE_NAME }} \
               --task-definition ${{ env.task_arn }} \
-              --network-configuration "awsvpcConfiguration={subnets=${{ env.subnet_config }},securityGroups=${{ env.security_groups }},assignPublicIp=ENABLED}" \
+              --network-configuration "awsvpcConfiguration={subnets=${{ env.subnet_string }},securityGroups=${{ env.security_group_string }},assignPublicIp=ENABLED}" \
               --desired-count 1 \
               --force-new-deployment \
               --region ${{ env.AWS_REGION }} 2>&1)
