@@ -40,6 +40,8 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    outputs:
+      TIMESTAMP: ${{ env.TIMESTAMP }}
 
     steps:
     - uses: actions/checkout@v3
@@ -83,6 +85,7 @@ jobs:
         echo "BUILD_DATE=${BUILD_DATE}" >> $GITHUB_ENV
         echo "DEPLOY_ID=${DEPLOY_ID}" >> $GITHUB_ENV
         echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+        echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_OUTPUT
         
         echo "Creating build-info.txt file"
         echo "Build date: ${BUILD_DATE}" > build-info.txt
@@ -112,12 +115,20 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
     steps:
+    - uses: actions/checkout@v3
+    
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWSACCESSKEYID }}
         aws-secret-access-key: ${{ secrets.AWSSECRETACCESSKEY }}
         aws-region: ${{ secrets.AWSREGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+      with:
+        mask-password: true
 
     # Create CloudWatch log group if it doesn't exist
     - name: Create CloudWatch log group
@@ -175,7 +186,7 @@ jobs:
         aws ecs describe-task-definition --task-definition $TASK_DEF_ARN --region ${{ secrets.AWSREGION }} > task_def.json
         
         # Get the timestamp from previous job
-        TIMESTAMP="${{ needs.build-docker-images.outputs.TIMESTAMP || env.TIMESTAMP }}"
+        TIMESTAMP="${{ needs.build-docker-images.outputs.TIMESTAMP }}"
         if [ -z "$TIMESTAMP" ]; then
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
         fi
@@ -186,7 +197,7 @@ jobs:
         
         # Define the specific image tag (not using latest)
         IMAGE_TAG="${{ github.sha }}-${TIMESTAMP}"
-        ECR_REPOSITORY="${{ steps.login-ecr.outputs.registry || secrets.AWSACCOUNTID }}.dkr.ecr.${{ secrets.AWSREGION }}.amazonaws.com/${{ secrets.ECRREPOSITORY }}"
+        ECR_REPOSITORY="${{ steps.login-ecr.outputs.registry }}.dkr.ecr.${{ secrets.AWSREGION }}.amazonaws.com/${{ secrets.ECRREPOSITORY }}"
         FULL_IMAGE="${ECR_REPOSITORY}:${IMAGE_TAG}"
         
         # If can't get specific tag, fall back to commit SHA
@@ -387,266 +398,92 @@ jobs:
           # Display container stop reason
           echo "Container stop details:"
           jq -r '.tasks[] | .containers[] | {name: .name, reason: .reason, exitCode: .exitCode}' stopped_tasks.json
-
-          # If there are any container insights, get the logs
-          for TASK_ARN in $TASK_ARNS; do
-            TASK_ID=$(echo $TASK_ARN | cut -d'/' -f2)
-            echo "Attempting to get logs for task $TASK_ID..."
-            # Use the log group we created earlier
-            CLUSTER_NAME=$(aws ecs describe-clusters \
-              --clusters ${{ secrets.ECSCLUSTER }} \
-              --query 'clusters[0].clusterName' \
-              --output text)
-            LOG_GROUP_NAME="/ecs/$CLUSTER_NAME"
-
-            aws logs get-log-events \
-              --log-group-name "$LOG_GROUP_NAME" \
-              --log-stream-name "ecs/lynqe-app-container/$TASK_ID" \
-              --limit 20 || echo "No logs available for this task"
-          done
         else
           echo "No stopped tasks found."
         fi
 
-    # Wait for ECS service to stabilize
+    # Wait for service to stabilize
     - name: Wait for ECS service to stabilize
-      id: wait-for-deployment
+      id: wait-for-service
       run: |
-        echo "Waiting for ECS service to stabilize (timeout after 15 minutes)..."
-        
-        # Configuration
-        MAX_WAIT_MINUTES=15
-        # Consider service stable if IN_PROGRESS for this many checks without changes
-        STABLE_IN_PROGRESS_THRESHOLD=5
-        # Calculate the number of checks (1 check every 30 seconds)
-        MAX_CHECKS=$((MAX_WAIT_MINUTES * 2))
-        
-        # Variables to track stable IN_PROGRESS deployments
-        STABLE_COUNT=0
-        LAST_RUNNING_COUNT=0
-        LAST_TASK_SET=""
-        
-        # Get current service state
-        SERVICE_JSON=$(aws ecs describe-services \
-          --cluster ${{ secrets.ECSCLUSTER }} \
-          --services ${{ secrets.ECSSERVICE }} \
-          --region ${{ secrets.AWSREGION }})
-        
-        # Check current deployment status first
-        CURRENT_STATUS=$(echo $SERVICE_JSON | jq -r '.services[0].deployments[0].rolloutState')
-        RUNNING_COUNT=$(echo $SERVICE_JSON | jq -r '.services[0].runningCount')
-        DESIRED_COUNT=$(echo $SERVICE_JSON | jq -r '.services[0].desiredCount')
-        CURRENT_TASK_SET=$(echo $SERVICE_JSON | jq -r '.services[0].deployments[0].id')
-        
-        echo "Initial state: Status=$CURRENT_STATUS, Running=$RUNNING_COUNT/$DESIRED_COUNT"
-        echo "Deployment ID: $CURRENT_TASK_SET"
-        
-        if [ "$CURRENT_STATUS" == "COMPLETED" ] && [ "$RUNNING_COUNT" -eq "$DESIRED_COUNT" ]; then
-          echo "✅ Deployment already completed and service is stable!"
-          echo "Running tasks: $RUNNING_COUNT/$DESIRED_COUNT"
-          exit 0
-        fi
-        
-        # Traditional check with retries
-        DEPLOY_ID="${{ env.deploy_id }}"
-        echo "Looking for deploy ID: $DEPLOY_ID"
-        
-        for i in $(seq 1 $MAX_CHECKS); do
-          echo -e "\nCheck $i of $MAX_CHECKS: Verifying service stability..."
-          
-          SERVICE_JSON=$(aws ecs describe-services \
+        echo "Waiting for ECS service to stabilize..."
+        MAX_WAIT_TIME=300  # 5 minutes
+        INTERVAL=15
+        total_time=0
+
+        while [ $total_time -lt $MAX_WAIT_TIME ]; do
+          # Check deployment status
+          DEPLOYMENT_STATUS=$(aws ecs describe-services \
             --cluster ${{ secrets.ECSCLUSTER }} \
             --services ${{ secrets.ECSSERVICE }} \
-            --region ${{ secrets.AWSREGION }})
+            --query 'services[0].deployments[0].status' \
+            --output text)
           
-          # Check overall service status first
-          RUNNING_COUNT=$(echo $SERVICE_JSON | jq -r '.services[0].runningCount')
-          DESIRED_COUNT=$(echo $SERVICE_JSON | jq -r '.services[0].desiredCount')
-          PRIMARY_STATUS=$(echo $SERVICE_JSON | jq -r '.services[0].deployments[0].rolloutState')
-          CURRENT_TASK_SET=$(echo $SERVICE_JSON | jq -r '.services[0].deployments[0].id')
-          DEPLOYMENT_CREATED=$(echo $SERVICE_JSON | jq -r '.services[0].deployments[0].createdAt')
-          
-          # Calculate deployment duration
-          CREATED_TIMESTAMP=$(date -d "$DEPLOYMENT_CREATED" "+%s" 2>/dev/null || date -d "$DEPLOYMENT_CREATED" "+%s")
-          CURRENT_TIMESTAMP=$(date "+%s")
-          DEPLOYMENT_DURATION=$((CURRENT_TIMESTAMP - CREATED_TIMESTAMP))
-          DURATION_MINUTES=$((DEPLOYMENT_DURATION / 60))
-          DURATION_SECONDS=$((DEPLOYMENT_DURATION % 60))
-          
-          echo "Deployment status: $PRIMARY_STATUS, Running: $RUNNING_COUNT, Desired: $DESIRED_COUNT"
-          echo "Deployment ID: $CURRENT_TASK_SET"
-          echo "Deployment duration: ${DURATION_MINUTES}m ${DURATION_SECONDS}s"
-          
-          # Get recent events
-          RECENT_EVENTS=$(echo $SERVICE_JSON | jq -r '.services[0].events[0:3][].message')
-          echo "Recent events:"
-          echo "$RECENT_EVENTS"
-          
-          # Check by task running count and deployment status
-          if [ "$RUNNING_COUNT" -eq "$DESIRED_COUNT" ] && [ "$PRIMARY_STATUS" == "COMPLETED" ]; then
-            echo "✅ Deployment successful! Service is stable with $RUNNING_COUNT running tasks."
-            exit 0
-          fi
-          
-          # Check for stability in IN_PROGRESS state
-          if [ "$PRIMARY_STATUS" == "IN_PROGRESS" ] && [ "$RUNNING_COUNT" -gt 0 ]; then
-            echo "Deployment in progress with $RUNNING_COUNT running tasks. Continuing to wait..."
-            
-            # Check if deployment is in stable progress (no change in running count and task set)
-            if [ "$RUNNING_COUNT" -eq "$LAST_RUNNING_COUNT" ] && [ "$CURRENT_TASK_SET" == "$LAST_TASK_SET" ]; then
-              STABLE_COUNT=$((STABLE_COUNT + 1))
-              echo "📊 Stability tracker: $STABLE_COUNT/$STABLE_IN_PROGRESS_THRESHOLD consecutive stable checks"
-              
-              # If stable for enough checks, consider it successful
-              if [ $STABLE_COUNT -ge $STABLE_IN_PROGRESS_THRESHOLD ]; then
-                echo "✅ Deployment considered stable after $STABLE_COUNT consecutive stable checks in IN_PROGRESS state."
-                echo "Service has $RUNNING_COUNT/$DESIRED_COUNT tasks running consistently."
-                exit 0
-              fi
-            else
-              # Reset stability counter if counts or deployment IDs change
-              STABLE_COUNT=0
-              echo "📊 Stability tracker reset: deployment state changed"
-            fi
-          else
-            # Reset stability counter for non-IN_PROGRESS states
-            STABLE_COUNT=0
-          fi
-          
-          # Update tracking variables
-          LAST_RUNNING_COUNT=$RUNNING_COUNT
-          LAST_TASK_SET=$CURRENT_TASK_SET
-          
-          # Check for task failures that might indicate a problem
-          STOPPED_TASKS=$(aws ecs list-tasks \
+          RUNNING_COUNT=$(aws ecs describe-services \
             --cluster ${{ secrets.ECSCLUSTER }} \
-            --desired-status STOPPED \
-            --region ${{ secrets.AWSREGION }} \
-            --started-by "ecs-svc" \
-            --output text | wc -l | xargs)
+            --services ${{ secrets.ECSSERVICE }} \
+            --query 'services[0].deployments[0].runningCount' \
+            --output text)
           
-          if [ "$STOPPED_TASKS" -gt 2 ] && [ "$RUNNING_COUNT" -eq 0 ]; then
-            echo "⚠️ Warning: Multiple stopped tasks detected ($STOPPED_TASKS). Deployment may be failing."
-            
-            # Get detailed information about stopped tasks (just the latest one for brevity)
-            LATEST_TASK_ARN=$(aws ecs list-tasks \
-              --cluster ${{ secrets.ECSCLUSTER }} \
-              --desired-status STOPPED \
-              --region ${{ secrets.AWSREGION }} \
-              --started-by "ecs-svc" \
-              --output json | jq -r '.taskArns[0]')
-            
-            if [ -n "$LATEST_TASK_ARN" ] && [ "$LATEST_TASK_ARN" != "null" ]; then
-              echo "Getting details for latest stopped task..."
-              TASK_DETAILS=$(aws ecs describe-tasks \
-                --cluster ${{ secrets.ECSCLUSTER }} \
-                --tasks $LATEST_TASK_ARN \
-                --region ${{ secrets.AWSREGION }})
-              
-              STOP_REASON=$(echo $TASK_DETAILS | jq -r '.tasks[0].stoppedReason')
-              echo "Stop reason: $STOP_REASON"
-              
-              # Get container exit codes
-              echo "Container exit details:"
-              echo $TASK_DETAILS | jq -r '.tasks[0].containers[] | "  - " + .name + ": " + (.exitCode | tostring) + " - " + (.reason // "No reason provided")'
-            fi
+          DESIRED_COUNT=$(aws ecs describe-services \
+            --cluster ${{ secrets.ECSCLUSTER }} \
+            --services ${{ secrets.ECSSERVICE }} \
+            --query 'services[0].deployments[0].desiredCount' \
+            --output text)
+          
+          echo "Deployment status: $DEPLOYMENT_STATUS, Running: $RUNNING_COUNT/$DESIRED_COUNT"
+          
+          if [ "$RUNNING_COUNT" -eq "$DESIRED_COUNT" ]; then
+            echo "Service stabilized! All tasks are running."
+            break
           fi
           
-          # Check for ongoing deployments (multiple deployments indicates a new deployment started)
-          DEPLOYMENT_COUNT=$(echo $SERVICE_JSON | jq -r '.services[0].deployments | length')
-          if [ "$DEPLOYMENT_COUNT" -gt 1 ]; then
-            echo "ℹ️ Multiple deployments detected ($DEPLOYMENT_COUNT). There may be a newer deployment in progress."
-            
-            # Show brief info on all current deployments
-            echo $SERVICE_JSON | jq -r '.services[0].deployments[] | "  - ID: " + .id + ", Status: " + .rolloutState + ", Running: " + (.runningCount | tostring) + "/" + (.desiredCount | tostring)'
-          fi
-          
-          if [ $i -lt $MAX_CHECKS ]; then
-            echo "Waiting 30 seconds before checking again..."
-            sleep 30
-          fi
+          echo "Waiting for ${INTERVAL} seconds..."
+          sleep $INTERVAL
+          total_time=$((total_time + INTERVAL))
         done
-        
-        echo "⏰ Timed out waiting for deployment to stabilize after $MAX_WAIT_MINUTES minutes."
-        echo "Current state: Running: $RUNNING_COUNT, Desired: $DESIRED_COUNT, Status: $PRIMARY_STATUS"
-        echo "This doesn't necessarily mean the deployment failed - check the AWS console."
-        
-        # Exit with success anyway if either:
-        # 1. There are running tasks 
-        # 2. The deployment has been in a stable IN_PROGRESS state for a while
-        if [ "$RUNNING_COUNT" -gt 0 ] || [ $STABLE_COUNT -gt $(($STABLE_IN_PROGRESS_THRESHOLD / 2)) ]; then
-          echo "✅ Since there are running tasks or deployment has been stable, considering the deployment successful."
-          echo "Service has $RUNNING_COUNT/$DESIRED_COUNT tasks running."
-          exit 0
-        else
-          echo "❌ No running tasks found and deployment is not stable. Deployment may have failed."
-          exit 1
+
+        if [ $total_time -ge $MAX_WAIT_TIME ]; then
+          echo "::warning::Service did not fully stabilize within wait period, but deployment may still be in progress."
         fi
 
-    # Verify HTTPS configuration after deployment
-    - name: Verify HTTPS configuration
-      id: verify-https
-      if: success()
+    # Get ALB endpoint for the deployed service
+    - name: Get ALB endpoint
+      id: get-endpoint
       run: |
-        echo "Verifying HTTPS configuration..."
-        
-        # Get the load balancer ARN
-        ALB_ARN=$(aws elbv2 describe-load-balancers --query "LoadBalancers[?contains(DNSName, 'lynqe')].LoadBalancerArn" --output text --region ${{ secrets.AWSREGION }})
-        
-        if [ -n "$ALB_ARN" ]; then
-          # Check for HTTPS listener
-          HTTPS_LISTENER=$(aws elbv2 describe-listeners --load-balancer-arn $ALB_ARN --query "Listeners[?Port==\`443\`]" --output text --region ${{ secrets.AWSREGION }})
-          
-          if [ -n "$HTTPS_LISTENER" ]; then
-            echo "✅ HTTPS Listener is properly configured on port 443"
-            
-            # Get the certificate ARN
-            CERT_ARN=$(aws elbv2 describe-listeners --load-balancer-arn $ALB_ARN --query "Listeners[?Port==\`443\`].Certificates[0].CertificateArn" --output text --region ${{ secrets.AWSREGION }})
-            
-            if [ -n "$CERT_ARN" ]; then
-              echo "✅ SSL Certificate is attached to the HTTPS listener"
-              
-              # Check certificate expiration
-              CERT_DETAILS=$(aws acm describe-certificate --certificate-arn $CERT_ARN --region ${{ secrets.AWSREGION }})
-              EXPIRY=$(echo $CERT_DETAILS | jq -r '.Certificate.NotAfter')
-              
-              if [ -n "$EXPIRY" ]; then
-                EXPIRY_DATE=$(date -d "@$EXPIRY" +"%Y-%m-%d")
-                CURRENT_DATE=$(date +"%Y-%m-%d")
-                EXPIRY_SECONDS=$(date -d "$EXPIRY_DATE" +%s)
-                CURRENT_SECONDS=$(date -d "$CURRENT_DATE" +%s)
-                DAYS_DIFF=$(( ($EXPIRY_SECONDS - $CURRENT_SECONDS) / 86400 ))
-                
-                if [ $DAYS_DIFF -lt 30 ]; then
-                  echo "⚠️ WARNING: SSL Certificate expires in $DAYS_DIFF days on $EXPIRY_DATE"
-                else
-                  echo "✅ SSL Certificate is valid until $EXPIRY_DATE ($DAYS_DIFF days remaining)"
-                fi
-              fi
-            else
-              echo "⚠️ SSL Certificate not found on HTTPS listener"
-            fi
-            
-            # Check HTTP to HTTPS redirection
-            HTTP_LISTENER=$(aws elbv2 describe-listeners --load-balancer-arn $ALB_ARN --query "Listeners[?Port==\`80\`]" --output json --region ${{ secrets.AWSREGION }})
-            REDIRECT_CONFIG=$(echo $HTTP_LISTENER | jq -r '.[0].DefaultActions[0].RedirectConfig')
-            
-            if [[ "$REDIRECT_CONFIG" == *"HTTPS"* ]]; then
-              echo "✅ HTTP to HTTPS redirection is properly configured"
-            else
-              echo "⚠️ HTTP to HTTPS redirection may not be configured correctly"
-            fi
-          else
-            echo "⚠️ WARNING: No HTTPS listener found on port 443"
-          fi
-          
-          # Get the load balancer DNS name
-          ALB_DNS=$(aws elbv2 describe-load-balancers --load-balancer-arns $ALB_ARN --query "LoadBalancers[0].DNSName" --output text --region ${{ secrets.AWSREGION }})
-          
-          echo "==================================================="
-          echo "🌐 Your application is now live at: https://lynqe.io"
-          echo "🌐 ALB Endpoint: https://$ALB_DNS"
-          echo "==================================================="
+        echo "Getting ALB endpoint for the deployed service..."
+        # Get target group ARN from ECS service
+        TARGET_GROUP_ARN=$(aws ecs describe-services \
+          --cluster ${{ secrets.ECSCLUSTER }} \
+          --services ${{ secrets.ECSSERVICE }} \
+          --query 'services[0].loadBalancers[0].targetGroupArn' \
+          --output text)
+
+        if [ -n "$TARGET_GROUP_ARN" ] && [ "$TARGET_GROUP_ARN" != "null" ]; then
+          # Get load balancer ARN from target group
+          LOAD_BALANCER_ARN=$(aws elbv2 describe-target-groups \
+            --target-group-arns $TARGET_GROUP_ARN \
+            --query 'TargetGroups[0].LoadBalancerArns[0]' \
+            --output text)
+
+          # Get DNS name from load balancer
+          ALB_DNS=$(aws elbv2 describe-load-balancers \
+            --load-balancer-arns $LOAD_BALANCER_ARN \
+            --query 'LoadBalancers[0].DNSName' \
+            --output text)
+
+          echo "Application is accessible at: http://${ALB_DNS}"
+          echo "For HTTPS, the URL would be: https://${ALB_DNS}"
+          echo "endpoint=https://${ALB_DNS}" >> $GITHUB_ENV
         else
-          echo "⚠️ WARNING: Could not find load balancer"
+          echo "No load balancer configuration found for this service."
         fi
+
+    - name: Deployment summary
+      run: |
+        echo "::notice::Deployment completed successfully!"
+        echo "::notice::Deployment ID: ${{ env.deploy_id }}"
+        if [ -n "${{ env.endpoint }}" ]; then
+          echo "::notice::Application is accessible at: ${{ env.endpoint }}"
+        fi
+        echo "::notice::Task Definition: ${{ env.task_arn }}"
