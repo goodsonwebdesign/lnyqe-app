@@ -153,11 +153,11 @@ while [ $check_count -le $max_checks ] && [ "$(date +%s)" -lt $end_time ]; do
   # Check if service deployment is stable
   if [[ "$deployment_status" == "COMPLETED" ]] && [ "$running_count" -eq "$desired_count" ] && [ "$desired_count" -gt 0 ]; then
     deployment_stabilized=true
-    
+
     # Count consecutive COMPLETED status checks
     consecutive_completed=$((consecutive_completed+1))
     echo "Deployment is COMPLETED ($consecutive_completed consecutive checks)"
-    
+
     # Force exit after 2 consecutive COMPLETED checks even if we can't verify DEPLOY_ID
     if [[ "$consecutive_completed" -ge 2 ]]; then
       echo "Service has been COMPLETED for $consecutive_completed consecutive checks. Considering deployment successful!"
