@@ -1,0 +1,96 @@
+<div class="space-y-8">
+  <div class="bg-gradient-to-r from-primary-500 to-secondary-500 rounded-lg p-8 text-white">
+    <h1 class="text-3xl font-bold mb-4">Welcome to Your Dashboard</h1>
+    <p class="text-xl opacity-90">Manage your facility operations all in one place.</p>
+  </div>
+
+  <!-- User Profile Section -->
+  <app-card *ngIf="user">
+    <div class="p-6">
+      <h2 class="text-2xl font-semibold mb-6">Your Profile</h2>
+      
+      <div class="flex flex-col md:flex-row items-start gap-6">
+        <!-- User Avatar/Image -->
+        <div class="shrink-0">
+          <div *ngIf="user.picture" class="w-24 h-24 rounded-full overflow-hidden">
+            <img [src]="user.picture" [alt]="user.name" class="w-full h-full object-cover" />
+          </div>
+          <div *ngIf="!user.picture" class="w-24 h-24 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-700 dark:text-primary-300 text-3xl font-bold">
+            {{ user.name ? user.name.substring(0, 2).toUpperCase() : 'U' }}
+          </div>
+        </div>
+        
+        <!-- User Details -->
+        <div class="grow">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-neutral-500 dark:text-neutral-400">Name</p>
+              <p class="text-lg font-medium">{{ user.name || 'Not provided' }}</p>
+            </div>
+            
+            <div>
+              <p class="text-sm text-neutral-500 dark:text-neutral-400">Email</p>
+              <p class="text-lg font-medium">{{ user.email || 'Not provided' }}</p>
+            </div>
+            
+            <div *ngIf="user.nickname">
+              <p class="text-sm text-neutral-500 dark:text-neutral-400">Username</p>
+              <p class="text-lg font-medium">{{ user.nickname }}</p>
+            </div>
+            
+            <div>
+              <p class="text-sm text-neutral-500 dark:text-neutral-400">Account Verified</p>
+              <p class="text-lg font-medium">{{ user.email_verified ? 'Yes' : 'No' }}</p>
+            </div>
+          </div>
+          
+          <div class="mt-6">
+            <app-button variant="neutral">Edit Profile</app-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </app-card>
+
+  <!-- Dashboard Sections - Quick Links -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <app-card class="hover:shadow-lg transition-shadow">
+      <div class="p-6">
+        <div class="mb-4 bg-primary-100 dark:bg-primary-900 p-3 rounded-full w-12 h-12 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold mb-2">Tasks</h3>
+        <p class="text-neutral-600 dark:text-neutral-400 mb-4">Manage and track your daily tasks and work orders.</p>
+        <app-button variant="ghost" size="sm">View Tasks</app-button>
+      </div>
+    </app-card>
+
+    <app-card class="hover:shadow-lg transition-shadow">
+      <div class="p-6">
+        <div class="mb-4 bg-secondary-100 dark:bg-secondary-900 p-3 rounded-full w-12 h-12 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-secondary-600 dark:text-secondary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold mb-2">Schedule</h3>
+        <p class="text-neutral-600 dark:text-neutral-400 mb-4">View and manage facility bookings and resource allocation.</p>
+        <app-button variant="ghost" size="sm">Open Schedule</app-button>
+      </div>
+    </app-card>
+
+    <app-card class="hover:shadow-lg transition-shadow">
+      <div class="p-6">
+        <div class="mb-4 bg-green-100 dark:bg-green-900 p-3 rounded-full w-12 h-12 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold mb-2">Analytics</h3>
+        <p class="text-neutral-600 dark:text-neutral-400 mb-4">Get insights on facility usage and operational efficiency.</p>
+        <app-button variant="ghost" size="sm">View Reports</app-button>
+      </div>
+    </app-card>
+  </div>
+</div>

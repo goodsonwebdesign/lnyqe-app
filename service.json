@@ -1,0 +1,599 @@
+{
+    "services": [
+        {
+            "serviceArn": "arn:aws:ecs:us-east-2:872515255646:service/lynqe-cluster/lynqe-service",
+            "serviceName": "lynqe-service",
+            "clusterArn": "arn:aws:ecs:us-east-2:872515255646:cluster/lynqe-cluster",
+            "loadBalancers": [
+                {
+                    "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b",
+                    "containerName": "lynqe-app-container",
+                    "containerPort": 80
+                }
+            ],
+            "serviceRegistries": [],
+            "status": "ACTIVE",
+            "desiredCount": 1,
+            "runningCount": 1,
+            "pendingCount": 0,
+            "launchType": "FARGATE",
+            "platformVersion": "1.4.0",
+            "platformFamily": "Linux",
+            "taskDefinition": "arn:aws:ecs:us-east-2:872515255646:task-definition/lynqe-app:22",
+            "deploymentConfiguration": {
+                "deploymentCircuitBreaker": {
+                    "enable": true,
+                    "rollback": true
+                },
+                "maximumPercent": 200,
+                "minimumHealthyPercent": 100,
+                "alarms": {
+                    "alarmNames": [],
+                    "rollback": false,
+                    "enable": false
+                }
+            },
+            "deployments": [
+                {
+                    "id": "ecs-svc/4452779632628693585",
+                    "status": "PRIMARY",
+                    "taskDefinition": "arn:aws:ecs:us-east-2:872515255646:task-definition/lynqe-app:22",
+                    "desiredCount": 1,
+                    "pendingCount": 0,
+                    "runningCount": 1,
+                    "failedTasks": 0,
+                    "createdAt": "2025-05-01T22:21:39.277000-04:00",
+                    "updatedAt": "2025-05-01T22:24:03.831000-04:00",
+                    "launchType": "FARGATE",
+                    "platformVersion": "1.4.0",
+                    "platformFamily": "Linux",
+                    "networkConfiguration": {
+                        "awsvpcConfiguration": {
+                            "subnets": [
+                                "subnet-092ace7cfb44a7b40",
+                                "subnet-0f794bb67fd2be529",
+                                "subnet-069674a98cd79c4f2"
+                            ],
+                            "securityGroups": [
+                                "sg-0b1bc44b99631f924"
+                            ],
+                            "assignPublicIp": "ENABLED"
+                        }
+                    },
+                    "rolloutState": "COMPLETED",
+                    "rolloutStateReason": "ECS deployment ecs-svc/4452779632628693585 completed."
+                }
+            ],
+            "roleArn": "arn:aws:iam::872515255646:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS",
+            "events": [
+                {
+                    "id": "2a84bd61-d173-4eb4-a0da-d65a77ead0a7",
+                    "createdAt": "2025-05-02T16:25:16.725000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "0ec427e3-6c9c-47cb-9eae-0dbe6c43dc46",
+                    "createdAt": "2025-05-02T10:25:12.218000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "7387d436-3c55-4e4d-95f2-7e6ecf25e55b",
+                    "createdAt": "2025-05-02T04:24:47.297000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "69d176db-c06c-44c5-a50c-cb679dba6b4b",
+                    "createdAt": "2025-05-01T22:24:03.836000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "4d75c2bb-a624-4fdf-9fa2-a6c0269dabac",
+                    "createdAt": "2025-05-01T22:24:03.835000-04:00",
+                    "message": "(service lynqe-service) (deployment ecs-svc/4452779632628693585) deployment completed."
+                },
+                {
+                    "id": "36f5f832-c84b-413e-b78f-010f3ae2907a",
+                    "createdAt": "2025-05-01T22:23:11.388000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/0445448034502607438) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "0b27e3d0-8d4a-4c41-90ee-a3ab39cfb02b",
+                    "createdAt": "2025-05-01T22:23:11.384000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "92c06e2c-0864-4778-a62d-8a87af06d24d",
+                    "createdAt": "2025-05-01T22:23:01.934000-04:00",
+                    "message": "(service lynqe-service) has stopped 1 running tasks: (task df5ea695c7eb4d96a3a07fa983a1a83a)."
+                },
+                {
+                    "id": "43226e18-e9a3-4032-967c-382e5c35db3a",
+                    "createdAt": "2025-05-01T22:22:10.683000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "999b3d6e-58d0-4a46-8804-046373ae237f",
+                    "createdAt": "2025-05-01T22:21:50.851000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task e4db17d0ec944d8b9f82a7ad878dfe3d)."
+                },
+                {
+                    "id": "54012c04-a6ed-4dd4-96ad-fa748d91366f",
+                    "createdAt": "2025-05-01T22:09:23.179000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "5fa5672c-3dc0-4591-b4a9-e5c09a9eae1b",
+                    "createdAt": "2025-05-01T22:09:23.178000-04:00",
+                    "message": "(service lynqe-service) (deployment ecs-svc/0445448034502607438) deployment completed."
+                },
+                {
+                    "id": "e5a3ac5e-297f-43b3-b67b-3d3c40a5820f",
+                    "createdAt": "2025-05-01T22:08:31.253000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "18b5b8b2-f160-4c14-b55d-9889c4561e48",
+                    "createdAt": "2025-05-01T22:08:31.138000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/2134084517377182282) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "471c59b8-4005-419d-b6c3-806d29f945ee",
+                    "createdAt": "2025-05-01T22:08:31.134000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "ba40dfa5-ae70-44d3-9787-1ae5f483ece9",
+                    "createdAt": "2025-05-01T22:08:23.983000-04:00",
+                    "message": "(service lynqe-service) rolling back to deployment ecs-svc/0445448034502607438."
+                },
+                {
+                    "id": "7b09a5f0-df42-4fdb-9337-444d6e881ba2",
+                    "createdAt": "2025-05-01T22:08:23.982000-04:00",
+                    "message": "(service lynqe-service) (deployment ecs-svc/2134084517377182282) deployment failed: tasks failed to start."
+                },
+                {
+                    "id": "a6d4fc9e-c611-4ab0-bce5-c0823b6b6bc0",
+                    "createdAt": "2025-05-01T22:08:21.171000-04:00",
+                    "message": "(service lynqe-service) has stopped 1 running tasks: (task 29c733e9e7a2411d82f2a83b5eb9d5e1)."
+                },
+                {
+                    "id": "d4722797-c0df-4d19-bd5e-c724125a2ad9",
+                    "createdAt": "2025-05-01T22:08:21.140000-04:00",
+                    "message": "(service lynqe-service) (port 80) is unhealthy in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b) due to (reason Target is in an Availability Zone that is not enabled for the load balancer)."
+                },
+                {
+                    "id": "99fd735f-0eb6-4653-a33e-a47e965f508e",
+                    "createdAt": "2025-05-01T22:07:10.067000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "4748c591-4f3e-480a-b4b1-6d46f2c00210",
+                    "createdAt": "2025-05-01T22:06:49.357000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task 29c733e9e7a2411d82f2a83b5eb9d5e1)."
+                },
+                {
+                    "id": "9caf1761-bc65-4d0f-9769-826c0156cefa",
+                    "createdAt": "2025-05-01T22:00:50.503000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "9b0a0316-93b1-4ab0-9361-ad9b7cd24fbc",
+                    "createdAt": "2025-05-01T22:00:50.412000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/2134084517377182282) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "f54da51e-3cce-4d7c-b8cf-2c4216a28c20",
+                    "createdAt": "2025-05-01T22:00:50.408000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "39f95bc7-0dc7-4608-a117-fc51955c1421",
+                    "createdAt": "2025-05-01T22:00:40.100000-04:00",
+                    "message": "(service lynqe-service) has stopped 1 running tasks: (task d0aba1cb9d9d494190d7c50ecc665bf6)."
+                },
+                {
+                    "id": "076ddd84-dbb7-48fc-8b0b-2c7f3f633aa6",
+                    "createdAt": "2025-05-01T22:00:40.063000-04:00",
+                    "message": "(service lynqe-service) (port 80) is unhealthy in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b) due to (reason Target is in an Availability Zone that is not enabled for the load balancer)."
+                },
+                {
+                    "id": "05db2e38-9909-435f-90d4-afe2b937f422",
+                    "createdAt": "2025-05-01T21:59:29.742000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "8c1daa8a-28f4-426a-b995-7e05b72f4714",
+                    "createdAt": "2025-05-01T21:59:08.950000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task d0aba1cb9d9d494190d7c50ecc665bf6)."
+                },
+                {
+                    "id": "41e9c1c2-a38e-469f-9352-0b80aa3a0b8e",
+                    "createdAt": "2025-05-01T21:53:21.147000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "4271bee2-3ea0-4630-83aa-fb6690951158",
+                    "createdAt": "2025-05-01T21:53:21.073000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/2134084517377182282) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "d2f1e52c-e477-418b-9239-3fb7579126aa",
+                    "createdAt": "2025-05-01T21:53:21.069000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "011f1005-95f3-4e76-87fb-1b6a98f32d55",
+                    "createdAt": "2025-05-01T21:53:10.900000-04:00",
+                    "message": "(service lynqe-service) has stopped 1 running tasks: (task c4093585e8ac4e148885a2a68260123a)."
+                },
+                {
+                    "id": "7c6448fd-0d4b-4df3-ac9e-e4f3fe39ec17",
+                    "createdAt": "2025-05-01T21:53:10.856000-04:00",
+                    "message": "(service lynqe-service) (port 80) is unhealthy in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b) due to (reason Target is in an Availability Zone that is not enabled for the load balancer)."
+                },
+                {
+                    "id": "d4c90347-67e1-40a7-bcaa-a21d3f182d08",
+                    "createdAt": "2025-05-01T21:51:59.459000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "8c626f61-513e-43f6-9374-0304cd06eda3",
+                    "createdAt": "2025-05-01T21:51:38.701000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task c4093585e8ac4e148885a2a68260123a)."
+                },
+                {
+                    "id": "bd3dfee5-ca95-434c-982a-d35701c98798",
+                    "createdAt": "2025-05-01T17:33:09.719000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "68e0b79e-32cb-4aab-a861-8212b3911ae2",
+                    "createdAt": "2025-05-01T11:32:59.943000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "52c5fb2d-0079-43dc-9600-6f2b025eb5d8",
+                    "createdAt": "2025-05-01T05:32:42.436000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "0b5484df-7053-4325-aeda-1fc4345e449a",
+                    "createdAt": "2025-04-30T23:32:38.630000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "03796313-1955-4c1f-a8aa-b8a35704123e",
+                    "createdAt": "2025-04-30T23:32:38.629000-04:00",
+                    "message": "(service lynqe-service) (deployment ecs-svc/0445448034502607438) deployment completed."
+                },
+                {
+                    "id": "fc360c77-54aa-49e1-ae41-93fc55a247a0",
+                    "createdAt": "2025-04-30T23:31:28.014000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/9582572289510338501) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "527d8b74-f370-4821-b7fe-f488fed9b40a",
+                    "createdAt": "2025-04-30T23:31:28.010000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "efdc5ecb-3409-4b3c-aee2-f2b6dad04e76",
+                    "createdAt": "2025-04-30T23:31:26.399000-04:00",
+                    "message": "(service lynqe-service) has stopped 1 running tasks: (task 3b7203e69f384c458f75fbc5cd7f2462)."
+                },
+                {
+                    "id": "8936dec9-5859-43e9-952f-52d4178c5e9d",
+                    "createdAt": "2025-04-30T23:30:46.273000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "02c358f9-1d64-4b5c-a263-e1d0298bfd45",
+                    "createdAt": "2025-04-30T23:30:16.333000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task df5ea695c7eb4d96a3a07fa983a1a83a)."
+                },
+                {
+                    "id": "f82ab1a8-65ec-43fd-8295-18074318d381",
+                    "createdAt": "2025-04-30T22:59:02.957000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "9e4f1ba6-bb52-49e0-aab3-35a194a0cc84",
+                    "createdAt": "2025-04-30T22:59:02.956000-04:00",
+                    "message": "(service lynqe-service) (deployment ecs-svc/9582572289510338501) deployment completed."
+                },
+                {
+                    "id": "552ebb9d-9319-4c1d-8da2-d44b1c27a3e2",
+                    "createdAt": "2025-04-30T22:58:11.843000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/3372356401738049320) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "a254d5ec-dc2f-42d7-9a4a-b860dde8cc20",
+                    "createdAt": "2025-04-30T22:58:11.839000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "f7970a7e-a364-43ee-a348-f524d3df5c48",
+                    "createdAt": "2025-04-30T22:58:01.580000-04:00",
+                    "message": "(service lynqe-service) has stopped 1 running tasks: (task 18bd01560844487dbb89c88140533917)."
+                },
+                {
+                    "id": "a6c474f9-6156-4c5e-8c09-f7bc140218ed",
+                    "createdAt": "2025-04-30T22:57:20.260000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "1227c5f9-f062-4ff7-9b32-d6425cc05016",
+                    "createdAt": "2025-04-30T22:56:50.157000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task 3b7203e69f384c458f75fbc5cd7f2462)."
+                },
+                {
+                    "id": "48b56ca0-fbe9-4cf1-b46a-f234d1d4f23b",
+                    "createdAt": "2025-04-30T22:47:05.775000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "880f8a6f-0c1b-4a72-9b1a-1faa66375bf9",
+                    "createdAt": "2025-04-30T22:47:05.774000-04:00",
+                    "message": "(service lynqe-service) (deployment ecs-svc/3372356401738049320) deployment completed."
+                },
+                {
+                    "id": "138094ac-d873-43f5-9d17-e6c50bbabbcb",
+                    "createdAt": "2025-04-30T22:46:04.213000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/1820564064914818927) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "157c0825-0b2e-4c1b-9c61-e174e94924ea",
+                    "createdAt": "2025-04-30T22:46:04.210000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "daf77b31-a8c2-427f-b838-6a0f00c74727",
+                    "createdAt": "2025-04-30T22:45:54.147000-04:00",
+                    "message": "(service lynqe-service) has stopped 1 running tasks: (task bd6c9df95b3b404ba8c79e36053c2b97)."
+                },
+                {
+                    "id": "58e263ee-297f-46c9-b4d2-5905fe67054b",
+                    "createdAt": "2025-04-30T22:45:03.923000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "e9b92a60-fc5c-4943-91a3-60ed277bdd9d",
+                    "createdAt": "2025-04-30T22:44:43.478000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task 18bd01560844487dbb89c88140533917)."
+                },
+                {
+                    "id": "aaf72c37-7ce5-4b57-8884-0d551d752680",
+                    "createdAt": "2025-04-30T22:38:21.442000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "dea0d4ae-f298-4e94-a269-ad5183380076",
+                    "createdAt": "2025-04-30T22:38:21.440000-04:00",
+                    "message": "(service lynqe-service) (deployment ecs-svc/1820564064914818927) deployment completed."
+                },
+                {
+                    "id": "e42c3043-5e3f-4e0c-927a-b7d13e1fcee4",
+                    "createdAt": "2025-04-30T22:37:23.416000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "dfb70059-ff46-4501-a0fa-26208bd0dcf5",
+                    "createdAt": "2025-04-30T22:37:23.330000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/8945466895282205725) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "6e428042-8e35-4741-b1dc-35aec047064d",
+                    "createdAt": "2025-04-30T22:37:23.326000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "0d07a18c-4459-4fc4-b3ab-c72d886b9271",
+                    "createdAt": "2025-04-30T22:37:03.335000-04:00",
+                    "message": "(service lynqe-service) stopped 1 pending tasks."
+                },
+                {
+                    "id": "0d87a4f1-bff4-4bbd-aa8c-ad22d561a626",
+                    "createdAt": "2025-04-30T22:37:03.261000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "4385049e-5c36-4144-bdb0-be02bba72623",
+                    "createdAt": "2025-04-30T22:37:01.426000-04:00",
+                    "message": "(service lynqe-service) rolling back to deployment ecs-svc/1820564064914818927."
+                },
+                {
+                    "id": "ede87a6e-d5e1-449e-8ddb-d6a12db899ef",
+                    "createdAt": "2025-04-30T22:37:01.425000-04:00",
+                    "message": "(service lynqe-service) (deployment ecs-svc/8945466895282205725) deployment failed: tasks failed to start."
+                },
+                {
+                    "id": "bbb8b52e-d530-4aa5-ac9d-887428425f96",
+                    "createdAt": "2025-04-30T22:36:42.519000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task 916135a3ed164104aa6a59f5c40d80cf)."
+                },
+                {
+                    "id": "fc04a001-c4aa-426e-8c82-b905d33818eb",
+                    "createdAt": "2025-04-30T22:31:24.505000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/8945466895282205725) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "c357de55-7424-4c9a-bec7-27f0c7b1093d",
+                    "createdAt": "2025-04-30T22:31:24.501000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "f91fe9ac-ca4b-4fdf-b81a-95897dac07bd",
+                    "createdAt": "2025-04-30T22:30:44.167000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "43746106-3888-4109-93f6-17552a7ee6af",
+                    "createdAt": "2025-04-30T22:30:23.883000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task e30e719faf254b54a00d96f47d3de072)."
+                },
+                {
+                    "id": "5b337906-af35-4823-a508-74e502904099",
+                    "createdAt": "2025-04-30T22:25:04.909000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "94bb8caa-9977-4d26-812f-10e1e304c091",
+                    "createdAt": "2025-04-30T22:25:04.824000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/8945466895282205725) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "2a465a8f-7110-42f6-b4ca-cfde321c77a3",
+                    "createdAt": "2025-04-30T22:25:04.819000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "2d29758e-199c-4791-8aca-610238730b1a",
+                    "createdAt": "2025-04-30T22:24:55.727000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "c66ab4bf-158c-44fd-abaa-89d7ae6f8f7f",
+                    "createdAt": "2025-04-30T22:24:35.593000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task 039ca657ae624c9e965e1e34986e609d)."
+                },
+                {
+                    "id": "10c86dc9-440f-45c7-a465-86d535a60643",
+                    "createdAt": "2025-04-30T22:19:17.405000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/8945466895282205725) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "b7701650-7437-4e4a-99dc-cbe6b3538826",
+                    "createdAt": "2025-04-30T22:19:17.401000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "1af3787f-a24f-4d43-a580-8207a91e2320",
+                    "createdAt": "2025-04-30T22:19:07.985000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "0dc9efd6-9d1c-47e4-9808-631a9534fe2c",
+                    "createdAt": "2025-04-30T22:18:47.671000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task 64c0a0633da148bba1db4fdf55b73e29)."
+                },
+                {
+                    "id": "0798d5e4-936e-4f9f-ad07-9d0aaae2c6f4",
+                    "createdAt": "2025-04-30T22:08:30.298000-04:00",
+                    "message": "(service lynqe-service) has reached a steady state."
+                },
+                {
+                    "id": "09273558-f6d6-4446-8afc-811370de02d5",
+                    "createdAt": "2025-04-30T22:08:30.297000-04:00",
+                    "message": "(service lynqe-service) (deployment ecs-svc/1820564064914818927) deployment completed."
+                },
+                {
+                    "id": "badbdc15-5d95-44b5-8477-a0dde3cc28b0",
+                    "createdAt": "2025-04-30T22:07:32.254000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "02afca68-afc0-439e-8099-4711e78942c6",
+                    "createdAt": "2025-04-30T22:07:32.157000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/2223848478950019966) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "d657428b-9fbb-43a3-90c5-03f7b789266e",
+                    "createdAt": "2025-04-30T22:07:32.153000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "e5f635a4-494a-48fe-aece-64e240074daa",
+                    "createdAt": "2025-04-30T22:07:12.084000-04:00",
+                    "message": "(service lynqe-service) stopped 1 pending tasks."
+                },
+                {
+                    "id": "551ffb17-3786-4979-83a4-27c5af152366",
+                    "createdAt": "2025-04-30T22:07:12.026000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "696f5499-323e-454f-a0e3-ef7a69817a0d",
+                    "createdAt": "2025-04-30T22:07:10.459000-04:00",
+                    "message": "(service lynqe-service) rolling back to deployment ecs-svc/1820564064914818927."
+                },
+                {
+                    "id": "46e23825-7280-4819-b9c1-53705108aa9e",
+                    "createdAt": "2025-04-30T22:07:10.458000-04:00",
+                    "message": "(service lynqe-service) (deployment ecs-svc/2223848478950019966) deployment failed: tasks failed to start."
+                },
+                {
+                    "id": "4ef1fd2d-29f3-4012-915e-de4e851dbac7",
+                    "createdAt": "2025-04-30T22:06:46.868000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task a6c68c77f9b142869a064d29c62846c1)."
+                },
+                {
+                    "id": "b2beba89-df67-4929-ab76-d6a64f1e5189",
+                    "createdAt": "2025-04-30T22:01:33.246000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "66008868-dd82-410a-a209-4ec3c99942aa",
+                    "createdAt": "2025-04-30T22:01:33.161000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/2223848478950019966) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "9831397f-e9b2-406e-b0be-8d958163a080",
+                    "createdAt": "2025-04-30T22:01:33.157000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "a0ea9d0c-d4bb-450e-9fcc-834e19d24418",
+                    "createdAt": "2025-04-30T22:01:23.315000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "c3e4398a-8e86-4a4d-850d-1a8389a130e3",
+                    "createdAt": "2025-04-30T22:01:03.845000-04:00",
+                    "message": "(service lynqe-service) has started 1 tasks: (task 49ff703efa814e1abc5a40d978a81fc1)."
+                },
+                {
+                    "id": "f70eccd9-d5c8-41fc-89f5-c2fa1a377735",
+                    "createdAt": "2025-04-30T21:55:51.909000-04:00",
+                    "message": "(service lynqe-service, taskSet ecs-svc/2223848478950019966) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "97941e38-325a-4390-9c2e-394b5c0f4024",
+                    "createdAt": "2025-04-30T21:55:51.900000-04:00",
+                    "message": "(service lynqe-service) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                },
+                {
+                    "id": "bd08538c-7c9f-430f-ab29-8304397fd922",
+                    "createdAt": "2025-04-30T21:55:42.277000-04:00",
+                    "message": "(service lynqe-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-2:872515255646:targetgroup/lynqe-app-tg/f1c492164500316b)"
+                }
+            ],
+            "createdAt": "2025-04-30T19:29:49.945000-04:00",
+            "placementConstraints": [],
+            "placementStrategy": [],
+            "networkConfiguration": {
+                "awsvpcConfiguration": {
+                    "subnets": [
+                        "subnet-092ace7cfb44a7b40",
+                        "subnet-0f794bb67fd2be529",
+                        "subnet-069674a98cd79c4f2"
+                    ],
+                    "securityGroups": [
+                        "sg-0b1bc44b99631f924"
+                    ],
+                    "assignPublicIp": "ENABLED"
+                }
+            },
+            "healthCheckGracePeriodSeconds": 30,
+            "schedulingStrategy": "REPLICA",
+            "deploymentController": {
+                "type": "ECS"
+            },
+            "createdBy": "arn:aws:iam::872515255646:root",
+            "enableECSManagedTags": true,
+            "propagateTags": "NONE",
+            "enableExecuteCommand": false,
+            "availabilityZoneRebalancing": "ENABLED"
+        }
+    ],
+    "failures": []
+}

@@ -12,7 +12,7 @@ import * as CounterActions from '../actions/counter.actions';
 export class CounterEffects {
   // Use functional effects pattern - this has fewer initialization issues
   logCounterActions = createEffect(() => 
-    { return this.actions$.pipe(
+    this.actions$.pipe(
       ofType(
         CounterActions.increment,
         CounterActions.decrement,
@@ -20,7 +20,7 @@ export class CounterEffects {
         CounterActions.setCount
       ),
       tap(action => console.log('Counter action dispatched:', action))
-    )},
+    ),
     { dispatch: false }
   );
 

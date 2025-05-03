@@ -1,0 +1,91 @@
+{
+    "taskDefinition": {
+        "taskDefinitionArn": "arn:aws:ecs:us-east-2:872515255646:task-definition/lynqe-app:22",
+        "containerDefinitions": [
+            {
+                "name": "lynqe-app-container",
+                "image": "872515255646.dkr.ecr.us-east-2.amazonaws.com/lynqe-app:a78d80b-20250501222021",
+                "cpu": 256,
+                "memory": 512,
+                "portMappings": [
+                    {
+                        "containerPort": 80,
+                        "hostPort": 80,
+                        "protocol": "tcp"
+                    }
+                ],
+                "essential": true,
+                "environment": [],
+                "mountPoints": [],
+                "volumesFrom": [],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                        "awslogs-group": "/ecs/lynqe-app",
+                        "awslogs-region": "us-east-2",
+                        "awslogs-stream-prefix": "ecs"
+                    }
+                },
+                "healthCheck": {
+                    "command": [
+                        "CMD-SHELL",
+                        "curl -f http://localhost/health || exit 1"
+                    ],
+                    "interval": 30,
+                    "timeout": 5,
+                    "retries": 3,
+                    "startPeriod": 60
+                },
+                "systemControls": []
+            }
+        ],
+        "family": "lynqe-app",
+        "executionRoleArn": "arn:aws:iam::872515255646:role/ecsTaskExecutionRole",
+        "networkMode": "awsvpc",
+        "revision": 22,
+        "volumes": [],
+        "status": "ACTIVE",
+        "requiresAttributes": [
+            {
+                "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+            },
+            {
+                "name": "ecs.capability.execution-role-awslogs"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.ecr-auth"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+            },
+            {
+                "name": "ecs.capability.container-health-check"
+            },
+            {
+                "name": "ecs.capability.execution-role-ecr-pull"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+            },
+            {
+                "name": "ecs.capability.task-eni"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+            }
+        ],
+        "placementConstraints": [],
+        "compatibilities": [
+            "EC2",
+            "FARGATE"
+        ],
+        "requiresCompatibilities": [
+            "FARGATE"
+        ],
+        "cpu": "256",
+        "memory": "512",
+        "registeredAt": "2025-05-01T22:21:33.900000-04:00",
+        "registeredBy": "arn:aws:iam::872515255646:user/AWScliuser"
+    },
+    "tags": []
+}

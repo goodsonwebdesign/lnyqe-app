@@ -96,19 +96,62 @@ This project uses GitHub Actions for CI/CD with AWS. The pipeline includes:
 
 1. **Build and Test**: Runs tests and builds the application
 2. **Build Docker Images**: Builds and pushes the Docker image to Amazon ECR
-3. **Deploy**: Deploys the application to AWS (ECS, EKS, or Elastic Beanstalk)
+3. **Deploy**: Deploys the application to AWS ECS
 
 ### Required Secrets for CI/CD
 
 Set these secrets in your GitHub repository:
 
-- `AWS_ACCESS_KEY_ID`: Your AWS access key ID
-- `AWS_SECRET_ACCESS_KEY`: Your AWS secret access key
-- `AWS_REGION`: The AWS region you're using (e.g., us-east-1)
-- `ECR_REPOSITORY`: The name of your ECR repository
+- `AWSACCESSKEYID`: Your AWS access key ID
+- `AWSSECRETACCESSKEY`: Your AWS secret access key
+- `AWSREGION`: The AWS region you're using (e.g., us-east-1)
+- `ECRREPOSITORY`: The name of your ECR repository (lynqe-app)
+- `ECSCLUSTER`: The name of your ECS cluster (e.g., lynqe-cluster)
+- `ECSSERVICE`: The name of your ECS service (e.g., lynqe-service)
 
-For specific AWS deployment:
-- Additional secrets may be needed depending on your AWS deployment method
+## AWS ECS Deployment
+
+This application is deployed to AWS Elastic Container Service (ECS) using the CI/CD pipeline. The deployment process:
+
+1. Builds the application and packages it into a Docker container
+2. Pushes the container to Amazon ECR
+3. Updates the ECS service to use the latest container image
+4. Ensures proper subnet configuration for compatibility with the load balancer
+
+### ECS Configuration Best Practices
+
+- **Subnet Configuration**: The application must run in subnets compatible with the load balancer's availability zones. This is automatically handled by the CI/CD pipeline.
+- **CloudWatch Logging**: The ECS tasks are configured to send logs to CloudWatch under the `/ecs/lynqe-app` log group.
+- **Health Checks**: The application container exposes port 80 which is monitored by the load balancer for health checks.
+
+### CloudWatch Logging
+
+Before deploying to ECS, ensure the required CloudWatch log groups exist by running the included setup script:
+
+```bash
+./cloudwatch-setup.sh [aws-region]
+```
+
+This script:
+- Creates the required `/ecs/lynqe-app` log group if it doesn't exist
+- Creates a cluster-level log group for ECS platform logging
+- Sets appropriate retention policies (default: 14 days)
+- Checks for existing log streams
+
+#### Monitoring Application Logs
+
+To view your application logs:
+
+1. **Using AWS CLI**:
+   ```bash
+   aws logs get-log-events --log-group-name "/ecs/lynqe-app" --log-stream-name "ecs/lynqe-app-container/TASK_ID" --region us-east-1
+   ```
+   Replace `TASK_ID` with your ECS task ID and `us-east-1` with your region.
+
+2. **Using AWS Console**:
+   - Navigate to CloudWatch > Log groups
+   - Select the `/ecs/lynqe-app` log group
+   - Browse the available log streams
 
 ## Manual Commands
 

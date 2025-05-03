@@ -1,0 +1,275 @@
+<div class="space-y-16">
+  <!-- Hero Section -->
+  <section class="py-12 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-2xl overflow-hidden">
+    <div class="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center">
+      <div class="md:w-1/2 mb-8 md:mb-0 md:pr-8">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">AI-Powered Facility Management Reimagined</h1>
+        <p class="text-lg md:text-xl opacity-90 mb-8">
+          The fastest, most intuitive solution for facilities management, access control, and workspace optimization—all driven by cutting-edge AI.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <app-button size="lg">Get Started Free</app-button>
+          <app-button variant="ghost" size="lg" class="border border-white">Schedule Demo</app-button>
+        </div>
+      </div>
+      <div class="md:w-1/2">
+        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 shadow-2xl transform hover:scale-105 transition-transform duration-300 flex items-center justify-center relative overflow-hidden">
+          <!-- Sign up form that matches the test expectations -->
+          <form [formGroup]="form" class="relative z-10 w-full max-w-md">
+            <div class="mb-4">
+              <input formControlName="username" type="text" placeholder="Username" class="w-full px-4 py-2 rounded bg-white/20 border border-white/30 placeholder-white/70 text-white">
+            </div>
+            <div class="mb-4">
+              <input formControlName="email" type="email" placeholder="Email" class="w-full px-4 py-2 rounded bg-white/20 border border-white/30 placeholder-white/70 text-white">
+            </div>
+            <div class="mb-4">
+              <input formControlName="password" type="password" placeholder="Password" class="w-full px-4 py-2 rounded bg-white/20 border border-white/30 placeholder-white/70 text-white">
+            </div>
+            <app-button type="submit" class="w-full">Sign Up</app-button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Benefits Section -->
+  <section>
+    <div class="text-center mb-10">
+      <span class="bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-sm px-3 py-1 rounded-full">AI-POWERED SOLUTION</span>
+      <h2 class="text-3xl font-bold mt-4 mb-4">Streamlined Facilities Management</h2>
+      <p class="text-lg text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto">
+        Minimize repetitive tasks and maximize operational efficiency with our comprehensive solution.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <app-card class="transform hover:-translate-y-2 transition-transform duration-300">
+        <div class="text-center p-4">
+          <div class="mb-4 bg-primary-100 dark:bg-primary-900 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">Smart Access Control</h3>
+          <p class="text-neutral-600 dark:text-neutral-400 mb-4">
+            Secure and streamline building access with digital keys, biometric controls, and real-time monitoring.
+          </p>
+        </div>
+      </app-card>
+
+      <app-card class="transform hover:-translate-y-2 transition-transform duration-300">
+        <div class="text-center p-4">
+          <div class="mb-4 bg-secondary-100 dark:bg-secondary-900 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-secondary-600 dark:text-secondary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">Workflow Automation</h3>
+          <p class="text-neutral-600 dark:text-neutral-400 mb-4">
+            AI-driven workflows that adapt to your team's patterns, reducing administrative overhead by up to 70%.
+          </p>
+        </div>
+      </app-card>
+
+      <app-card class="transform hover:-translate-y-2 transition-transform duration-300">
+        <div class="text-center p-4">
+          <div class="mb-4 bg-green-100 dark:bg-green-900 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">Intelligent Scheduling</h3>
+          <p class="text-neutral-600 dark:text-neutral-400 mb-4">
+            Optimize space utilization and automatically resolve scheduling conflicts with predictive resource allocation.
+          </p>
+        </div>
+      </app-card>
+    </div>
+  </section>
+
+  <!-- Feature Showcase -->
+  <section class="bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl p-8">
+    <div class="text-center mb-12">
+      <span class="bg-secondary-100 dark:bg-secondary-900 text-secondary-800 dark:text-secondary-200 text-sm px-3 py-1 rounded-full">COMPREHENSIVE SOLUTION</span>
+      <h2 class="text-3xl font-bold mt-4 mb-4">Everything You Need In One Platform</h2>
+      <p class="text-lg text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto">
+        From key management to space optimization, LNYQE centralizes your facility operations.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <app-card>
+        <div class="p-6">
+          <div class="flex items-start">
+            <div class="bg-primary-100 dark:bg-primary-900 p-3 rounded-full mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Digital Key Management</h3>
+              <p class="text-neutral-600 dark:text-neutral-400">
+                Securely distribute and monitor digital keys with complete audit trails and temporary access provisioning.
+              </p>
+            </div>
+          </div>
+        </div>
+      </app-card>
+
+      <app-card>
+        <div class="p-6">
+          <div class="flex items-start">
+            <div class="bg-secondary-100 dark:bg-secondary-900 p-3 rounded-full mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-secondary-600 dark:text-secondary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Space Utilization Analytics</h3>
+              <p class="text-neutral-600 dark:text-neutral-400">
+                Visualize usage patterns and receive AI-driven recommendations to optimize your workspace layout.
+              </p>
+            </div>
+          </div>
+        </div>
+      </app-card>
+
+      <app-card>
+        <div class="p-6">
+          <div class="flex items-start">
+            <div class="bg-amber-100 dark:bg-amber-900 p-3 rounded-full mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Team Communication</h3>
+              <p class="text-neutral-600 dark:text-neutral-400">
+                Centralized messaging with automated task assignments and status updates to keep everyone in sync.
+              </p>
+            </div>
+          </div>
+        </div>
+      </app-card>
+
+      <app-card>
+        <div class="p-6">
+          <div class="flex items-start">
+            <div class="bg-red-100 dark:bg-red-900 p-3 rounded-full mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Preventative Maintenance</h3>
+              <p class="text-neutral-600 dark:text-neutral-400">
+                AI-powered prediction of maintenance needs before equipment fails, saving time and reducing downtime.
+              </p>
+            </div>
+          </div>
+        </div>
+      </app-card>
+    </div>
+  </section>
+
+  <!-- Latest Updates Section -->
+  <section>
+    <div class="text-center mb-12">
+      <span class="bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-sm px-3 py-1 rounded-full">LATEST DEVELOPMENTS</span>
+      <h2 class="text-3xl font-bold mt-4 mb-4">Platform Updates</h2>
+      <p class="text-lg text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto">
+        We're constantly enhancing our platform to deliver more value to facility managers.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <app-card *ngFor="let update of latestUpdates">
+        <div class="p-5">
+          <div class="mb-3">
+            <span class="inline-block bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-sm px-3 py-1 rounded-full">{{ update.category }}</span>
+            <span class="text-sm text-neutral-500 dark:text-neutral-400 ml-2">{{ update.date }}</span>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">{{ update.title }}</h3>
+          <p class="text-neutral-600 dark:text-neutral-400 mb-4">{{ update.summary }}</p>
+          <app-button variant="ghost" size="sm">Learn More</app-button>
+        </div>
+      </app-card>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="bg-neutral-100 dark:bg-neutral-800 rounded-xl p-8">
+    <div class="text-center mb-12">
+      <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-sm px-3 py-1 rounded-full">SUCCESS STORIES</span>
+      <h2 class="text-3xl font-bold mt-4 mb-4">What Facility Managers Are Saying</h2>
+      <p class="text-lg text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto">
+        Hear from professionals who have transformed their operations with our platform.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <app-card *ngFor="let testimonial of testimonials">
+        <div class="p-6">
+          <div class="flex items-center mb-4">
+            <div class="text-amber-400 flex">
+              <svg *ngFor="let star of [1,2,3,4,5]" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.799-2.034c-.784-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </div>
+          </div>
+          <p class="text-neutral-600 dark:text-neutral-300 italic mb-4">"{{ testimonial.quote }}"</p>
+          <div class="flex items-center">
+            <div class="w-10 h-10 rounded-full bg-neutral-300 dark:bg-neutral-600 mr-3 flex items-center justify-center text-neutral-700 dark:text-neutral-300 font-bold">
+              {{ testimonial.initials }}
+            </div>
+            <div>
+              <h4 class="font-semibold">{{ testimonial.name }}</h4>
+              <p class="text-sm text-neutral-500 dark:text-neutral-400">{{ testimonial.position }}</p>
+            </div>
+          </div>
+        </div>
+      </app-card>
+    </div>
+  </section>
+
+  <!-- ROI Stats Section -->
+  <section class="bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-xl p-10">
+    <div class="text-center mb-10">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4">Measurable Results for Facility Managers</h2>
+      <p class="text-lg md:text-xl opacity-90 mb-8 max-w-3xl mx-auto">
+        Our customers report significant improvements in efficiency and cost savings.
+      </p>
+    </div>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div class="text-center bg-white/10 backdrop-blur-sm rounded-lg p-6">
+        <div class="text-4xl font-bold mb-2">70%</div>
+        <p>Reduction in administrative tasks</p>
+      </div>
+      <div class="text-center bg-white/10 backdrop-blur-sm rounded-lg p-6">
+        <div class="text-4xl font-bold mb-2">45%</div>
+        <p>Faster maintenance response time</p>
+      </div>
+      <div class="text-center bg-white/10 backdrop-blur-sm rounded-lg p-6">
+        <div class="text-4xl font-bold mb-2">30%</div>
+        <p>Increase in space utilization</p>
+      </div>
+      <div class="text-center bg-white/10 backdrop-blur-sm rounded-lg p-6">
+        <div class="text-4xl font-bold mb-2">8.5x</div>
+        <p>Return on investment within first year</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action Section -->
+  <section class="bg-white dark:bg-neutral-800 rounded-xl p-10 text-center shadow-xl border border-neutral-200 dark:border-neutral-700">
+    <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Transform Your Facility Management?</h2>
+    <p class="text-lg md:text-xl text-neutral-600 dark:text-neutral-300 mb-8 max-w-3xl mx-auto">
+      Join forward-thinking facility managers who are already saving time and resources with LNYQE.
+    </p>
+    <div class="flex flex-col sm:flex-row justify-center gap-4">
+      <app-button variant="primary" size="lg">Start Your Free 30-Day Trial</app-button>
+      <app-button variant="neutral" size="lg">Request Live Demo</app-button>
+    </div>
+  </section>
+</div>

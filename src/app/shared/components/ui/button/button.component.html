@@ -1,0 +1,25 @@
+<button
+  [disabled]="disabled || loading"
+  [type]="type"
+  (click)="onClick($event)"
+  [ngClass]="[
+    baseClasses,
+    sizeClasses,
+    variantClasses,
+    roundedClasses,
+    disabled || loading ? disabledClasses : '',
+    fullWidth ? 'w-full' : ''
+  ]"
+>
+  <div *ngIf="loading" class="absolute inset-0 flex items-center justify-center">
+    <div class="animate-spin w-4 h-4 border-2 border-t-transparent rounded-full"
+         [ngClass]="loadingColorClasses">
+    </div>
+  </div>
+
+  <div [ngClass]="{'opacity-0': loading, 'flex items-center justify-center gap-2': true}">
+    <ng-content select="[app-button-icon-left]"></ng-content>
+    <ng-content></ng-content>
+    <ng-content select="[app-button-icon-right]"></ng-content>
+  </div>
+</button>
