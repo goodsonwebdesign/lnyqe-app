@@ -193,15 +193,15 @@ jobs:
             echo "Error: No task definitions found for family $TASK_FAMILY"
             echo "Will try to create a new one using template..."
             
-            # Use a basic template that will be filled in with proper values
+            # Use a basic template for the task definition
             cat > task_def_template.json << 'EOF'
 {
-  "family": "$TASK_FAMILY",
+  "family": "TASK_FAMILY_PLACEHOLDER",
   "networkMode": "awsvpc",
   "executionRoleArn": "ecsTaskExecutionRole",
   "containerDefinitions": [
     {
-      "name": "${{ env.CONTAINER_NAME }}",
+      "name": "CONTAINER_NAME_PLACEHOLDER",
       "image": "PLACEHOLDER_IMAGE",
       "essential": true,
       "portMappings": [
@@ -215,7 +215,7 @@ jobs:
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "/ecs/lynqe-app",
-          "awslogs-region": "${{ env.AWS_REGION }}",
+          "awslogs-region": "REGION_PLACEHOLDER",
           "awslogs-stream-prefix": "ecs"
         }
       },
@@ -236,10 +236,10 @@ jobs:
 }
 EOF
 
-            # After writing template, replace variables with actual values
-            sed -i "s|\$TASK_FAMILY|$TASK_FAMILY|g" task_def_template.json
-            sed -i "s|\${{ env.CONTAINER_NAME }}|${{ env.CONTAINER_NAME }}|g" task_def_template.json
-            sed -i "s|\${{ env.AWS_REGION }}|${{ env.AWS_REGION }}|g" task_def_template.json
+            # Replace placeholders with actual values
+            sed -i "s/TASK_FAMILY_PLACEHOLDER/$TASK_FAMILY/g" task_def_template.json
+            sed -i "s/CONTAINER_NAME_PLACEHOLDER/${{ env.CONTAINER_NAME }}/g" task_def_template.json
+            sed -i "s/REGION_PLACEHOLDER/${{ env.AWS_REGION }}/g" task_def_template.json
             
             TASK_DEF_JSON=$(cat task_def_template.json)
           else
