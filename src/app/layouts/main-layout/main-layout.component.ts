@@ -18,22 +18,22 @@ export class MainLayoutComponent implements OnInit {
   currentYear = new Date().getFullYear();
   themeService = inject(ThemeService);
   private http = inject(HttpClient);
-  
+
   buildInfo: string = 'Loading...';
   deployedOn: string = '';
 
   // Replace these URLs with your actual S3 bucket image URLs
   lightModeLogo = 'https://img-lynqe.s3.us-east-2.amazonaws.com/logo-blk.png';
   darkModeLogo = 'https://img-lynqe.s3.us-east-2.amazonaws.com/logo-wht.png';
-  
+
   ngOnInit() {
     this.loadBuildInfo();
   }
-  
+
   private loadBuildInfo() {
     // Add random query parameter to prevent caching
     const noCacheParam = `?nocache=${new Date().getTime()}`;
-    
+
     this.http.get(`/build-info.txt${noCacheParam}`, { responseType: 'text' })
       .subscribe({
         next: (data) => {
@@ -49,7 +49,7 @@ export class MainLayoutComponent implements OnInit {
         }
       });
   }
-  
+
   private formatDate(dateStr: string): string {
     try {
       const date = new Date(dateStr);

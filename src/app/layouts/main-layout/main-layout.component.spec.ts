@@ -33,7 +33,7 @@ class MockUserMenuComponent {}
 class MockAuthService {
   isAuthenticated$ = of(false);
   user$ = of(null);
-  
+
   login() {}
   logout() {}
   getUser() { return of(null); }

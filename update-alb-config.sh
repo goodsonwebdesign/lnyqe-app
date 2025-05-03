@@ -85,6 +85,37 @@ else
     --query 'LoadBalancers[0].SecurityGroups[0]' \
     --output text)
   echo "Using existing ALB security group: $ALB_SG_ID"
+
+  # NEW SECTION: Update the ALB subnets to match all available subnets in the service
+  echo "Updating ALB subnets to ensure all ECS task availability zones are covered..."
+
+  # Get current ALB subnets
+  CURRENT_ALB_SUBNETS=$(aws elbv2 describe-load-balancers \
+    --load-balancer-arns $ALB_ARN \
+    --region $AWS_REGION \
+    --query 'LoadBalancers[0].AvailabilityZones[].SubnetId' \
+    --output text | tr '\t' ',')
+  echo "Current ALB subnets: $CURRENT_ALB_SUBNETS"
+
+  # Get all available subnets in the VPC with the correct type
+  ALL_SUBNETS=$(aws ec2 describe-subnets \
+    --filters "Name=vpc-id,Values=$VPC_ID" \
+    --region $AWS_REGION \
+    --query 'Subnets[?MapPublicIpOnLaunch==`true`].SubnetId' \
+    --output text | tr '\t' ' ')
+  echo "All available public subnets: $ALL_SUBNETS"
+
+  # If there are differences, update the ALB subnets
+  if [ "$CURRENT_ALB_SUBNETS" != "$SUBNET_IDS" ]; then
+    echo "Updating ALB with all available subnets..."
+    aws elbv2 set-subnets \
+      --load-balancer-arn $ALB_ARN \
+      --subnets $(echo $SUBNET_IDS | tr ',' ' ') \
+      --region $AWS_REGION
+    echo "ALB subnets updated to match ECS service subnets."
+  else
+    echo "ALB subnets are already correctly configured."
+  fi
 fi
 
 # Step 3: Check if target group exists

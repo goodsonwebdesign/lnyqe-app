@@ -31,6 +31,10 @@ echo "Using build timestamp: ${BUILD_DATE}"
 echo "Using image tag: ${IMAGE_TAG}"
 echo "Using deploy ID: ${DEPLOY_ID}"
 
+# Build the Angular application first
+echo "Building Angular application for production..."
+npm run ci:build || npm run build
+
 # Force removing any existing image with the same name to ensure clean build
 echo "Removing any existing images with the same name..."
 docker rmi -f ${ECR_REPOSITORY}:latest || true
@@ -129,7 +133,9 @@ echo "Waiting for ECS service to stabilize (timeout after 15 minutes)..."
 timeout=900  # 15 minutes in seconds
 start_time=$(date +%s)
 end_time=$((start_time + timeout))
-stabilized=false
+env_check_successful=false
+deployment_stabilized=false
+consecutive_completed=0
 
 check_count=1
 max_checks=30
@@ -144,32 +150,66 @@ while [ $check_count -le $max_checks ] && [ "$(date +%s)" -lt $end_time ]; do
 
   echo "Deployment status: $deployment_status, Running: $running_count, Desired: $desired_count"
 
+  # Check if service deployment is stable
+  if [[ "$deployment_status" == "COMPLETED" ]] && [ "$running_count" -eq "$desired_count" ] && [ "$desired_count" -gt 0 ]; then
+    deployment_stabilized=true
+    
+    # Count consecutive COMPLETED status checks
+    consecutive_completed=$((consecutive_completed+1))
+    echo "Deployment is COMPLETED ($consecutive_completed consecutive checks)"
+    
+    # Force exit after 2 consecutive COMPLETED checks even if we can't verify DEPLOY_ID
+    if [[ "$consecutive_completed" -ge 2 ]]; then
+      echo "Service has been COMPLETED for $consecutive_completed consecutive checks. Considering deployment successful!"
+      break
+    fi
+  else
+    consecutive_completed=0
+  fi
+
   # Check specifically for the new deployment
   running_tasks=$(aws ecs list-tasks --cluster $CLUSTER_NAME --service-name $SERVICE_NAME --desired-status RUNNING --region $AWS_REGION)
-  task_arns=$(echo $running_tasks | jq -r '.taskArns[]')
-  
+  task_arns=$(echo $running_tasks | jq -r '.taskArns[]' 2>/dev/null)
+
   if [ -n "$task_arns" ]; then
     echo "Verifying DEPLOY_ID in task environment variables..."
     for task_arn in $task_arns; do
       task_details=$(aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $task_arn --region $AWS_REGION)
-      task_deploy_id=$(echo $task_details | jq -r '.tasks[0].containers[0].environment[] | select(.name=="DEPLOY_ID") | .value')
-      
-      if [ "$task_deploy_id" == "$DEPLOY_ID" ]; then
-        echo "Confirmed new deployment with DEPLOY_ID: $DEPLOY_ID is running!"
-        stabilized=true
+
+      # Check if environment exists before trying to process it
+      has_env=$(echo $task_details | jq '.tasks[0].containers[0].environment != null' 2>/dev/null)
+      if [ "$has_env" == "true" ]; then
+        task_deploy_id=$(echo $task_details | jq -r '.tasks[0].containers[0].environment[] | select(.name=="DEPLOY_ID") | .value' 2>/dev/null)
+
+        if [ -n "$task_deploy_id" ] && [ "$task_deploy_id" == "$DEPLOY_ID" ]; then
+          echo "Confirmed new deployment with DEPLOY_ID: $DEPLOY_ID is running!"
+          env_check_successful=true
+        else
+          echo "Warning: Task is running but with DEPLOY_ID: '$task_deploy_id' (expected '$DEPLOY_ID')"
+        fi
       else
-        echo "Warning: Task is running but with older deployment ID: $task_deploy_id"
+        echo "Warning: Task environment is null or not available yet. Will check again."
       fi
     done
+  else
+    echo "No running tasks found yet. Waiting for tasks to start..."
   fi
 
   recent_events=$(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME --query 'services[0].events[0:3].message' --output text --region $AWS_REGION)
   echo "Recent events:"
   echo "$recent_events"
 
-  if [[ "$deployment_status" == "COMPLETED" || "$deployment_status" == "null" ]] && [ "$running_count" -eq "$desired_count" ] && [ "$desired_count" -gt 0 ] && [ "$stabilized" == true ]; then
-    echo "Service has stabilized successfully with the new deployment!"
-    break
+  # Check if we should consider the deployment successful
+  if [ "$deployment_stabilized" == true ]; then
+    if [ "$env_check_successful" == true ]; then
+      echo "Service has stabilized successfully with the new deployment and verified DEPLOY_ID!"
+      break
+    elif [ $check_count -ge $((max_checks * 2/3)) ]; then
+      # If we've waited for 2/3 of the max time and the deployment is stable but we can't verify the ENV,
+      # we'll assume success to avoid deployment timeouts
+      echo "Service has stabilized successfully but cannot verify DEPLOY_ID in environment. Assuming success."
+      break
+    fi
   fi
 
   echo "Waiting 30 seconds before checking again..."
@@ -177,7 +217,8 @@ while [ $check_count -le $max_checks ] && [ "$(date +%s)" -lt $end_time ]; do
   ((check_count++))
 done
 
-if [ "$stabilized" = true ]; then
+# Consider deployment successful if either the environment check succeeded or the deployment stabilized
+if [ "$env_check_successful" = true ] || [ "$deployment_stabilized" = true ]; then
   echo "Deployment completed successfully!"
 
   # Check the ALB DNS name

@@ -29,26 +29,26 @@ EXISTING_CERT_ARN=$(echo "$CERT_LIST" | jq -r ".CertificateSummaryList[] | selec
 if [ -n "$EXISTING_CERT_ARN" ]; then
   echo "Found existing certificate for $DOMAIN_NAME: $EXISTING_CERT_ARN"
   CERT_ARN=$EXISTING_CERT_ARN
-  
+
   # Check certificate status
   CERT_STATUS=$(aws acm describe-certificate --certificate-arn $CERT_ARN --region $AWS_REGION --query "Certificate.Status" --output text)
   echo "Certificate status: $CERT_STATUS"
-  
+
   if [ "$CERT_STATUS" != "ISSUED" ]; then
     echo "Certificate is not in ISSUED state. Current status: $CERT_STATUS"
     echo "You need to complete the certificate validation process."
-    
+
     # Get validation details
     CERT_DETAILS=$(aws acm describe-certificate --certificate-arn $CERT_ARN --region $AWS_REGION)
     VALIDATION_DOMAIN=$(echo $CERT_DETAILS | jq -r '.Certificate.DomainValidationOptions[0].DomainName')
     VALIDATION_NAME=$(echo $CERT_DETAILS | jq -r '.Certificate.DomainValidationOptions[0].ResourceRecord.Name')
     VALIDATION_VALUE=$(echo $CERT_DETAILS | jq -r '.Certificate.DomainValidationOptions[0].ResourceRecord.Value')
-    
+
     echo "Please add this DNS validation record to your domain's DNS settings:"
     echo "Name: $VALIDATION_NAME"
     echo "Type: CNAME"
     echo "Value: $VALIDATION_VALUE"
-    
+
     NEEDS_VALIDATION=true
   else
     echo "Certificate is already in ISSUED state. No validation needed."
@@ -79,7 +79,7 @@ else
   echo "Name: $VALIDATION_NAME"
   echo "Type: CNAME"
   echo "Value: $VALIDATION_VALUE"
-  
+
   NEEDS_VALIDATION=true
 fi
 
@@ -167,7 +167,7 @@ if [ -n "$HTTPS_LISTENER_ARN" ]; then
     --listener-arn $HTTPS_LISTENER_ARN \
     --certificates CertificateArn=$CERT_ARN \
     --region $AWS_REGION
-  
+
   echo "HTTPS listener updated with new certificate"
 else
   echo "Creating HTTPS listener on port 443..."
@@ -223,7 +223,7 @@ if [ -n "$ZONE_ID" ]; then
   echo "Domain is managed by Route 53. Zone ID: $ZONE_ID"
   echo "Would you like to create/update DNS records to point to your load balancer? (y/n)"
   read UPDATE_DNS
-  
+
   if [[ "$UPDATE_DNS" == "y" || "$UPDATE_DNS" == "Y" ]]; then
     echo "Creating Route 53 Alias record for apex domain..."
     # Get the hosted zone ID for the ALB

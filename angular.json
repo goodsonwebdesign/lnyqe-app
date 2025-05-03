@@ -37,6 +37,11 @@
               },
               {
                 "glob": "favicon.ico",
+                "input": "public",
+                "output": "/"
+              },
+              {
+                "glob": "favicon.ico",
                 "input": "src/assets",
                 "output": "/"
               }
@@ -109,6 +114,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "favicon.ico",
+                "input": "public",
+                "output": "/"
               },
               {
                 "glob": "favicon.ico",

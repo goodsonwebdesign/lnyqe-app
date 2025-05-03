@@ -51,9 +51,9 @@ for TASK_ARN in $TASKS; do
   if [ $TASK_COUNT -ge 3 ]; then
     break
   fi
-  
+
   echo -e "\nTask ARN: $TASK_ARN"
-  
+
   # Get task details
   aws ecs describe-tasks \
     --cluster $CLUSTER_NAME \
@@ -61,7 +61,7 @@ for TASK_ARN in $TASKS; do
     --region $AWS_REGION \
     --query 'tasks[0].[taskDefinitionArn,lastStatus,stoppedReason,healthStatus,connectivity]' \
     --output text
-  
+
   # Get container details
   echo "Container details:"
   aws ecs describe-tasks \
@@ -70,12 +70,12 @@ for TASK_ARN in $TASKS; do
     --region $AWS_REGION \
     --query 'tasks[0].containers[0].[name,lastStatus,exitCode,reason]' \
     --output text
-  
+
   # Get logs if available
   TASK_ID=$(echo $TASK_ARN | awk -F'/' '{print $3}')
   echo "Checking logs for task: $TASK_ID"
   LOG_STREAM="ecs/lynqe-app-container/$TASK_ID"
-  
+
   # Check if log stream exists
   if aws logs describe-log-streams \
     --log-group-name $LOG_GROUP_NAME \
@@ -83,7 +83,7 @@ for TASK_ARN in $TASKS; do
     --region $AWS_REGION \
     --query 'logStreams[0].logStreamName' \
     --output text 2>/dev/null | grep -q "$LOG_STREAM"; then
-    
+
     echo "Found logs, showing last 20 log lines:"
     aws logs get-log-events \
       --log-group-name $LOG_GROUP_NAME \
@@ -95,7 +95,7 @@ for TASK_ARN in $TASKS; do
   else
     echo "No logs found for this task"
   fi
-  
+
   TASK_COUNT=$((TASK_COUNT + 1))
 done
 
@@ -110,29 +110,29 @@ TARGET_GROUP_ARN=$(aws ecs describe-services \
 
 if [ -n "$TARGET_GROUP_ARN" ] && [ "$TARGET_GROUP_ARN" != "None" ]; then
   echo "Target Group ARN: $TARGET_GROUP_ARN"
-  
+
   # Get load balancer ARN
   LB_ARN=$(aws elbv2 describe-target-groups \
     --target-group-arns $TARGET_GROUP_ARN \
     --region $AWS_REGION \
     --query 'TargetGroups[0].LoadBalancerArns[0]' \
     --output text)
-  
+
   echo "Load Balancer ARN: $LB_ARN"
-  
+
   # Check HTTPS listener
   HTTPS_LISTENER=$(aws elbv2 describe-listeners \
     --load-balancer-arn $LB_ARN \
     --region $AWS_REGION \
     --query "Listeners[?Port==\`443\`].ListenerArn" \
     --output text)
-  
+
   if [ -n "$HTTPS_LISTENER" ] && [ "$HTTPS_LISTENER" != "None" ]; then
     echo "HTTPS listener is configured"
   else
     echo "WARNING: No HTTPS listener found on port 443"
   fi
-  
+
   # Check health check config
   echo "Health check configuration:"
   aws elbv2 describe-target-groups \

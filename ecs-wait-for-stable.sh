@@ -71,12 +71,12 @@ fi
 echo "Deployment not yet stable. Starting monitoring..."
 for i in $(seq 1 $MAX_CHECKS); do
   echo -e "\nCheck $i of $MAX_CHECKS: Verifying service stability..."
-  
+
   SERVICE_JSON=$(aws ecs describe-services \
     --cluster $CLUSTER_NAME \
     --services $SERVICE_NAME \
     --region $AWS_REGION)
-  
+
   # Check overall service status first
   RUNNING_COUNT=$(echo $SERVICE_JSON | jq -r '.services[0].runningCount')
   DESIRED_COUNT=$(echo $SERVICE_JSON | jq -r '.services[0].desiredCount')
@@ -84,38 +84,38 @@ for i in $(seq 1 $MAX_CHECKS); do
   CURRENT_TASK_SET=$(echo $SERVICE_JSON | jq -r '.services[0].deployments[0].id')
   DEPLOYMENT_CREATED=$(echo $SERVICE_JSON | jq -r '.services[0].deployments[0].createdAt')
   DEPLOYMENT_UPDATED=$(echo $SERVICE_JSON | jq -r '.services[0].deployments[0].updatedAt')
-  
+
   # Calculate deployment duration
   CREATED_TIMESTAMP=$(date -j -f "%Y-%m-%dT%H:%M:%S%z" "$DEPLOYMENT_CREATED" "+%s" 2>/dev/null || date -d "$DEPLOYMENT_CREATED" "+%s")
   CURRENT_TIMESTAMP=$(date "+%s")
   DEPLOYMENT_DURATION=$((CURRENT_TIMESTAMP - CREATED_TIMESTAMP))
   DURATION_MINUTES=$((DEPLOYMENT_DURATION / 60))
   DURATION_SECONDS=$((DEPLOYMENT_DURATION % 60))
-  
+
   echo "Deployment status: $PRIMARY_STATUS, Running: $RUNNING_COUNT, Desired: $DESIRED_COUNT"
   echo "Deployment ID: $CURRENT_TASK_SET"
   echo "Deployment duration: ${DURATION_MINUTES}m ${DURATION_SECONDS}s"
-  
+
   # Get recent events
   RECENT_EVENTS=$(echo $SERVICE_JSON | jq -r '.services[0].events[0:3][].message')
   echo "Recent events:"
   echo "$RECENT_EVENTS"
-  
+
   # Check by task running count and deployment status
   if [ "$RUNNING_COUNT" -eq "$DESIRED_COUNT" ] && [ "$PRIMARY_STATUS" == "COMPLETED" ]; then
     echo "✅ Deployment successful! Service is stable with $RUNNING_COUNT running tasks."
     exit 0
   fi
-  
+
   # Check for stability in IN_PROGRESS state
   if [ "$PRIMARY_STATUS" == "IN_PROGRESS" ] && [ "$RUNNING_COUNT" -gt 0 ]; then
     echo "Deployment in progress with $RUNNING_COUNT running tasks. Continuing to wait..."
-    
+
     # Check if deployment is in stable progress (no change in running count and task set)
     if [ "$RUNNING_COUNT" -eq "$LAST_RUNNING_COUNT" ] && [ "$CURRENT_TASK_SET" == "$LAST_TASK_SET" ]; then
       STABLE_COUNT=$((STABLE_COUNT + 1))
       echo "📊 Stability tracker: $STABLE_COUNT/$STABLE_IN_PROGRESS_THRESHOLD consecutive stable checks"
-      
+
       # If stable for enough checks, consider it successful
       if [ $STABLE_COUNT -ge $STABLE_IN_PROGRESS_THRESHOLD ]; then
         echo "✅ Deployment considered stable after $STABLE_COUNT consecutive stable checks in IN_PROGRESS state."
@@ -131,11 +131,11 @@ for i in $(seq 1 $MAX_CHECKS); do
     # Reset stability counter for non-IN_PROGRESS states
     STABLE_COUNT=0
   fi
-  
+
   # Update tracking variables
   LAST_RUNNING_COUNT=$RUNNING_COUNT
   LAST_TASK_SET=$CURRENT_TASK_SET
-  
+
   # Check for task failures that might indicate a problem
   STOPPED_TASKS=$(aws ecs list-tasks \
     --cluster $CLUSTER_NAME \
@@ -143,10 +143,10 @@ for i in $(seq 1 $MAX_CHECKS); do
     --region $AWS_REGION \
     --started-by "ecs-svc" \
     --output text | wc -l | xargs)
-  
+
   if [ "$STOPPED_TASKS" -gt 2 ] && [ "$RUNNING_COUNT" -eq 0 ]; then
     echo "⚠️ Warning: Multiple stopped tasks detected ($STOPPED_TASKS). Deployment may be failing."
-    
+
     # Get detailed information about stopped tasks (just the latest one for brevity)
     LATEST_TASK_ARN=$(aws ecs list-tasks \
       --cluster $CLUSTER_NAME \
@@ -154,32 +154,32 @@ for i in $(seq 1 $MAX_CHECKS); do
       --region $AWS_REGION \
       --started-by "ecs-svc" \
       --output json | jq -r '.taskArns[0]')
-    
+
     if [ -n "$LATEST_TASK_ARN" ] && [ "$LATEST_TASK_ARN" != "null" ]; then
       echo "Getting details for latest stopped task..."
       TASK_DETAILS=$(aws ecs describe-tasks \
         --cluster $CLUSTER_NAME \
         --tasks $LATEST_TASK_ARN \
         --region $AWS_REGION)
-      
+
       STOP_REASON=$(echo $TASK_DETAILS | jq -r '.tasks[0].stoppedReason')
       echo "Stop reason: $STOP_REASON"
-      
+
       # Get container exit codes
       echo "Container exit details:"
       echo $TASK_DETAILS | jq -r '.tasks[0].containers[] | "  - " + .name + ": " + (.exitCode | tostring) + " - " + (.reason // "No reason provided")'
     fi
   fi
-  
+
   # Check for ongoing deployments (multiple deployments indicates a new deployment started)
   DEPLOYMENT_COUNT=$(echo $SERVICE_JSON | jq -r '.services[0].deployments | length')
   if [ "$DEPLOYMENT_COUNT" -gt 1 ]; then
     echo "ℹ️ Multiple deployments detected ($DEPLOYMENT_COUNT). There may be a newer deployment in progress."
-    
+
     # Show brief info on all current deployments
     echo $SERVICE_JSON | jq -r '.services[0].deployments[] | "  - ID: " + .id + ", Status: " + .rolloutState + ", Running: " + (.runningCount | tostring) + "/" + (.desiredCount | tostring)'
   fi
-  
+
   if [ $i -lt $MAX_CHECKS ]; then
     echo "Waiting 30 seconds before checking again..."
     sleep 30
@@ -191,7 +191,7 @@ echo "Current state: Running: $RUNNING_COUNT, Desired: $DESIRED_COUNT, Status: $
 echo "This doesn't necessarily mean the deployment failed - check the AWS console."
 
 # Exit with success anyway if either:
-# 1. There are running tasks 
+# 1. There are running tasks
 # 2. The deployment has been in a stable IN_PROGRESS state for a while
 if [ "$RUNNING_COUNT" -gt 0 ] || [ $STABLE_COUNT -gt $(($STABLE_IN_PROGRESS_THRESHOLD / 2)) ]; then
   echo "✅ Since there are running tasks or deployment has been stable, considering the deployment successful."

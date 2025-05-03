@@ -87,74 +87,74 @@ TASK_ARNS=$(echo $STOPPED_TASKS | jq -r '.taskArns[]')
 
 if [ -z "$TASK_ARNS" ]; then
   warning "No stopped tasks found. Checking for active ones instead..."
-  
+
   # Get running/pending tasks instead
   ACTIVE_TASKS=$(aws ecs list-tasks \
     --cluster $CLUSTER_NAME \
     --region $AWS_REGION \
     --output json)
-    
+
   TASK_ARNS=$(echo $ACTIVE_TASKS | jq -r '.taskArns[]')
-  
+
   if [ -z "$TASK_ARNS" ]; then
     error "No active tasks found either. Service may be unable to start any tasks."
   fi
 else
   echo "Found stopped tasks. Analyzing failure reasons..."
-  
+
   # Get details for each stopped task (limit to 3 most recent)
   COUNTER=0
   for TASK_ARN in $TASK_ARNS; do
     if [ $COUNTER -ge 3 ]; then
       break
     fi
-    
+
     TASK_ID=$(echo $TASK_ARN | cut -d'/' -f3)
     echo -e "\n${BOLD}Task ID: $TASK_ID${NC}"
-    
+
     TASK_DETAILS=$(aws ecs describe-tasks \
       --cluster $CLUSTER_NAME \
       --tasks $TASK_ARN \
       --region $AWS_REGION)
-    
+
     # Get the stop reason
     STOP_REASON=$(echo $TASK_DETAILS | jq -r '.tasks[0].stoppedReason')
     echo "Stop reason: $STOP_REASON"
-    
+
     # Get container exit codes
     CONTAINER_DETAILS=$(echo $TASK_DETAILS | jq -r '.tasks[0].containers[] | {name: .name, exitCode: .exitCode, reason: .reason}')
     echo "Container details:"
     echo "$CONTAINER_DETAILS"
-    
+
     # Get task created and stopped times
     TASK_CREATED=$(echo $TASK_DETAILS | jq -r '.tasks[0].createdAt')
     TASK_STOPPED=$(echo $TASK_DETAILS | jq -r '.tasks[0].stoppedAt')
-    
+
     if [ "$TASK_CREATED" != "null" ] && [ "$TASK_STOPPED" != "null" ]; then
       CREATED_TIME=$(date -d "$TASK_CREATED" "+%Y-%m-%d %H:%M:%S")
       STOPPED_TIME=$(date -d "$TASK_STOPPED" "+%Y-%m-%d %H:%M:%S")
       echo "Task lifetime: $CREATED_TIME to $STOPPED_TIME"
-      
+
       # Calculate how long the task ran
       CREATED_SECONDS=$(date -d "$TASK_CREATED" "+%s")
       STOPPED_SECONDS=$(date -d "$TASK_STOPPED" "+%s")
       DURATION=$((STOPPED_SECONDS - CREATED_SECONDS))
       echo "Task ran for: $DURATION seconds"
-      
+
       if [ $DURATION -lt 10 ]; then
         warning "Task stopped very quickly (< 10s). This often indicates a startup or configuration issue."
       fi
     fi
-    
+
     # Check logs
     LOG_STREAMS=$(aws logs describe-log-streams \
       --log-group-name $LOG_GROUP_NAME \
       --log-stream-name-prefix "ecs/lynqe-app-container/$TASK_ID" \
       --region $AWS_REGION \
       --output json 2>/dev/null || echo '{"logStreams": []}')
-    
+
     STREAM_NAME=$(echo $LOG_STREAMS | jq -r '.logStreams[0].logStreamName')
-    
+
     if [ -n "$STREAM_NAME" ] && [ "$STREAM_NAME" != "null" ]; then
       echo -e "\n${BOLD}CloudWatch Logs:${NC}"
       aws logs get-log-events \
@@ -165,7 +165,7 @@ else
     else
       warning "No CloudWatch logs found for this task. The container may have failed before logging started."
     fi
-    
+
     COUNTER=$((COUNTER + 1))
   done
 fi
@@ -234,41 +234,41 @@ TARGET_GROUP_ARN=$(echo $SERVICE_JSON | jq -r '.services[0].loadBalancers[0].tar
 
 if [ -n "$TARGET_GROUP_ARN" ] && [ "$TARGET_GROUP_ARN" != "null" ]; then
   echo "Target Group ARN: $TARGET_GROUP_ARN"
-  
+
   # Get load balancer from target group
   LB_ARN=$(aws elbv2 describe-target-groups \
     --target-group-arns $TARGET_GROUP_ARN \
     --region $AWS_REGION \
     --query 'TargetGroups[0].LoadBalancerArns[0]' \
     --output text)
-    
+
   echo "Load Balancer ARN: $LB_ARN"
-  
+
   # Check HTTPS listener
   HTTPS_LISTENER=$(aws elbv2 describe-listeners \
     --load-balancer-arn $LB_ARN \
     --region $AWS_REGION \
     --query "Listeners[?Port==\`443\`]" \
     --output json)
-    
+
   if [ -n "$HTTPS_LISTENER" ] && [ "$HTTPS_LISTENER" != "[]" ]; then
     success "HTTPS listener found on port 443"
-    
+
     # Check certificate
     CERT_ARN=$(echo $HTTPS_LISTENER | jq -r '.[0].Certificates[0].CertificateArn')
     echo "Certificate ARN: $CERT_ARN"
-    
+
     # Verify certificate is valid
     CERT_INFO=$(aws acm describe-certificate \
       --certificate-arn $CERT_ARN \
       --region $AWS_REGION)
-      
+
     CERT_STATUS=$(echo $CERT_INFO | jq -r '.Certificate.Status')
     CERT_DOMAIN=$(echo $CERT_INFO | jq -r '.Certificate.DomainName')
-    
+
     echo "Certificate Status: $CERT_STATUS"
     echo "Certificate Domain: $CERT_DOMAIN"
-    
+
     if [ "$CERT_STATUS" != "ISSUED" ]; then
       error "Certificate is not in ISSUED state. SSL/TLS will not work properly."
     else
@@ -278,36 +278,36 @@ if [ -n "$TARGET_GROUP_ARN" ] && [ "$TARGET_GROUP_ARN" != "null" ]; then
     error "No HTTPS listener found. Auth0 requires HTTPS to work properly."
     echo "Run the setup-https.sh script to configure HTTPS on your load balancer."
   fi
-  
+
   # Check health check configuration
   TG_INFO=$(aws elbv2 describe-target-groups \
     --target-group-arns $TARGET_GROUP_ARN \
     --region $AWS_REGION)
-    
+
   HEALTH_PATH=$(echo $TG_INFO | jq -r '.TargetGroups[0].HealthCheckPath')
   HEALTH_PORT=$(echo $TG_INFO | jq -r '.TargetGroups[0].HealthCheckPort')
   HEALTH_PROTOCOL=$(echo $TG_INFO | jq -r '.TargetGroups[0].HealthCheckProtocol')
-  
+
   echo "Health Check Path: $HEALTH_PATH"
   echo "Health Check Port: $HEALTH_PORT"
   echo "Health Check Protocol: $HEALTH_PROTOCOL"
-  
+
   if [ "$HEALTH_PATH" == "/" ] || [ "$HEALTH_PATH" == "/health" ]; then
     success "Health check path seems appropriate"
   else
     warning "Unusual health check path. Ensure this endpoint exists in your application."
   fi
-  
+
   echo "Target group health check details:"
   echo $TG_INFO | jq '.TargetGroups[0] | {HealthCheckEnabled, HealthCheckIntervalSeconds, HealthCheckTimeoutSeconds, HealthyThresholdCount, UnhealthyThresholdCount}'
-  
+
   # Check target group registration status
   TG_TARGETS=$(aws elbv2 describe-target-health \
     --target-group-arn $TARGET_GROUP_ARN \
     --region $AWS_REGION)
-    
+
   TARGET_COUNT=$(echo $TG_TARGETS | jq '.TargetHealthDescriptions | length')
-  
+
   if [ "$TARGET_COUNT" -eq 0 ]; then
     warning "No targets registered with the target group. This is expected during a failed deployment."
   else
@@ -341,22 +341,22 @@ for SG in $SECURITY_GROUPS; do
   SG_RULES=$(aws ec2 describe-security-groups \
     --group-ids $SG \
     --region $AWS_REGION)
-    
+
   INBOUND_80=$(echo $SG_RULES | jq -r '.SecurityGroups[0].IpPermissions[] | select(.FromPort==80 or (.FromPort<=80 and .ToPort>=80))')
   INBOUND_443=$(echo $SG_RULES | jq -r '.SecurityGroups[0].IpPermissions[] | select(.FromPort==443 or (.FromPort<=443 and .ToPort>=443))')
-  
+
   if [ -z "$INBOUND_80" ]; then
     warning "Security group $SG may not allow inbound traffic on port 80"
   else
     success "Security group $SG allows HTTP traffic"
   fi
-  
+
   if [ -z "$INBOUND_443" ]; then
     warning "Security group $SG may not allow inbound traffic on port 443"
   else
     success "Security group $SG allows HTTPS traffic"
   fi
-  
+
   # Check outbound traffic
   OUTBOUND_ALL=$(echo $SG_RULES | jq -r '.SecurityGroups[0].IpPermissionsEgress[] | select(.IpProtocol=="-1")')
   if [ -z "$OUTBOUND_ALL" ]; then

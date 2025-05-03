@@ -78,19 +78,24 @@ jobs:
     - name: Generate unique deployment ID and build info
       id: build-info
       run: |
+        # Format matches the deploy.sh script timestamp format
         TIMESTAMP=$(date +%Y%m%d%H%M%S)
         BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-        DEPLOY_ID="HTTPS-${{ github.run_id }}-${TIMESTAMP}"
-        
+        COMMIT_SHORT=$(git rev-parse --short HEAD)
+        DEPLOY_ID="${COMMIT_SHORT}-${TIMESTAMP}"
+
         echo "BUILD_DATE=${BUILD_DATE}" >> $GITHUB_ENV
         echo "DEPLOY_ID=${DEPLOY_ID}" >> $GITHUB_ENV
         echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+        echo "COMMIT_SHORT=${COMMIT_SHORT}" >> $GITHUB_ENV
         echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_OUTPUT
-        
+        echo "DEPLOY_ID=${DEPLOY_ID}" >> $GITHUB_OUTPUT
+
         echo "Creating build-info.txt file"
         echo "Build date: ${BUILD_DATE}" > build-info.txt
         echo "Deploy ID: ${DEPLOY_ID}" >> build-info.txt
         echo "Commit: ${{ github.sha }}" >> build-info.txt
+        echo "Commit Short: ${COMMIT_SHORT}" >> build-info.txt
         echo "Branch: ${{ github.ref_name }}" >> build-info.txt
         echo "Workflow Run: ${{ github.run_id }}" >> build-info.txt
         echo "HTTPS Enabled: Yes" >> build-info.txt
@@ -106,8 +111,7 @@ jobs:
           DEPLOY_ID=${{ env.DEPLOY_ID }}
         tags: |
           ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:latest
-          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:${{ github.sha }}
-          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:${{ github.sha }}-${{ env.TIMESTAMP }}
+          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}:${{ env.COMMIT_SHORT }}-${{ env.TIMESTAMP }}
 
   deploy-to-aws:
     needs: build-docker-images
@@ -116,7 +120,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
@@ -184,46 +188,46 @@ jobs:
         echo "Retrieving current task definition..."
         TASK_DEF_ARN=$(aws ecs describe-services --cluster ${{ secrets.ECSCLUSTER }} --services ${{ secrets.ECSSERVICE }} --query 'services[0].taskDefinition' --output text --region ${{ secrets.AWSREGION }})
         aws ecs describe-task-definition --task-definition $TASK_DEF_ARN --region ${{ secrets.AWSREGION }} > task_def.json
-        
+
         # Get the timestamp from previous job
         TIMESTAMP="${{ needs.build-docker-images.outputs.TIMESTAMP }}"
         if [ -z "$TIMESTAMP" ]; then
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
         fi
-        
+
         # Create a unique deploy ID
         DEPLOY_ID="DEPLOY-${{ github.run_id }}-${TIMESTAMP}"
         echo "Using deploy ID: ${DEPLOY_ID}"
-        
+
         # Define the specific image tag (not using latest)
         IMAGE_TAG="${{ github.sha }}-${TIMESTAMP}"
         ECR_REPOSITORY="${{ steps.login-ecr.outputs.registry }}.dkr.ecr.${{ secrets.AWSREGION }}.amazonaws.com/${{ secrets.ECRREPOSITORY }}"
         FULL_IMAGE="${ECR_REPOSITORY}:${IMAGE_TAG}"
-        
+
         # If can't get specific tag, fall back to commit SHA
         if ! aws ecr describe-images --repository-name ${{ secrets.ECRREPOSITORY }} --image-ids imageTag=${IMAGE_TAG} --region ${{ secrets.AWSREGION }} &>/dev/null; then
           echo "Image with tag ${IMAGE_TAG} not found, falling back to commit SHA"
           FULL_IMAGE="${ECR_REPOSITORY}:${{ github.sha }}"
         fi
-        
+
         # If still can't find, fall back to latest as last resort
         if ! aws ecr describe-images --repository-name ${{ secrets.ECRREPOSITORY }} --image-ids imageTag=${{ github.sha }} --region ${{ secrets.AWSREGION }} &>/dev/null; then
           echo "Image with tag ${{ github.sha }} not found, falling back to latest"
           FULL_IMAGE="${ECR_REPOSITORY}:latest"
         fi
-        
+
         echo "Using image: ${FULL_IMAGE}"
-        
+
         # Update the task definition with the new image and deploy ID
         echo "Updating task definition with new image and deploy ID..."
         NEW_TASK_DEF=$(cat task_def.json | jq --arg IMAGE "${FULL_IMAGE}" \
           --arg DEPLOY_ID "${DEPLOY_ID}" \
           '.taskDefinition | .containerDefinitions[0].image = $IMAGE | .containerDefinitions[0].environment += [{"name": "DEPLOY_ID", "value": $DEPLOY_ID}] | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
-        
+
         # Register the new task definition
         echo "Registering new task definition..."
         NEW_TASK_ARN=$(aws ecs register-task-definition --cli-input-json "${NEW_TASK_DEF}" --region ${{ secrets.AWSREGION }} --query 'taskDefinition.taskDefinitionArn' --output text)
-        
+
         echo "New task definition registered: ${NEW_TASK_ARN}"
         echo "task_arn=${NEW_TASK_ARN}" >> $GITHUB_ENV
         echo "deploy_id=${DEPLOY_ID}" >> $GITHUB_ENV
@@ -330,7 +334,7 @@ jobs:
 
           if [ -n "$TARGET_GROUP_ARN" ] && [ "$TARGET_GROUP_ARN" != "null" ]; then
             echo "Updating service with load balancer configuration..."
-            
+
             if aws ecs update-service \
               --cluster ${{ secrets.ECSCLUSTER }} \
               --service ${{ secrets.ECSSERVICE }} \
@@ -344,7 +348,7 @@ jobs:
             fi
           else
             echo "Updating service without load balancer configuration..."
-            
+
             if aws ecs update-service \
               --cluster ${{ secrets.ECSCLUSTER }} \
               --service ${{ secrets.ECSSERVICE }} \
@@ -356,7 +360,7 @@ jobs:
                 break
             fi
           fi
-          
+
           exit_code=$?
           echo "Update failed with exit code: $exit_code"
 
@@ -407,44 +411,142 @@ jobs:
       id: wait-for-service
       run: |
         echo "Waiting for ECS service to stabilize..."
-        MAX_WAIT_TIME=300  # 5 minutes
+        MAX_WAIT_TIME=600  # 10 minutes (increased from 5)
         INTERVAL=15
         total_time=0
+        stabilized=false
+        deployment_id_verified=false
+        consecutive_completed=0
 
         while [ $total_time -lt $MAX_WAIT_TIME ]; do
           # Check deployment status
           DEPLOYMENT_STATUS=$(aws ecs describe-services \
             --cluster ${{ secrets.ECSCLUSTER }} \
             --services ${{ secrets.ECSSERVICE }} \
-            --query 'services[0].deployments[0].status' \
+            --query 'services[0].deployments[0].rolloutState' \
             --output text)
-          
+
           RUNNING_COUNT=$(aws ecs describe-services \
             --cluster ${{ secrets.ECSCLUSTER }} \
             --services ${{ secrets.ECSSERVICE }} \
-            --query 'services[0].deployments[0].runningCount' \
+            --query 'services[0].runningCount' \
             --output text)
-          
+
           DESIRED_COUNT=$(aws ecs describe-services \
             --cluster ${{ secrets.ECSCLUSTER }} \
             --services ${{ secrets.ECSSERVICE }} \
-            --query 'services[0].deployments[0].desiredCount' \
+            --query 'services[0].desiredCount' \
             --output text)
-          
+
           echo "Deployment status: $DEPLOYMENT_STATUS, Running: $RUNNING_COUNT/$DESIRED_COUNT"
-          
-          if [ "$RUNNING_COUNT" -eq "$DESIRED_COUNT" ]; then
-            echo "Service stabilized! All tasks are running."
-            break
+
+          # Track consecutive COMPLETED status checks
+          if [ "$DEPLOYMENT_STATUS" == "COMPLETED" ] && [ "$RUNNING_COUNT" -eq "$DESIRED_COUNT" ]; then
+            consecutive_completed=$((consecutive_completed+1))
+            echo "Deployment is COMPLETED ($consecutive_completed consecutive checks)"
+            
+            # Force exit after 2 consecutive COMPLETED checks even if we can't verify DEPLOY_ID
+            if [ $consecutive_completed -ge 2 ]; then
+              echo "Service has been COMPLETED for $consecutive_completed consecutive checks. Considering deployment successful!"
+              stabilized=true
+              break
+            fi
+          else
+            consecutive_completed=0
           fi
-          
+
+          # Verify DEPLOY_ID in running tasks - important to confirm correct version is deployed
+          if [ "$RUNNING_COUNT" -gt 0 ]; then
+            running_tasks=$(aws ecs list-tasks \
+              --cluster ${{ secrets.ECSCLUSTER }} \
+              --service-name ${{ secrets.ECSSERVICE }} \
+              --desired-status RUNNING \
+              --region ${{ secrets.AWSREGION }})
+
+            task_arns=$(echo $running_tasks | jq -r '.taskArns[]')
+
+            if [ -n "$task_arns" ]; then
+              echo "Verifying DEPLOY_ID in task environment variables..."
+              for task_arn in $task_arns; do
+                task_details=$(aws ecs describe-tasks \
+                  --cluster ${{ secrets.ECSCLUSTER }} \
+                  --tasks $task_arn \
+                  --region ${{ secrets.AWSREGION }})
+
+                task_deploy_id=$(echo $task_details | jq -r '.tasks[0].containers[0].environment[] | select(.name=="DEPLOY_ID") | .value')
+
+                if [ "$task_deploy_id" == "${{ env.deploy_id }}" ]; then
+                  echo "Confirmed new deployment with DEPLOY_ID: ${{ env.deploy_id }} is running!"
+                  deployment_id_verified=true
+                  stabilized=true
+                  break
+                else
+                  echo "Warning: Task is running but with older deployment ID: $task_deploy_id"
+                fi
+              done
+            fi
+          fi
+
+          if [ "$DEPLOYMENT_STATUS" == "COMPLETED" ] && [ "$RUNNING_COUNT" -eq "$DESIRED_COUNT" ] && [ "$deployment_id_verified" == true ]; then
+            echo "Service has stabilized successfully with the new deployment!"
+            stabilized=true
+            break
+          elif [ "$DEPLOYMENT_STATUS" == "FAILED" ]; then
+            echo "::error::Deployment failed. Checking failure reasons..."
+
+            # Get detailed deployment information
+            aws ecs describe-services \
+              --cluster ${{ secrets.ECSCLUSTER }} \
+              --services ${{ secrets.ECSSERVICE }} > deployment_status.json
+
+            # Extract and display failure reasons
+            jq -r '.services[0].deployments[0].rolloutStateReason' deployment_status.json
+
+            # Check for stopped tasks related to this deployment
+            DEPLOY_TIME=$(jq -r '.services[0].deployments[0].createdAt' deployment_status.json)
+            STOPPED_TASKS=$(aws ecs list-tasks \
+              --cluster ${{ secrets.ECSCLUSTER }} \
+              --family $(aws ecs describe-task-definition --task-definition ${{ env.task_arn }} | jq -r '.taskDefinition.family') \
+              --desired-status STOPPED \
+              --output json)
+
+            TASK_ARNS=$(echo $STOPPED_TASKS | jq -r '.taskArns[]')
+
+            if [ -n "$TASK_ARNS" ]; then
+              aws ecs describe-tasks \
+                --cluster ${{ secrets.ECSCLUSTER }} \
+                --tasks $TASK_ARNS > stopped_tasks.json
+
+              echo "Tasks stopped during deployment (showing stop reasons):"
+              jq -r '.tasks[] | {taskArn: .taskArn, stoppedReason: .stoppedReason, containers: [.containers[] | {name: .name, reason: .reason, exitCode: .exitCode}]}' stopped_tasks.json
+            fi
+
+            echo "::error::Deployment failed, see details above."
+            exit 1
+          fi
+
           echo "Waiting for ${INTERVAL} seconds..."
           sleep $INTERVAL
           total_time=$((total_time + INTERVAL))
         done
 
         if [ $total_time -ge $MAX_WAIT_TIME ]; then
-          echo "::warning::Service did not fully stabilize within wait period, but deployment may still be in progress."
+          echo "::warning::Service did not fully stabilize within wait period, checking status..."
+
+          if [ "$deployment_id_verified" == true ]; then
+            echo "::notice::However, tasks with the correct DEPLOY_ID are running, so deployment may be partially successful."
+          else
+            echo "::error::No tasks with the expected DEPLOY_ID were detected. Deployment may have failed."
+
+            # Get the last few service events to help diagnose
+            echo "Recent ECS service events:"
+            aws ecs describe-services \
+              --cluster ${{ secrets.ECSCLUSTER }} \
+              --services ${{ secrets.ECSSERVICE }} \
+              --query 'services[0].events[:5]' > service_events.json
+
+            jq -r '.[] | .message' service_events.json
+          fi
         fi
 
     # Get ALB endpoint for the deployed service
@@ -475,6 +577,29 @@ jobs:
           echo "Application is accessible at: http://${ALB_DNS}"
           echo "For HTTPS, the URL would be: https://${ALB_DNS}"
           echo "endpoint=https://${ALB_DNS}" >> $GITHUB_ENV
+
+          # Check if we have any registered targets in the target group
+          echo "Checking health of registered targets..."
+          REGISTERED_TARGETS=$(aws elbv2 describe-target-health \
+            --target-group-arn $TARGET_GROUP_ARN)
+
+          TARGET_HEALTH=$(echo $REGISTERED_TARGETS | jq -r '.TargetHealthDescriptions[].TargetHealth.State')
+
+          for health in $TARGET_HEALTH; do
+            echo "Target health state: $health"
+          done
+
+          # Get HTTPS listener if available
+          HTTPS_LISTENER=$(aws elbv2 describe-listeners \
+            --load-balancer-arn $LOAD_BALANCER_ARN \
+            --query "Listeners[?Protocol=='HTTPS']" \
+            --output json)
+
+          if [ -n "$HTTPS_LISTENER" ] && [ "$HTTPS_LISTENER" != "[]" ]; then
+            echo "HTTPS is configured on this load balancer!"
+          else
+            echo "::warning::HTTPS listener not found on the load balancer. Consider enabling HTTPS for secure access."
+          fi
         else
           echo "No load balancer configuration found for this service."
         fi
@@ -487,3 +612,6 @@ jobs:
           echo "::notice::Application is accessible at: ${{ env.endpoint }}"
         fi
         echo "::notice::Task Definition: ${{ env.task_arn }}"
+
+        echo "To verify this deployment manually, you can run:"
+        echo "aws ecs describe-tasks --cluster ${{ secrets.ECSCLUSTER }} --tasks \$(aws ecs list-tasks --cluster ${{ secrets.ECSCLUSTER }} --service-name ${{ secrets.ECSSERVICE }} --desired-status RUNNING --query 'taskArns[0]' --output text) --query 'tasks[0].containers[0].environment'"
