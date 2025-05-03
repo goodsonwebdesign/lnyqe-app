@@ -32,6 +32,7 @@ interface Testimonial {
 })
 export class HomeComponent implements OnInit {
   form!: FormGroup;
+  currentTime!: string;
 
   constructor(private fb: FormBuilder) {}
 
@@ -41,6 +42,25 @@ export class HomeComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
     });
+
+    // Set initial time
+    this.updateCurrentTime();
+
+    // Update time every minute
+    setInterval(() => {
+      this.updateCurrentTime();
+    }, 60000);
+  }
+
+  updateCurrentTime(): void {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12;
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+
+    this.currentTime = `${formattedHours}:${formattedMinutes} ${ampm}`;
   }
 
   // Latest updates data - using current date (April 29, 2025)

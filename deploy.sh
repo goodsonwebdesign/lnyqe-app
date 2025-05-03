@@ -4,8 +4,9 @@
 set -e
 
 # Configuration
-ECR_REPOSITORY="lynqe-app"
+# Standardize on us-east-2 region for all AWS deployments
 AWS_REGION="us-east-2"
+ECR_REPOSITORY="lynqe-app"
 CLUSTER_NAME="lynqe-cluster"
 SERVICE_NAME="lynqe-service"
 TASK_FAMILY="lynqe-app"
