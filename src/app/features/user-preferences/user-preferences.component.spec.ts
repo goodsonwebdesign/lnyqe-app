@@ -1,14 +1,29 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { UserPreferencesComponent } from './user-preferences.component';
+import { provideMockStore } from '@ngrx/store/testing';
+import { ThemeService } from '../../core/services/theme.service';
 
 describe('UserPreferencesComponent', () => {
   let component: UserPreferencesComponent;
   let fixture: ComponentFixture<UserPreferencesComponent>;
+  let mockThemeService: jasmine.SpyObj<ThemeService>;
 
   beforeEach(async () => {
+    mockThemeService = jasmine.createSpyObj('ThemeService', ['currentTheme', 'setTheme']);
+    mockThemeService.currentTheme.and.returnValue('system');
+
     await TestBed.configureTestingModule({
-      imports: [UserPreferencesComponent]
+      imports: [UserPreferencesComponent],
+      providers: [
+        provideMockStore({
+          initialState: {
+            auth: {
+              currentUser: null
+            }
+          }
+        }),
+        { provide: ThemeService, useValue: mockThemeService }
+      ]
     })
     .compileComponents();
 
