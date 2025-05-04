@@ -343,20 +343,17 @@ jobs:
         echo "Retrieving current ECS service configuration..."
         SERVICE_INFO=$(aws ecs describe-services --cluster ${{ env.CLUSTER_NAME }} --services ${{ env.SERVICE_NAME }} --region ${{ env.AWS_REGION }})
         
-        # Extract subnet IDs directly from the current service and format them properly
-        SUBNETS=$(echo $SERVICE_INFO | jq -r '.services[0].networkConfiguration.awsvpcConfiguration.subnets[] | select(. != null)' | tr '\n' ' ' | sed 's/ $//')
+        # Extract subnet IDs directly from the current service as comma-separated list
+        SUBNETS=$(echo $SERVICE_INFO | jq -r '.services[0].networkConfiguration.awsvpcConfiguration.subnets[] | select(. != null)' | tr '\n' ',' | sed 's/,$//')
         
-        # Format for AWS CLI: convert from array to comma-separated list
-        SUBNET_STRING=$(echo $SUBNETS | sed 's/ /,/g')
-        echo "Using subnet string: $SUBNET_STRING"
+        # Get the security groups as comma-separated list
+        SECURITY_GROUPS=$(echo $SERVICE_INFO | jq -r '.services[0].networkConfiguration.awsvpcConfiguration.securityGroups[] | select(. != null)' | tr '\n' ',' | sed 's/,$//')
         
-        # Format security groups correctly
-        SECURITY_GROUP_LIST=$(echo $SERVICE_INFO | jq -r '.services[0].networkConfiguration.awsvpcConfiguration.securityGroups[] | select(. != null)' | tr '\n' ' ' | sed 's/ $//')
-        SECURITY_GROUP_STRING=$(echo $SECURITY_GROUP_LIST | sed 's/ /,/g')
-        echo "Using security groups: $SECURITY_GROUP_STRING"
+        echo "Using subnets: $SUBNETS"
+        echo "Using security groups: $SECURITY_GROUPS"
         
-        echo "subnet_string=$SUBNET_STRING" >> $GITHUB_ENV
-        echo "security_group_string=$SECURITY_GROUP_STRING" >> $GITHUB_ENV
+        echo "subnet_list=$SUBNETS" >> $GITHUB_ENV
+        echo "security_group_list=$SECURITY_GROUPS" >> $GITHUB_ENV
 
     # Get load balancer configuration
     - name: Get load balancer configuration
@@ -391,12 +388,14 @@ jobs:
           # If the service has a load balancer configuration, include it in the update
           if [ -n "${{ env.target_group_arn }}" ]; then
             echo "Updating service with load balancer configuration..."
+            echo "Using subnets: ${{ env.subnet_list }}"
+            echo "Using security groups: ${{ env.security_group_list }}"
             
             update_result=$(aws ecs update-service \
               --cluster ${{ env.CLUSTER_NAME }} \
               --service ${{ env.SERVICE_NAME }} \
               --task-definition ${{ env.task_arn }} \
-              --network-configuration "awsvpcConfiguration={subnets=${{ env.subnet_string }},securityGroups=${{ env.security_group_string }},assignPublicIp=ENABLED}" \
+              --network-configuration "awsvpcConfiguration={subnets=${{ env.subnet_list }},securityGroups=${{ env.security_group_list }},assignPublicIp=ENABLED}" \
               --load-balancers "targetGroupArn=${{ env.target_group_arn }},containerName=${{ env.CONTAINER_NAME }},containerPort=80" \
               --desired-count 1 \
               --force-new-deployment \
@@ -422,12 +421,14 @@ jobs:
             
           else
             echo "Updating service without load balancer configuration..."
+            echo "Using subnets: ${{ env.subnet_list }}"
+            echo "Using security groups: ${{ env.security_group_list }}"
             
             update_result=$(aws ecs update-service \
               --cluster ${{ env.CLUSTER_NAME }} \
               --service ${{ env.SERVICE_NAME }} \
               --task-definition ${{ env.task_arn }} \
-              --network-configuration "awsvpcConfiguration={subnets=${{ env.subnet_string }},securityGroups=${{ env.security_group_string }},assignPublicIp=ENABLED}" \
+              --network-configuration "awsvpcConfiguration={subnets=${{ env.subnet_list }},securityGroups=${{ env.security_group_list }},assignPublicIp=ENABLED}" \
               --desired-count 1 \
               --force-new-deployment \
               --region ${{ env.AWS_REGION }} 2>&1)
