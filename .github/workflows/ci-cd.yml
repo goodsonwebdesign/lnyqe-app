@@ -7,11 +7,11 @@ on:
     branches: [ main, master ]
 
 env:
-  # Force consistent region - standardizing on us-east-2
-  AWS_REGION: "us-east-2"
-  CLUSTER_NAME: "lynqe-cluster"
-  SERVICE_NAME: "lynqe-service"
-  CONTAINER_NAME: "lynqe-app-container"
+  # Use GitHub secrets for all AWS configuration
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  CLUSTER_NAME: ${{ secrets.ECS_CLUSTER_NAME }}
+  SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
+  CONTAINER_NAME: ${{ secrets.ECS_CONTAINER_NAME }}
 
 jobs:
   build-and-test:
@@ -388,18 +388,10 @@ jobs:
               echo "ECS service update initiated successfully!"
               echo "target_group_arn=$TARGET_GROUP_ARN" >> $GITHUB_ENV
                 
-              # Force deregistration of any old tasks to ensure they're replaced
-              echo "Forcing deregistration of any prior tasks in target group..."
-              aws elbv2 describe-target-health \
-                --target-group-arn $TARGET_GROUP_ARN \
-                --query 'TargetHealthDescriptions[*].Target.Id' \
-                --output text | tr '\t' '\n' | while read -r target_id; do
-                  echo "Deregistering old target: $target_id"
-                  aws elbv2 deregister-targets \
-                    --target-group-arn $TARGET_GROUP_ARN \
-                    --targets Id=${target_id}
-              done
-                
+              # DO NOT force deregister existing targets - this was causing the 503 errors
+              # Instead, we'll let ECS handle the registration/deregistration during deployment
+              # This ensures zero downtime by keeping old tasks running until new ones are healthy
+              
               break
             fi
           else
@@ -516,39 +508,42 @@ jobs:
               echo "Found $target_count targets registered in load balancer target group"
               
               if [ "$target_count" -gt "$desired_count" ]; then
-                echo "Target count ($target_count) exceeds desired count ($desired_count), forcing deregistration of excess targets"
+                echo "Target count ($target_count) exceeds desired count ($desired_count)"
                 
-                # Force deregister ALL targets - ECS will re-register the correct ones
-                echo $target_tasks | jq -r '.TargetHealthDescriptions[].Target.Id' | while read -r target_id; do
-                  echo "Forcibly deregistering target: $target_id"
-                  aws elbv2 deregister-targets \
-                    --target-group-arn ${{ env.target_group_arn }} \
-                    --targets Id=${target_id} \
-                    --region ${{ env.AWS_REGION }}
-                done
+                # Instead of deregistering ALL targets, check if we have at least one healthy new task registered
+                # Check for healthy targets first
+                healthy_targets=$(echo $target_tasks | jq -r '.TargetHealthDescriptions[] | select(.TargetHealth.State=="healthy") | .Target.Id')
+                healthy_target_count=$(echo "$healthy_targets" | grep -v '^$' | wc -l)
                 
-                # Explicitly stop old tasks to force faster turnover
-                for deployment_id in $old_deployment_ids; do
-                  echo "Looking for tasks from old deployment: $deployment_id"
-                  deployment_tasks=$(aws ecs list-tasks \
-                    --cluster ${{ env.CLUSTER_NAME }} \
-                    --started-by $deployment_id \
-                    --desired-status RUNNING \
-                    --region ${{ env.AWS_REGION }} \
-                    --query 'taskArns[]' \
-                    --output text)
-                  
-                  if [ -n "$deployment_tasks" ]; then
-                    for task_arn in $deployment_tasks; do
-                      echo "Forcibly stopping old task: $task_arn"
-                      aws ecs stop-task \
-                        --cluster ${{ env.CLUSTER_NAME }} \
-                        --task $task_arn \
-                        --reason "Forced task rotation during deployment" \
-                        --region ${{ env.AWS_REGION }}
-                    done
-                  fi
-                done
+                echo "Found $healthy_target_count healthy targets in the target group"
+                
+                # Only stop old tasks if we have confirmed healthy new tasks
+                if [ "$healthy_target_count" -ge 1 ]; then
+                  # Explicitly stop old tasks to force faster turnover but ONLY after new ones are healthy
+                  for deployment_id in $old_deployment_ids; do
+                    echo "Looking for tasks from old deployment: $deployment_id"
+                    deployment_tasks=$(aws ecs list-tasks \
+                      --cluster ${{ env.CLUSTER_NAME }} \
+                      --started-by $deployment_id \
+                      --desired-status RUNNING \
+                      --region ${{ env.AWS_REGION }} \
+                      --query 'taskArns[]' \
+                      --output text)
+                    
+                    if [ -n "$deployment_tasks" ]; then
+                      for task_arn in $deployment_tasks; do
+                        echo "Gracefully stopping old task: $task_arn (new healthy task is available)"
+                        aws ecs stop-task \
+                          --cluster ${{ env.CLUSTER_NAME }} \
+                          --task $task_arn \
+                          --reason "Graceful task rotation after new healthy task confirmed" \
+                          --region ${{ env.AWS_REGION }}
+                      done
+                    fi
+                  done
+                else
+                  echo "No healthy new tasks available yet - keeping old tasks running to prevent downtime"
+                fi
               fi
             fi
           fi
