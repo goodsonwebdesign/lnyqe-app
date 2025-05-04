@@ -337,39 +337,6 @@ jobs:
         echo "deploy_id=${DEPLOY_ID}" >> $GITHUB_ENV
         echo "image_tag=${IMAGE_TAG}" >> $GITHUB_ENV
 
-    # Get the current ECS service network configuration
-    - name: Get current ECS service configuration
-      run: |
-        echo "Retrieving current ECS service configuration..."
-        SERVICE_INFO=$(aws ecs describe-services --cluster ${{ env.CLUSTER_NAME }} --services ${{ env.SERVICE_NAME }} --region ${{ env.AWS_REGION }})
-        
-        # Extract subnet IDs directly from the current service as comma-separated list
-        SUBNETS=$(echo $SERVICE_INFO | jq -r '.services[0].networkConfiguration.awsvpcConfiguration.subnets[] | select(. != null)' | tr '\n' ',' | sed 's/,$//')
-        
-        # Get the security groups as comma-separated list
-        SECURITY_GROUPS=$(echo $SERVICE_INFO | jq -r '.services[0].networkConfiguration.awsvpcConfiguration.securityGroups[] | select(. != null)' | tr '\n' ',' | sed 's/,$//')
-        
-        echo "Using subnets: $SUBNETS"
-        echo "Using security groups: $SECURITY_GROUPS"
-        
-        echo "subnet_list=$SUBNETS" >> $GITHUB_ENV
-        echo "security_group_list=$SECURITY_GROUPS" >> $GITHUB_ENV
-
-    # Get load balancer configuration
-    - name: Get load balancer configuration
-      run: |
-        echo "Checking for existing load balancer configuration..."
-        SERVICE_INFO=$(aws ecs describe-services --cluster ${{ env.CLUSTER_NAME }} --services ${{ env.SERVICE_NAME }} --region ${{ env.AWS_REGION }})
-        LB_CONFIG=$(echo $SERVICE_INFO | jq '.services[0].loadBalancers')
-        
-        if [ -n "$LB_CONFIG" ] && [ "$LB_CONFIG" != "null" ] && [ "$LB_CONFIG" != "[]" ]; then
-          echo "Service has load balancer configuration"
-          TARGET_GROUP_ARN=$(echo $LB_CONFIG | jq -r '.[0].targetGroupArn')
-          echo "target_group_arn=$TARGET_GROUP_ARN" >> $GITHUB_ENV
-        else
-          echo "Service does not have load balancer configuration"
-        fi
-
     # Update ECS service with explicit target group configuration
     - name: Update ECS service with force-new-deployment
       run: |
@@ -381,38 +348,51 @@ jobs:
         while [ $attempt -le $max_attempts ]; do
           echo "Attempt $attempt of $max_attempts to update ECS service..."
           
+          # Get the latest service info to ensure we have current networking config
+          SERVICE_INFO=$(aws ecs describe-services --cluster ${{ env.CLUSTER_NAME }} --services ${{ env.SERVICE_NAME }} --region ${{ env.AWS_REGION }})
+          
+          # Extract subnet IDs directly from the current service - EXACTLY as in deploy.sh
+          SUBNETS=$(echo $SERVICE_INFO | jq -r '.services[0].networkConfiguration.awsvpcConfiguration.subnets[]' | tr '\n' ',' | sed 's/,$//')
+          # Extract security groups as in deploy.sh
+          SECURITY_GROUPS_JSON=$(echo $SERVICE_INFO | jq '.services[0].networkConfiguration.awsvpcConfiguration.securityGroups')
+          
+          echo "Using subnets from service: $SUBNETS"
+          echo "Using security groups from service: $SECURITY_GROUPS_JSON"
+          
           # Add cache buster to force pulling the latest image
           CACHE_BUSTER=$(date +%s)
           echo "Adding cache buster ($CACHE_BUSTER) to force ECS to pull the latest image..."
           
-          # Prepare network configuration in a separate variable with proper escaping
-          NETWORK_CONFIG="awsvpcConfiguration={subnets=${{ env.subnet_list }},securityGroups=${{ env.security_group_list }},assignPublicIp=ENABLED}"
-          echo "Network configuration: $NETWORK_CONFIG"
+          # Check for load balancer configuration
+          LB_CONFIG=$(echo $SERVICE_INFO | jq '.services[0].loadBalancers')
           
           # If the service has a load balancer configuration, include it in the update
-          if [ -n "${{ env.target_group_arn }}" ]; then
+          if [ -n "$LB_CONFIG" ] && [ "$LB_CONFIG" != "null" ] && [ "$LB_CONFIG" != "[]" ]; then
             echo "Updating service with load balancer configuration..."
-            echo "Target group ARN: ${{ env.target_group_arn }}"
+            TARGET_GROUP_ARN=$(echo $LB_CONFIG | jq -r '.[0].targetGroupArn')
+            CONTAINER_NAME=$(echo $LB_CONFIG | jq -r '.[0].containerName')
+            CONTAINER_PORT=$(echo $LB_CONFIG | jq -r '.[0].containerPort')
             
-            # Debugging - dump exact command to be executed
-            echo "Running command: aws ecs update-service --cluster ${{ env.CLUSTER_NAME }} --service ${{ env.SERVICE_NAME }} --task-definition ${{ env.task_arn }} --network-configuration \"$NETWORK_CONFIG\" --force-new-deployment --region ${{ env.AWS_REGION }}"
+            echo "Target group ARN: $TARGET_GROUP_ARN"
+            echo "Container name: $CONTAINER_NAME"
+            echo "Container port: $CONTAINER_PORT"
             
-            # Try without the load balancer configuration first (often the source of errors)
+            # Try to use the exact same command format as deploy.sh - complete copy of the working script
             update_result=$(aws ecs update-service \
               --cluster ${{ env.CLUSTER_NAME }} \
               --service ${{ env.SERVICE_NAME }} \
               --task-definition ${{ env.task_arn }} \
-              --network-configuration "$NETWORK_CONFIG" \
+              --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=$SECURITY_GROUPS_JSON,assignPublicIp=ENABLED}" \
+              --desired-count 1 \
               --force-new-deployment \
               --region ${{ env.AWS_REGION }} 2>&1)
             
             update_status=$?
             if [ $update_status -ne 0 ]; then
-              echo "Error updating service with network configuration only: $update_result"
-              echo "Status code: $update_status"
-              echo "Will try simplified command..."
+              echo "Error updating service: $update_result (status code: $update_status)"
+              echo "Trying simpler command without network configuration..."
               
-              # Try an even more basic command without network configuration
+              # Fallback to a basic update without network configuration
               update_result=$(aws ecs update-service \
                 --cluster ${{ env.CLUSTER_NAME }} \
                 --service ${{ env.SERVICE_NAME }} \
@@ -422,46 +402,44 @@ jobs:
                 
               update_status=$?
             fi
-            
+              
             if [ $update_status -eq 0 ]; then
               echo "ECS service update initiated successfully!"
-              
+              echo "target_group_arn=$TARGET_GROUP_ARN" >> $GITHUB_ENV
+                
               # Force deregistration of any old tasks to ensure they're replaced
               echo "Forcing deregistration of any prior tasks in target group..."
               aws elbv2 describe-target-health \
-                --target-group-arn ${{ env.target_group_arn }} \
+                --target-group-arn $TARGET_GROUP_ARN \
                 --query 'TargetHealthDescriptions[*].Target.Id' \
                 --output text | tr '\t' '\n' | while read -r target_id; do
                   echo "Deregistering old target: $target_id"
                   aws elbv2 deregister-targets \
-                    --target-group-arn ${{ env.target_group_arn }} \
+                    --target-group-arn $TARGET_GROUP_ARN \
                     --targets Id=${target_id}
               done
-              
+                
               break
             fi
-            
           else
             echo "Updating service without load balancer configuration..."
             
-            # Debugging - dump exact command to be executed
-            echo "Running command: aws ecs update-service --cluster ${{ env.CLUSTER_NAME }} --service ${{ env.SERVICE_NAME }} --task-definition ${{ env.task_arn }} --network-configuration \"$NETWORK_CONFIG\" --force-new-deployment --region ${{ env.AWS_REGION }}"
-            
+            # Using exact same format as deploy.sh
             update_result=$(aws ecs update-service \
               --cluster ${{ env.CLUSTER_NAME }} \
               --service ${{ env.SERVICE_NAME }} \
               --task-definition ${{ env.task_arn }} \
-              --network-configuration "$NETWORK_CONFIG" \
+              --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=$SECURITY_GROUPS_JSON,assignPublicIp=ENABLED}" \
+              --desired-count 1 \
               --force-new-deployment \
               --region ${{ env.AWS_REGION }} 2>&1)
               
             update_status=$?
             if [ $update_status -ne 0 ]; then
-              echo "Error updating service with network configuration: $update_result"
-              echo "Status code: $update_status"
-              echo "Will try simplified command..."
+              echo "Error updating service: $update_result (status code: $update_status)"
+              echo "Trying simpler command without network configuration..."
               
-              # Try an even more basic command without network configuration
+              # Fallback to a basic update without network configuration
               update_result=$(aws ecs update-service \
                 --cluster ${{ env.CLUSTER_NAME }} \
                 --service ${{ env.SERVICE_NAME }} \
@@ -489,17 +467,23 @@ jobs:
         # If all attempts failed, but we might be able to continue anyway
         if [ $attempt -gt $max_attempts ]; then
           echo "Warning: Failed to update ECS service after $max_attempts attempts."
-          echo "Checking if service is using the task definition anyway..."
+          echo "Using AWS Console approach - Just updating the task definition..."
           
           SERVICE_INFO=$(aws ecs describe-services --cluster ${{ env.CLUSTER_NAME }} --services ${{ env.SERVICE_NAME }} --region ${{ env.AWS_REGION }})
           CURRENT_TASK_DEF=$(echo $SERVICE_INFO | jq -r '.services[0].taskDefinition')
           
-          if [ "$CURRENT_TASK_DEF" == "${{ env.task_arn }}" ]; then
-            echo "Service is already using the correct task definition. Continuing..."
-          else
-            echo "Service is not using the expected task definition. Expected: ${{ env.task_arn }}, Actual: $CURRENT_TASK_DEF"
-            echo "Will attempt to continue anyway..."
-          fi
+          echo "Current task definition: $CURRENT_TASK_DEF"
+          echo "Desired task definition: ${{ env.task_arn }}"
+          
+          # Try a different approach - just get the current service configuration and create a new deployment
+          echo "Trying to create a new deployment without changing any settings..."
+          aws ecs update-service \
+            --cluster ${{ env.CLUSTER_NAME }} \
+            --service ${{ env.SERVICE_NAME }} \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }} || true
+            
+          echo "Proceeding with deployment verification despite update failures..."
         fi
 
     # Wait for service to stabilize with same logic from deploy.sh
