@@ -97,9 +97,9 @@ while [ $attempt -le $max_attempts ]; do
 
     # Explicitly clear the pull cache by adding a random parameter to prevent image caching
     CACHE_BUSTER=$(date +%s)
-    
+
     echo "Adding cache buster ($CACHE_BUSTER) to force ECS to pull the latest image..."
-    
+
     update_result=$(aws ecs update-service \
       --cluster $CLUSTER_NAME \
       --service $SERVICE_NAME \
@@ -176,7 +176,7 @@ while [ $check_count -le $max_checks ] && [ "$(date +%s)" -lt $end_time ]; do
     consecutive_in_progress=$((consecutive_in_progress+1))
     consecutive_completed=0
     echo "Deployment is IN_PROGRESS with desired task count ($consecutive_in_progress consecutive checks)"
-    
+
     # Consider deployment stable after 6 consecutive IN_PROGRESS checks with full desired count (3 minutes)
     if [ $consecutive_in_progress -ge 6 ]; then
       echo "Service has been IN_PROGRESS with desired task count for $consecutive_in_progress consecutive checks. Considering deployment successful!"

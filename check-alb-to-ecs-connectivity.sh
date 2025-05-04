@@ -56,14 +56,14 @@ if echo "$ECS_SG_RULES" | grep -q "$LB_SECURITY_GROUP"; then
 else
   echo "❌ ECS security group does NOT have an inbound rule allowing traffic from the ALB security group."
   echo "Creating rule to allow traffic from ALB to ECS tasks..."
-  
+
   aws ec2 authorize-security-group-ingress \
     --group-id $ECS_SG \
     --protocol tcp \
     --port 80 \
     --source-group $LB_SECURITY_GROUP \
     --region $AWS_REGION
-    
+
   echo "Rule created successfully. ALB can now reach ECS tasks on port 80."
 fi
 
@@ -91,9 +91,9 @@ if [ -n "$TASK_ARNS" ]; then
     --cluster $CLUSTER_NAME \
     --tasks $TASK_ARNS \
     --region $AWS_REGION)
-    
+
   CONTAINER_HEALTH=$(echo "$TASK_DETAILS" | jq -r '.tasks[].containers[].healthStatus')
-  
+
   echo "Container health status: $CONTAINER_HEALTH"
 else
   echo "No running tasks found."

@@ -88,7 +88,7 @@ jobs:
         TIMESTAMP=$(date +%Y%m%d%H%M%S)
         IMAGE_TAG="${COMMIT_HASH}-${TIMESTAMP}"
         BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        
+
         echo "Using build timestamp: ${BUILD_DATE}"
         echo "Using image tag: ${IMAGE_TAG}"
 
@@ -96,7 +96,7 @@ jobs:
         echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
         echo "COMMIT_HASH=${COMMIT_HASH}" >> $GITHUB_ENV
         echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
-        
+
         echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_OUTPUT
         echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
@@ -112,27 +112,27 @@ jobs:
       run: |
         # Define repository URI
         ECR_REPOSITORY_URI="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}"
-        
+
         echo "Building Docker image with tag ${IMAGE_TAG}..."
-        
+
         # Force removing any existing image with the same name to ensure clean build
         docker rmi -f ${{ secrets.ECRREPOSITORY }}:latest || true
         docker rmi -f ${ECR_REPOSITORY_URI}:latest || true
-        
+
         # Build with no-cache to ensure clean build and pass the deploy ID as a build argument
         docker build --no-cache \
           --build-arg BUILD_DATE="${{ env.BUILD_DATE }}" \
           -t ${{ secrets.ECRREPOSITORY }}:${{ env.IMAGE_TAG }} \
           -f Dockerfile.prod .
-          
+
         # Tag and push the image
         echo "Tagging and pushing image to ECR..."
         docker tag ${{ secrets.ECRREPOSITORY }}:${{ env.IMAGE_TAG }} ${ECR_REPOSITORY_URI}:${{ env.IMAGE_TAG }}
         docker tag ${{ secrets.ECRREPOSITORY }}:${{ env.IMAGE_TAG }} ${ECR_REPOSITORY_URI}:latest
-        
+
         docker push ${ECR_REPOSITORY_URI}:${{ env.IMAGE_TAG }}
         docker push ${ECR_REPOSITORY_URI}:latest
-        
+
         echo "Image successfully pushed to ECR with tags: latest and ${{ env.IMAGE_TAG }}"
 
   deploy-to-aws:
@@ -174,18 +174,18 @@ jobs:
         # Check if task definition retrieval was successful
         if [ -z "$TASK_DEFINITION" ] || [ "$TASK_DEFINITION" = "None" ]; then
           echo "Warning: Couldn't retrieve current task definition from service. Will try to find latest task definition by family."
-          
+
           # Find the task definition family from the service name or ECR repository
           TASK_FAMILY="${{ secrets.ECRREPOSITORY }}"
           echo "Using task family: $TASK_FAMILY"
-          
+
           # List task definitions and get the latest one
           LATEST_TASK_DEF=$(aws ecs list-task-definitions --family-prefix $TASK_FAMILY --sort DESC --max-items 1 --region ${{ env.AWS_REGION }} --query 'taskDefinitionArns[0]' --output text)
-          
+
           if [ -z "$LATEST_TASK_DEF" ] || [ "$LATEST_TASK_DEF" = "None" ]; then
             echo "Error: No task definitions found for family $TASK_FAMILY"
             echo "Will try to create a new one using template..."
-            
+
             # Create the task definition template using echo commands
             echo '{' > task_def_template.json
             echo '  "family": "'"$TASK_FAMILY"'",' >> task_def_template.json
@@ -226,17 +226,17 @@ jobs:
             echo '  "cpu": "256",' >> task_def_template.json
             echo '  "memory": "512"' >> task_def_template.json
             echo '}' >> task_def_template.json
-            
+
             TASK_DEF_JSON=$(cat task_def_template.json)
           else
             echo "Found latest task definition: $LATEST_TASK_DEF"
-            
+
             # Get details of the latest task definition to use as a base
             TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY --query "taskDefinition" --output json --region ${{ env.AWS_REGION }})
             if [ $? -ne 0 ]; then
               echo "Error: Failed to describe task definition $LATEST_TASK_DEF, trying with family name only"
               TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY --query "taskDefinition" --output json --region ${{ env.AWS_REGION }})
-              
+
               if [ $? -ne 0 ]; then
                 echo "Error: Failed to describe task definition by family $TASK_FAMILY"
                 exit 1
@@ -249,30 +249,30 @@ jobs:
           TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $TASK_DEFINITION --query "taskDefinition" --output json --region ${{ env.AWS_REGION }})
           if [ $? -ne 0 ]; then
             echo "Error: Failed to describe task definition $TASK_DEFINITION, trying with family name"
-            
+
             # Try to get the task family from the ARN
             TASK_FAMILY=$(echo $TASK_DEFINITION | cut -d'/' -f2 | cut -d':' -f1)
             if [ -z "$TASK_FAMILY" ]; then
               TASK_FAMILY="${{ secrets.ECRREPOSITORY }}"
             fi
             echo "Using task family: $TASK_FAMILY"
-            
+
             # Try to describe using just the family name
             TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $TASK_FAMILY --query "taskDefinition" --output json --region ${{ env.AWS_REGION }})
             if [ $? -ne 0 ]; then
               echo "Error: Failed to describe task definition using family $TASK_FAMILY"
               echo "Trying to find latest task definition in the family..."
-              
+
               # List task definitions and get the latest one
               LATEST_TASK_DEF=$(aws ecs list-task-definitions --family-prefix $TASK_FAMILY --sort DESC --max-items 1 --region ${{ env.AWS_REGION }} --query 'taskDefinitionArns[0]' --output text)
-              
+
               if [ -z "$LATEST_TASK_DEF" ] || [ "$LATEST_TASK_DEF" = "None" ]; then
                 echo "Error: No task definitions found for family $TASK_FAMILY"
                 echo "Exiting with failure"
                 exit 1
               else
                 echo "Found latest task definition: $LATEST_TASK_DEF"
-                
+
                 # Get details of the current task definition to use as a base
                 TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $LATEST_TASK_DEF --query "taskDefinition" --output json --region ${{ env.AWS_REGION }})
                 if [ $? -ne 0 ]; then
@@ -283,7 +283,7 @@ jobs:
             fi
           fi
         fi
-        
+
         # Image URI with specific tag from previous job
         IMAGE_TAG="${{ needs.build-docker-images.outputs.IMAGE_TAG }}"
         if [ -z "$IMAGE_TAG" ]; then
@@ -292,29 +292,29 @@ jobs:
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           IMAGE_TAG="${COMMIT_HASH}-${TIMESTAMP}"
         fi
-        
+
         # Define image URI
         ECR_REPOSITORY_URI="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECRREPOSITORY }}"
         IMAGE="${ECR_REPOSITORY_URI}:${IMAGE_TAG}"
-        
+
         echo "Using image: ${IMAGE}"
-        
+
         # Update the task definition with the new image
         echo "Updating task definition with new image..."
         NEW_TASK_DEF=$(echo $TASK_DEF_JSON | jq --arg IMAGE "${IMAGE}" \
           '.containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
-        
+
         # Register the new task definition
         echo "Registering new task definition..."
         echo "$NEW_TASK_DEF" > new_task_def.json
         NEW_TASK_ARN=$(aws ecs register-task-definition --cli-input-json file://new_task_def.json --query "taskDefinition.taskDefinitionArn" --output text --region ${{ env.AWS_REGION }})
-        
+
         if [ $? -ne 0 ] || [ -z "$NEW_TASK_ARN" ]; then
           echo "Error: Failed to register new task definition"
           cat new_task_def.json
           exit 1
         fi
-        
+
         echo "New task definition registered: ${NEW_TASK_ARN}"
         echo "task_arn=${NEW_TASK_ARN}" >> $GITHUB_ENV
 
@@ -323,41 +323,41 @@ jobs:
       run: |
         max_attempts=3
         attempt=1
-        
+
         echo "Updating ECS service with new task definition and forcing new deployment..."
-        
+
         while [ $attempt -le $max_attempts ]; do
           echo "Attempt $attempt of $max_attempts to update ECS service..."
-          
+
           # Get the latest service info to ensure we have current networking config
           SERVICE_INFO=$(aws ecs describe-services --cluster ${{ env.CLUSTER_NAME }} --services ${{ env.SERVICE_NAME }} --region ${{ env.AWS_REGION }})
-          
+
           # Extract subnet IDs directly from the current service - EXACTLY as in deploy.sh
           SUBNETS=$(echo $SERVICE_INFO | jq -r '.services[0].networkConfiguration.awsvpcConfiguration.subnets[]' | tr '\n' ',' | sed 's/,$//')
           # Extract security groups as in deploy.sh
           SECURITY_GROUPS_JSON=$(echo $SERVICE_INFO | jq '.services[0].networkConfiguration.awsvpcConfiguration.securityGroups')
-          
+
           echo "Using subnets from service: $SUBNETS"
           echo "Using security groups from service: $SECURITY_GROUPS_JSON"
-          
+
           # Add cache buster to force pulling the latest image
           CACHE_BUSTER=$(date +%s)
           echo "Adding cache buster ($CACHE_BUSTER) to force ECS to pull the latest image..."
-          
+
           # Check for load balancer configuration
           LB_CONFIG=$(echo $SERVICE_INFO | jq '.services[0].loadBalancers')
-          
+
           # If the service has a load balancer configuration, include it in the update
           if [ -n "$LB_CONFIG" ] && [ "$LB_CONFIG" != "null" ] && [ "$LB_CONFIG" != "[]" ]; then
             echo "Updating service with load balancer configuration..."
             TARGET_GROUP_ARN=$(echo $LB_CONFIG | jq -r '.[0].targetGroupArn')
             CONTAINER_NAME=$(echo $LB_CONFIG | jq -r '.[0].containerName')
             CONTAINER_PORT=$(echo $LB_CONFIG | jq -r '.[0].containerPort')
-            
+
             echo "Target group ARN: $TARGET_GROUP_ARN"
             echo "Container name: $CONTAINER_NAME"
             echo "Container port: $CONTAINER_PORT"
-            
+
             # Try to use the exact same command format as deploy.sh - complete copy of the working script
             update_result=$(aws ecs update-service \
               --cluster ${{ env.CLUSTER_NAME }} \
@@ -367,12 +367,12 @@ jobs:
               --desired-count 1 \
               --force-new-deployment \
               --region ${{ env.AWS_REGION }} 2>&1)
-            
+
             update_status=$?
             if [ $update_status -ne 0 ]; then
               echo "Error updating service: $update_result (status code: $update_status)"
               echo "Trying simpler command without network configuration..."
-              
+
               # Fallback to a basic update without network configuration
               update_result=$(aws ecs update-service \
                 --cluster ${{ env.CLUSTER_NAME }} \
@@ -380,23 +380,23 @@ jobs:
                 --task-definition ${{ env.task_arn }} \
                 --force-new-deployment \
                 --region ${{ env.AWS_REGION }} 2>&1)
-                
+
               update_status=$?
             fi
-              
+
             if [ $update_status -eq 0 ]; then
               echo "ECS service update initiated successfully!"
               echo "target_group_arn=$TARGET_GROUP_ARN" >> $GITHUB_ENV
-                
+
               # DO NOT force deregister existing targets - this was causing the 503 errors
               # Instead, we'll let ECS handle the registration/deregistration during deployment
               # This ensures zero downtime by keeping old tasks running until new ones are healthy
-              
+
               break
             fi
           else
             echo "Updating service without load balancer configuration..."
-            
+
             # Using exact same format as deploy.sh
             update_result=$(aws ecs update-service \
               --cluster ${{ env.CLUSTER_NAME }} \
@@ -406,12 +406,12 @@ jobs:
               --desired-count 1 \
               --force-new-deployment \
               --region ${{ env.AWS_REGION }} 2>&1)
-              
+
             update_status=$?
             if [ $update_status -ne 0 ]; then
               echo "Error updating service: $update_result (status code: $update_status)"
               echo "Trying simpler command without network configuration..."
-              
+
               # Fallback to a basic update without network configuration
               update_result=$(aws ecs update-service \
                 --cluster ${{ env.CLUSTER_NAME }} \
@@ -419,16 +419,16 @@ jobs:
                 --task-definition ${{ env.task_arn }} \
                 --force-new-deployment \
                 --region ${{ env.AWS_REGION }} 2>&1)
-                
+
               update_status=$?
             fi
-            
+
             if [ $update_status -eq 0 ]; then
               echo "ECS service update initiated successfully!"
               break
             fi
           fi
-          
+
           echo "Error updating service: $update_result"
           if [ $attempt -lt $max_attempts ]; then
             echo "Waiting 5 seconds before retrying..."
@@ -436,18 +436,18 @@ jobs:
           fi
           ((attempt++))
         done
-        
+
         # If all attempts failed, but we might be able to continue anyway
         if [ $attempt -gt $max_attempts ]; then
           echo "Warning: Failed to update ECS service after $max_attempts attempts."
           echo "Using AWS Console approach - Just updating the task definition..."
-          
+
           SERVICE_INFO=$(aws ecs describe-services --cluster ${{ env.CLUSTER_NAME }} --services ${{ env.SERVICE_NAME }} --region ${{ env.AWS_REGION }})
           CURRENT_TASK_DEF=$(echo $SERVICE_INFO | jq -r '.services[0].taskDefinition')
-          
+
           echo "Current task definition: $CURRENT_TASK_DEF"
           echo "Desired task definition: ${{ env.task_arn }}"
-          
+
           # Try a different approach - just get the current service configuration and create a new deployment
           echo "Trying to create a new deployment without changing any settings..."
           aws ecs update-service \
@@ -455,7 +455,7 @@ jobs:
             --service ${{ env.SERVICE_NAME }} \
             --force-new-deployment \
             --region ${{ env.AWS_REGION }} || true
-            
+
           echo "Proceeding with deployment verification despite update failures..."
         fi
 
@@ -469,54 +469,54 @@ jobs:
         deployment_stabilized=false
         consecutive_completed=0
         consecutive_in_progress=0
-        
+
         check_count=1
         max_checks=30
-        
+
         while [ $check_count -le $max_checks ] && [ "$(date +%s)" -lt $end_time ]; do
           echo "Check $check_count of $max_checks: Verifying service stability..."
-        
+
           service_info=$(aws ecs describe-services --cluster ${{ env.CLUSTER_NAME }} --services ${{ env.SERVICE_NAME }} --region ${{ env.AWS_REGION }})
           deployment_status=$(echo $service_info | jq -r '.services[0].deployments[0].rolloutState')
           running_count=$(echo $service_info | jq -r '.services[0].runningCount')
           desired_count=$(echo $service_info | jq -r '.services[0].desiredCount')
-          
+
           # Get total number of deployments (more than 1 means there are old deployments still running)
           deployment_count=$(echo $service_info | jq -r '.services[0].deployments | length')
-          
+
           echo "Deployment status: $deployment_status, Running: $running_count, Desired: $desired_count, Active deployments: $deployment_count"
-          
+
           # If there's more than one deployment running, check if we need to force drain old tasks
           if [ "$deployment_count" -gt 1 ] && [ -n "${{ env.target_group_arn }}" ]; then
             echo "Multiple deployments detected. Ensuring old tasks are being drained..."
-            
+
             # Get old deployment IDs to identify their tasks
             old_deployment_ids=$(echo $service_info | jq -r '.services[0].deployments[1:] | .[].id')
-            
+
             echo "Found old deployment IDs: $old_deployment_ids"
-            
+
             # Force deregistration of any old tasks that might be lingering
             if [ -n "${{ env.target_group_arn }}" ]; then
               echo "Checking target group for old tasks to force deregistration..."
-              
+
               # List all tasks in the target group
               target_tasks=$(aws elbv2 describe-target-health \
                 --target-group-arn ${{ env.target_group_arn }} \
                 --region ${{ env.AWS_REGION }})
-              
+
               target_count=$(echo $target_tasks | jq '.TargetHealthDescriptions | length')
               echo "Found $target_count targets registered in load balancer target group"
-              
+
               if [ "$target_count" -gt "$desired_count" ]; then
                 echo "Target count ($target_count) exceeds desired count ($desired_count)"
-                
+
                 # Instead of deregistering ALL targets, check if we have at least one healthy new task registered
                 # Check for healthy targets first
                 healthy_targets=$(echo $target_tasks | jq -r '.TargetHealthDescriptions[] | select(.TargetHealth.State=="healthy") | .Target.Id')
                 healthy_target_count=$(echo "$healthy_targets" | grep -v '^$' | wc -l)
-                
+
                 echo "Found $healthy_target_count healthy targets in the target group"
-                
+
                 # Only stop old tasks if we have confirmed healthy new tasks
                 if [ "$healthy_target_count" -ge 1 ]; then
                   # Explicitly stop old tasks to force faster turnover but ONLY after new ones are healthy
@@ -529,7 +529,7 @@ jobs:
                       --region ${{ env.AWS_REGION }} \
                       --query 'taskArns[]' \
                       --output text)
-                    
+
                     if [ -n "$deployment_tasks" ]; then
                       for task_arn in $deployment_tasks; do
                         echo "Gracefully stopping old task: $task_arn (new healthy task is available)"
@@ -547,16 +547,16 @@ jobs:
               fi
             fi
           fi
-        
+
           # Check if service deployment is stable
           if [[ "$deployment_status" == "COMPLETED" ]] && [ "$running_count" -eq "$desired_count" ] && [ "$desired_count" -gt 0 ]; then
             deployment_stabilized=true
-        
+
             # Count consecutive COMPLETED status checks
             consecutive_completed=$((consecutive_completed+1))
             consecutive_in_progress=0
             echo "Deployment is COMPLETED ($consecutive_completed consecutive checks)"
-        
+
             # Force exit after 2 consecutive COMPLETED checks
             if [[ "$consecutive_completed" -ge 2 ]]; then
               echo "Service has been COMPLETED for $consecutive_completed consecutive checks. Deployment successful!"
@@ -567,7 +567,7 @@ jobs:
             consecutive_in_progress=$((consecutive_in_progress+1))
             consecutive_completed=0
             echo "Deployment is IN_PROGRESS with desired task count ($consecutive_in_progress consecutive checks)"
-            
+
             # Consider deployment stable after 6 consecutive IN_PROGRESS checks with full desired count (3 minutes)
             if [ $consecutive_in_progress -ge 6 ]; then
               echo "Service has been IN_PROGRESS with desired task count for $consecutive_in_progress consecutive checks. Considering deployment successful!"
@@ -578,21 +578,21 @@ jobs:
             consecutive_completed=0
             consecutive_in_progress=0
           fi
-        
+
           # Display recent service events for debugging
           recent_events=$(aws ecs describe-services --cluster ${{ env.CLUSTER_NAME }} --services ${{ env.SERVICE_NAME }} --query 'services[0].events[0:3].message' --output text --region ${{ env.AWS_REGION }})
           echo "Recent events:"
           echo "$recent_events"
-        
+
           echo "Waiting 30 seconds before checking again..."
           sleep 30
           ((check_count++))
         done
-        
+
         # Consider deployment successful if the deployment stabilized
         if [ "$deployment_stabilized" = true ]; then
           echo "Deployment completed successfully!"
-        
+
           # Check the ALB DNS name
           ALB_ARN=$(aws elbv2 describe-load-balancers --query "LoadBalancers[?contains(DNSName, 'lynqe')].LoadBalancerArn" --output text --region ${{ env.AWS_REGION }})
           if [ -n "$ALB_ARN" ]; then
