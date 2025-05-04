@@ -1,0 +1,145 @@
+<!-- Service Request Popup Component -->
+<!-- Only show when isOpen is true -->
+<div *ngIf="isOpen" class="fixed inset-0 z-50 flex items-center justify-center">
+  <!-- Backdrop -->
+  <div
+    class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70"
+    (click)="closeFlyout()"
+  ></div>
+
+  <!-- Modal Container -->
+  <div
+    class="relative bg-white dark:bg-neutral-800 shadow-lg rounded-lg max-w-md sm:max-w-lg w-full z-10 max-h-[90vh] overflow-hidden flex flex-col"
+  >
+    <!-- Header -->
+    <div class="flex justify-between items-center p-4 border-b border-neutral-200 dark:border-neutral-700">
+      <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">
+        New Service Request
+      </h2>
+      <button
+        (click)="closeFlyout()"
+        class="p-1 rounded-md text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        aria-label="Close panel"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto p-4">
+      <form [formGroup]="serviceRequestForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Request Type -->
+        <div>
+          <label for="requestType" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            Request Type
+          </label>
+          <select
+            id="requestType"
+            formControlName="requestType"
+            class="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+          >
+            <option value="" disabled>Select a request type</option>
+            <option value="maintenance">Maintenance</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="security">Security</option>
+            <option value="it">IT Support</option>
+            <option value="other">Other</option>
+          </select>
+          <p *ngIf="isInvalid('requestType')" class="mt-1 text-sm text-red-600 dark:text-red-400">
+            Request type is required
+          </p>
+        </div>
+
+        <!-- Location -->
+        <div>
+          <label for="location" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            Location
+          </label>
+          <input
+            type="text"
+            id="location"
+            formControlName="location"
+            placeholder="Building/Room/Area"
+            class="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+          >
+          <p *ngIf="isInvalid('location')" class="mt-1 text-sm text-red-600 dark:text-red-400">
+            Location is required
+          </p>
+        </div>
+
+        <!-- Priority -->
+        <div>
+          <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1" id="priorityGroupLabel">
+            Priority
+          </label>
+          <div class="flex space-x-4" role="radiogroup" aria-labelledby="priorityGroupLabel">
+            <div class="flex items-center">
+              <input
+                type="radio"
+                id="priorityLow"
+                formControlName="priority"
+                value="low"
+                class="h-4 w-4 text-primary-600 focus:ring-primary-500 focus:ring-offset-0 border-neutral-300 dark:border-neutral-500 dark:bg-neutral-700 dark:checked:bg-primary-600 dark:focus:ring-primary-500 dark:focus:ring-offset-neutral-800"
+                aria-labelledby="priorityLowLabel"
+              >
+              <label id="priorityLowLabel" for="priorityLow" class="ml-2 text-sm text-neutral-700 dark:text-neutral-300">
+                Low
+              </label>
+            </div>
+            <div class="flex items-center">
+              <input
+                type="radio"
+                id="priorityMedium"
+                formControlName="priority"
+                value="medium"
+                class="h-4 w-4 text-primary-600 focus:ring-primary-500 focus:ring-offset-0 border-neutral-300 dark:border-neutral-500 dark:bg-neutral-700 dark:checked:bg-primary-600 dark:focus:ring-primary-500 dark:focus:ring-offset-neutral-800"
+                aria-labelledby="priorityMediumLabel"
+              >
+              <label id="priorityMediumLabel" for="priorityMedium" class="ml-2 text-sm text-neutral-700 dark:text-neutral-300">
+                Medium
+              </label>
+            </div>
+            <div class="flex items-center">
+              <input
+                type="radio"
+                id="priorityHigh"
+                formControlName="priority"
+                value="high"
+                class="h-4 w-4 text-primary-600 focus:ring-primary-500 focus:ring-offset-0 border-neutral-300 dark:border-neutral-500 dark:bg-neutral-700 dark:checked:bg-primary-600 dark:focus:ring-primary-500 dark:focus:ring-offset-neutral-800"
+                aria-labelledby="priorityHighLabel"
+              >
+              <label id="priorityHighLabel" for="priorityHigh" class="ml-2 text-sm text-neutral-700 dark:text-neutral-300">
+                High
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label for="description" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            Description
+          </label>
+          <textarea
+            id="description"
+            formControlName="description"
+            rows="4"
+            placeholder="Describe the issue or request in detail"
+            class="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+          ></textarea>
+          <p *ngIf="isInvalid('description')" class="mt-1 text-sm text-red-600 dark:text-red-400">
+            Description is required
+          </p>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="p-4 border-t border-neutral-200 dark:border-neutral-700 flex justify-end space-x-3">
+      <app-button variant="neutral" (buttonClick)="closeFlyout()">Cancel</app-button>
+      <app-button variant="primary" (buttonClick)="onSubmit()">Submit Request</app-button>
+    </div>
+  </div>
+</div>

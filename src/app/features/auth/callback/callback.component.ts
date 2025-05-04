@@ -21,25 +21,36 @@ export class CallbackComponent implements OnInit {
   private authService = inject(AuthService);
 
   ngOnInit(): void {
-    // Check if there are Auth0 params in the URL
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('code') && params.has('state')) {
-      // If there are, handle the authentication callback
-      console.log('Callback component detected Auth0 parameters');
-      this.authService.handleAuthCallback().subscribe({
-        next: (result) => {
-          console.log('Auth callback successfully handled by callback component');
-        },
-        error: (err) => {
-          console.error('Auth callback error in callback component:', err);
-          this.router.navigate(['/']);
-        }
-      });
-    } else {
-      // If there aren't any Auth0 params, redirect to dashboard after a brief delay
-      console.log('No Auth0 parameters detected, using fallback redirect');
+    // Use a try/catch block to safely handle any potential URI errors
+    try {
+      // We'll use a more robust approach that doesn't rely on URL parameter decoding
+      // Just check if we're on the callback page
+      if (window.location.pathname.endsWith('/callback')) {
+        console.log('Callback component activated');
+
+        // Let the AuthService handle the callback, but don't directly parse URL params here
+        this.authService.handleAuthCallback().subscribe({
+          next: () => {
+            console.log('Auth callback successfully handled by callback component');
+            // Success will be handled by the auth service
+          },
+          error: (err) => {
+            console.error('Auth callback error in callback component:', err);
+            this.router.navigate(['/']);
+          }
+        });
+      } else {
+        // Fallback redirect
+        console.log('Not on callback path, using fallback redirect');
+        setTimeout(() => {
+          this.router.navigate(['/dashboard']);
+        }, 1000);
+      }
+    } catch (error) {
+      // Catch any URI decoding errors or other issues
+      console.error('Callback component error:', error);
       setTimeout(() => {
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/']);
       }, 1000);
     }
   }

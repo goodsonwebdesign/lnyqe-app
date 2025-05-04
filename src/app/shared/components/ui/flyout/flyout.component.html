@@ -1,0 +1,112 @@
+<ng-container *ngIf="isOpen">
+  <!-- Backdrop -->
+  <div
+    *ngIf="showBackdrop"
+    [@backdrop]="animationState"
+    class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-40"
+    (click)="onClickOutside()"
+    role="presentation"
+  ></div>
+
+  <!-- Right Flyout -->
+  <div
+    *ngIf="position === 'right'"
+    [@rightFlyout]="animationState"
+    [class]="containerClasses"
+    (clickOutside)="onClickOutside()"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="title || 'Flyout panel'"
+  >
+    <div class="flex justify-between items-center p-4 border-b border-neutral-200 dark:border-neutral-700">
+      <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">
+        {{title}}
+      </h2>
+      <button
+        (click)="close()"
+        class="p-1 rounded-md text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        aria-label="Close panel"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-4">
+      <ng-content></ng-content>
+    </div>
+
+    <div class="p-4 border-t border-neutral-200 dark:border-neutral-700">
+      <ng-content select="[flyout-footer]"></ng-content>
+    </div>
+  </div>
+
+  <!-- Left Flyout -->
+  <div
+    *ngIf="position === 'left'"
+    [@leftFlyout]="animationState"
+    [class]="containerClasses"
+    (clickOutside)="onClickOutside()"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="title || 'Flyout panel'"
+  >
+    <div class="flex justify-between items-center p-4 border-b border-neutral-200 dark:border-neutral-700">
+      <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">
+        {{title}}
+      </h2>
+      <button
+        (click)="close()"
+        class="p-1 rounded-md text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        aria-label="Close panel"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-4">
+      <ng-content></ng-content>
+    </div>
+
+    <div class="p-4 border-t border-neutral-200 dark:border-neutral-700">
+      <ng-content select="[flyout-footer]"></ng-content>
+    </div>
+  </div>
+
+  <!-- Bottom Flyout -->
+  <div
+    *ngIf="position === 'bottom'"
+    [@bottomFlyout]="animationState"
+    [class]="containerClasses"
+    (clickOutside)="onClickOutside()"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="title || 'Flyout panel'"
+  >
+    <div class="flex justify-between items-center p-4 border-b border-neutral-200 dark:border-neutral-700">
+      <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">
+        {{title}}
+      </h2>
+      <button
+        (click)="close()"
+        class="p-1 rounded-md text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        aria-label="Close panel"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-4">
+      <ng-content></ng-content>
+    </div>
+
+    <div class="p-4 border-t border-neutral-200 dark:border-neutral-700">
+      <ng-content select="[flyout-footer]"></ng-content>
+    </div>
+  </div>
+</ng-container>

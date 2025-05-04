@@ -3,7 +3,9 @@ import { MainLayoutComponent } from './layouts/main-layout/main-layout.component
 import { HomeComponent } from './features/home/home.component';
 import { CallbackComponent } from './features/auth/callback/callback.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
+import { UserPreferencesComponent } from './features/user-preferences/user-preferences.component';
 import { authGuard } from './core/guards/auth.guard';
+import { homeGuard } from './core/guards/home.guard';
 
 export const routes: Routes = [
   {
@@ -13,6 +15,7 @@ export const routes: Routes = [
       {
         path: '',
         component: HomeComponent,
+        canActivate: [homeGuard],
         title: 'LNYQE - Home'
       },
       {
@@ -20,6 +23,12 @@ export const routes: Routes = [
         component: DashboardComponent,
         canActivate: [authGuard],
         title: 'LNYQE - Dashboard'
+      },
+      {
+        path: 'preferences',
+        component: UserPreferencesComponent,
+        canActivate: [authGuard],
+        title: 'LNYQE - User Preferences'
       },
       {
         path: 'features',

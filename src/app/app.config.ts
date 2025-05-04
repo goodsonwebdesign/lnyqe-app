@@ -10,47 +10,48 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { routes } from './app.routes';
 import { reducers, metaReducers } from './store/reducers';
-// Temporarily commenting out the problematic effects import
-// import { CounterEffects } from './store/effects/counter.effects';
 import { AUTH_CONFIG } from './core/services/auth/auth.config';
 import { Router } from '@angular/router';
 import { AuthService } from './core/services/auth/auth.service';
+import { PopupService } from './core/services/popup/popup.service';
 
 // Factory function to handle authentication state on app initialization
 export function initializeAuth(authService: AuthService, router: Router) {
   return () => {
-    // Check if the URL contains Auth0 callback parameters but we're not on the callback route
-    const params = new URLSearchParams(window.location.search);
-    const isCallback = params.has('code') && params.has('state');
-    const isCallbackRoute = window.location.pathname === '/callback';
+    // Skip URL parameter processing entirely in app initialization
+    // This prevents Vite's middleware from trying to decode potentially malformed URIs
+    console.log('Initializing auth without URL parameter processing');
 
-    if (isCallback && !isCallbackRoute) {
-      console.log('Auth0 callback detected in app initialization');
-      // If we detect Auth0 parameters but we're not on the callback route,
-      // we need to manually handle the callback
-      return new Promise<void>((resolve) => {
-        authService.handleAuthCallback().subscribe({
-          next: () => {
-            console.log('Auth callback handled in app initialization');
-            resolve();
-          },
-          error: (err) => {
-            console.error('Auth error in app initialization:', err);
-            resolve();
-          }
-        });
-      });
-    }
-
-    // Check authenticated state and redirect if needed
+    // Only check authentication state without touching URL parameters
     return new Promise<void>((resolve) => {
-      authService.isAuthenticated().subscribe(isAuthenticated => {
-        if (isAuthenticated && window.location.pathname === '/') {
-          console.log('User is authenticated, redirecting to dashboard');
-          router.navigate(['/dashboard']);
+      // Simple auth check without URL parameter handling
+      authService.isAuthenticated().subscribe({
+        next: isAuthenticated => {
+          if (isAuthenticated && window.location.pathname === '/') {
+            console.log('User is authenticated, redirecting to dashboard');
+            router.navigate(['/dashboard']);
+          }
+          resolve();
+        },
+        error: () => {
+          console.error('Error checking authentication during initialization');
+          resolve();
         }
-        resolve();
       });
+    });
+  };
+}
+
+// Factory function to initialize popup components
+export function initializePopups(popupService: PopupService) {
+  return () => {
+    console.log('Initializing popup components through APP_INITIALIZER');
+    return new Promise<void>((resolve) => {
+      // Slightly delay popup initialization to ensure app is stable
+      setTimeout(() => {
+        popupService.initializePopupComponents();
+        resolve();
+      }, 100);
     });
   };
 }
@@ -72,13 +73,19 @@ export const appConfig: ApplicationConfig = {
       traceLimit: 75,
     }),
     provideRouterStore(),
-    // Temporarily removing counter effects to resolve the error
     provideEffects([]),
     // Add initializer to handle auth state on app startup
     {
       provide: APP_INITIALIZER,
       useFactory: initializeAuth,
       deps: [AuthService, Router],
+      multi: true
+    },
+    // Add initializer to set up popup components
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializePopups,
+      deps: [PopupService],
       multi: true
     }
   ]
