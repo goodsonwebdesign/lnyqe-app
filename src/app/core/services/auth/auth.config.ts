@@ -6,7 +6,7 @@ export const AUTH_CONFIG: AuthConfig = {
   domain: 'dev-j6xaaxargtg5y78x.us.auth0.com',
   clientId: 'jaxCqNsBtZmpnpbjXBsAzYkhygDKg4TM',
   authorizationParams: {
-    redirect_uri: window.location.origin + '/callback', // Use string concatenation instead of template literals
+    redirect_uri: 'https://lynqe.io/callback', // Fixed to match expected callback URL
     scope: 'openid profile email'
   },
   // Disable automatic redirect callback handling to prevent URI decoding issues
