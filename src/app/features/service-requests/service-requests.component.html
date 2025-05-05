@@ -1,0 +1,101 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold">Service Requests</h1>
+    <app-button>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+      New Request
+    </app-button>
+  </div>
+
+  <app-card class="border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+    <!-- Filters and Search (will be implemented later) -->
+    <div class="p-4 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
+      <div class="flex flex-col sm:flex-row gap-4">
+        <div class="flex-1">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg class="w-4 h-4 text-neutral-500 dark:text-neutral-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+              </svg>
+            </div>
+            <input type="search" class="block w-full p-2 pl-10 text-sm border border-neutral-300 rounded-lg bg-white dark:bg-neutral-700 dark:border-neutral-600 dark:placeholder-neutral-400 dark:text-white" placeholder="Search requests..." />
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <select class="bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 text-neutral-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block p-2">
+            <option selected>All Statuses</option>
+            <option value="new">New</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <select class="bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 text-neutral-900 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block p-2">
+            <option selected>All Priorities</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service Requests Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs text-neutral-700 uppercase bg-neutral-50 dark:bg-neutral-800 dark:text-neutral-400">
+          <tr>
+            <th scope="col" class="px-6 py-3">ID</th>
+            <th scope="col" class="px-6 py-3">Title</th>
+            <th scope="col" class="px-6 py-3">Status</th>
+            <th scope="col" class="px-6 py-3">Priority</th>
+            <th scope="col" class="px-6 py-3">Date Created</th>
+            <th scope="col" class="px-6 py-3">Requested By</th>
+            <th scope="col" class="px-6 py-3">Assigned To</th>
+            <th scope="col" class="px-6 py-3">
+              <span class="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let request of serviceRequests" class="bg-white border-b dark:bg-neutral-800 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700/50">
+            <td class="px-6 py-4 font-medium">{{ request.id }}</td>
+            <td class="px-6 py-4">
+              <div>{{ request.title }}</div>
+              <div class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">{{ request.description }}</div>
+            </td>
+            <td class="px-6 py-4">
+              <span [class]="'px-2 py-1 rounded-full text-xs font-medium ' + getStatusClass(request.status)">
+                {{ request.status | titlecase }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <span [class]="'px-2 py-1 rounded-full text-xs font-medium ' + getPriorityClass(request.priority)">
+                {{ request.priority | titlecase }}
+              </span>
+            </td>
+            <td class="px-6 py-4">{{ request.dateCreated | date:'short' }}</td>
+            <td class="px-6 py-4">{{ request.requestedBy }}</td>
+            <td class="px-6 py-4">{{ request.assignedTo || 'Unassigned' }}</td>
+            <td class="px-6 py-4 text-right">
+              <button class="font-medium text-primary-600 dark:text-primary-500 hover:underline">View</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination (Simplified) -->
+    <div class="p-4 flex items-center justify-between border-t border-neutral-200 dark:border-neutral-700">
+      <div class="flex items-center text-sm text-neutral-700 dark:text-neutral-400">
+        Showing <span class="font-medium mx-1">1</span> to <span class="font-medium mx-1">{{ serviceRequests.length }}</span> of <span class="font-medium mx-1">{{ serviceRequests.length }}</span> results
+      </div>
+      <div class="flex gap-2">
+        <button disabled class="px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400">Previous</button>
+        <button disabled class="px-3 py-1 border border-neutral-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400">Next</button>
+      </div>
+    </div>
+  </app-card>
+</div>

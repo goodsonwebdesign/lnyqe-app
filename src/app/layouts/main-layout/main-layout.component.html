@@ -1,18 +1,28 @@
 <div class="min-h-screen flex flex-col bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100">
-  <!-- Header -->
-  <header class="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 sticky top-0 z-10">
+  <!-- Header - Fixed at the top and spans full width -->
+  <header class="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 sticky top-0 z-30 w-full">
     <app-container>
       <div class="flex justify-between items-center h-16">
-        <div class="flex items-center">
+        <div class="flex items-center space-x-6">
+          <!-- Sidenav Toggle Button - only visible for logged in users -->
+          <button
+            *ngIf="isLoggedIn"
+            (click)="toggleSidenav()"
+            class="p-2 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+            aria-label="Toggle sidenav">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          <!-- Logo -->
           <a routerLink="/" class="flex items-center">
-            <!-- Light mode logo, shown when not in dark mode -->
             <img
               *ngIf="!themeService.isDarkMode()"
               [src]="lightModeLogo"
               alt="LNYQE Logo"
               class="h-8"
             >
-            <!-- Dark mode logo, shown when in dark mode -->
             <img
               *ngIf="themeService.isDarkMode()"
               [src]="darkModeLogo"
@@ -20,10 +30,22 @@
               class="h-8"
             >
           </a>
+
+          <!-- User greeting -->
+          <div *ngIf="isLoggedIn" class="hidden sm:block">
+            <p class="text-sm font-medium text-neutral-600 dark:text-neutral-300">
+              {{ getGreeting() }}<span *ngIf="user?.name">, {{ getUserFirstName() }}</span>
+            </p>
+          </div>
         </div>
 
         <div class="flex items-center space-x-4">
-          <button (click)="openServiceRequestFlyout('right')" class="flex items-center px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md">
+          <!-- Service Request button - only visible for logged in users -->
+          <button
+            *ngIf="isLoggedIn"
+            (click)="openServiceRequestFlyout('right')"
+            class="flex items-center px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors"
+            aria-label="Create service request">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
@@ -37,21 +59,67 @@
     </app-container>
   </header>
 
-  <!-- Main Content -->
-  <main class="flex-1">
-    <app-container [padding]="4" class="py-6">
-      <router-outlet></router-outlet>
-    </app-container>
-  </main>
+  <!-- Main Content Area -->
+  <div class="flex-1 relative">
+    <!-- Sidenav Overlay - shown only on mobile when sidenav is open and user is logged in -->
+    <div
+      *ngIf="isLoggedIn && isSidenavOpen && isMobileView"
+      class="fixed inset-0 bg-black bg-opacity-50 z-20 transition-opacity duration-300 lg:hidden"
+      (click)="closeSidenav()">
+    </div>
 
-  <!-- Footer -->
-  <footer class="bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 py-6">
-    <app-container>
-      <div class="text-center text-neutral-500 dark:text-neutral-400">
-        <p>&copy; {{ currentYear }} Lynqe. All rights reserved.</p>
-      </div>
-    </app-container>
-  </footer>
+    <!-- Sidenav - only visible for logged in users, now fixed on all screen sizes -->
+    <aside
+      *ngIf="isLoggedIn"
+      class="fixed h-[calc(100vh-4rem)] top-16 left-0 transform transition-all duration-300 ease-in-out bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700 z-20 overflow-y-auto"
+      [class.w-64]="isSidenavOpen"
+      [class.w-0]="!isSidenavOpen"
+      [class.shadow-lg]="isSidenavOpen"
+      [class.translate-x-0]="isSidenavOpen"
+      [class.-translate-x-full]="!isSidenavOpen && isMobileView"
+      [class.lg:-translate-x-full]="!isSidenavOpen && !isMobileView">
+
+      <!-- Sidenav Links -->
+      <nav class="p-4 whitespace-nowrap">
+        <ul class="space-y-2">
+          <li *ngFor="let item of navItems">
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300"
+              [routerLinkActiveOptions]="{exact: false}"
+              class="flex items-center px-4 py-3 rounded-md transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700"
+              (click)="closeSidenav()">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
+              </svg>
+              <span>{{ item.label }}</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content Container - Gets pushed by sidenav -->
+    <div class="transition-all duration-300 min-w-0"
+         [class.ml-0]="!isSidenavOpen || isMobileView"
+         [class.ml-64]="isSidenavOpen && !isMobileView">
+      <!-- Main Content -->
+      <main class="flex-1">
+        <app-container [padding]="4" class="py-6">
+          <router-outlet></router-outlet>
+        </app-container>
+      </main>
+
+      <!-- Footer -->
+      <footer class="bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 py-6">
+        <app-container>
+          <div class="text-center text-neutral-500 dark:text-neutral-400">
+            <p>&copy; {{ currentYear }} Lynqe. All rights reserved.</p>
+          </div>
+        </app-container>
+      </footer>
+    </div>
+  </div>
 </div>
 
 <!-- Include the service request component directly in the template -->

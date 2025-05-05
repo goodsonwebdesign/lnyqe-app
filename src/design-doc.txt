@@ -3,6 +3,7 @@ LNYQE Application Development Guide
 I'm working on the LNYQE Angular application that follows specific architectural and design principles. When suggesting code or solutions, please adhere to these guidelines:
 
 ARCHITECTURE:
+- Maintain a strict mobile first design process
 - Maintain strict feature-based modularity with standalone components
 - Follow the core/features/shared/layouts folder structure
 - Keep business logic in dedicated services, UI logic in components

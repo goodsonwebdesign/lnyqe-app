@@ -1,10 +1,79 @@
 <div class="space-y-8">
-  <!-- Welcome Banner with Application Summary -->
-  <div class="bg-gradient-to-r from-primary-500 to-secondary-500 rounded-lg p-8 text-white">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
-      <div>
-        <h1 class="text-3xl font-bold mb-2">Welcome Back{{ user?.name ? ', ' + user.name.split(' ')[0] : '' }}</h1>
-        <p class="text-xl opacity-90">Your facility management hub</p>
+  <!-- Modern Outlook-style Ribbon Task Bar - Now positioned at the top -->
+  <div class="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 shadow-sm">
+    <!-- Ribbon Controls -->
+    <div class="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700 px-4 py-2">
+      <div class="flex items-center">
+        <!-- Tab Navigation -->
+        <div class="flex space-x-1">
+          <button *ngFor="let tab of filteredRibbonTabs"
+                  (click)="setActiveTab(tab.id)"
+                  [class.bg-neutral-100]="activeTabId === tab.id"
+                  [class.dark:bg-neutral-700]="activeTabId === tab.id"
+                  [class.text-primary-600]="activeTabId === tab.id"
+                  [class.dark:text-primary-400]="activeTabId === tab.id"
+                  class="px-4 py-2 text-sm font-medium rounded-t-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors">
+            {{ tab.label }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Ribbon Controls -->
+      <div class="flex items-center space-x-2">
+        <button (click)="toggleRibbon()" class="p-2 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path *ngIf="isRibbonCollapsed" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <path *ngIf="!isRibbonCollapsed" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Ribbon Content -->
+    <div [class.hidden]="isRibbonCollapsed" class="overflow-x-auto">
+      <div *ngFor="let tab of filteredRibbonTabs" [class.hidden]="activeTabId !== tab.id" class="p-2">
+        <div class="flex flex-wrap items-start divide-x divide-neutral-200 dark:divide-neutral-700">
+          <!-- Action Groups -->
+          <div *ngFor="let group of tab.groups" class="px-4 py-2 min-w-[180px]">
+            <p class="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-3">{{ group.name }}</p>
+
+            <div class="flex flex-wrap gap-2">
+              <!-- Large Actions -->
+              <div class="flex flex-wrap gap-2 w-full mb-2">
+                <div *ngFor="let action of group.actions | filterBy: 'size':'large'"
+                     (click)="action.action()"
+                     [class.bg-primary-50]="action.primary"
+                     [class.dark:bg-primary-900]="action.primary"
+                     [class.text-primary-700]="action.primary"
+                     [class.dark:text-primary-300]="action.primary"
+                     [class.border-primary-200]="action.primary"
+                     [class.dark:border-primary-800]="action.primary"
+                     class="flex flex-col items-center p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors cursor-pointer group min-w-[90px]">
+                  <div class="w-10 h-10 rounded-lg bg-white dark:bg-neutral-800 flex items-center justify-center mb-1 shadow-sm group-hover:shadow-md transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="action.icon" />
+                    </svg>
+                  </div>
+                  <span class="text-xs font-medium text-center">{{ action.label }}</span>
+                </div>
+              </div>
+
+              <!-- Small Actions -->
+              <div class="grid grid-cols-2 gap-2 w-full">
+                <div *ngFor="let action of group.actions | filterBy: 'size':'small'"
+                     (click)="action.action()"
+                     class="flex items-center p-1.5 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors cursor-pointer group">
+                  <div class="w-6 h-6 flex items-center justify-center mr-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-neutral-600 dark:text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="action.icon" />
+                    </svg>
+                  </div>
+                  <span class="text-xs font-medium">{{ action.label }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

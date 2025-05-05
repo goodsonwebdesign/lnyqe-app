@@ -5,11 +5,14 @@ import { HomeComponent } from './home/home.component';
 // Each feature should be a separate lazy-loaded module
 export const FEATURES_ROUTES: Routes = [
   { path: '', component: HomeComponent, title: 'Home' },
-  // Add more feature routes here as the application grows
-  // Example:
-  // {
-  //   path: 'dashboard',
-  //   loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent),
-  //   title: 'Dashboard'
-  // },
+  {
+    path: 'dashboard',
+    loadComponent: () => import('./dashboard/dashboard.component').then(m => m.DashboardComponent),
+    title: 'Dashboard'
+  },
+  {
+    path: 'service-requests',
+    loadComponent: () => import('./service-requests/service-requests.component').then(m => m.ServiceRequestsComponent),
+    title: 'Service Requests'
+  }
 ];
