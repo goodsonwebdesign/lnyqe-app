@@ -5,6 +5,7 @@ import { Store } from '@ngrx/store';
 import { Observable, from, of } from 'rxjs';
 import { tap, catchError, switchMap, filter, take } from 'rxjs/operators';
 import * as AuthActions from '../../../store/actions/auth.actions';
+import { selectIsAuthenticated, selectCurrentUser } from '../../../store/selectors/auth.selectors';
 
 @Injectable({
   providedIn: 'root'
@@ -75,14 +76,14 @@ export class AuthService {
     });
   }
 
-  // Get authenticated user
+  // Get authenticated user - Use store instead of Auth0 directly
   getUser(): Observable<any> {
-    return this.auth0Service.user$;
+    return this.store.select(selectCurrentUser);
   }
 
-  // Check if user is authenticated
+  // Check if user is authenticated - Use store instead of Auth0 directly
   isAuthenticated(): Observable<boolean> {
-    return this.auth0Service.isAuthenticated$;
+    return this.store.select(selectIsAuthenticated);
   }
 
   // Handle the authentication callback directly in the service
@@ -106,6 +107,9 @@ export class AuthService {
           }),
           catchError(error => {
             console.error('Authentication callback error:', error);
+            // Update the store with the error
+            this.store.dispatch(AuthActions.loginFailure({ error }));
+
             // If there's a URI malformed error, try a more direct approach
             if (error.message && (error.message.includes('URI malformed') || error.message.includes('decodeURI'))) {
               console.log('Detected URI error, using safe fallback approach');
@@ -132,6 +136,7 @@ export class AuthService {
         ).subscribe();
       } catch (error) {
         console.error('Critical error handling authentication callback:', error);
+        this.store.dispatch(AuthActions.loginFailure({ error }));
         this.ngZone.run(() => this.router.navigate(['/']));
       }
     }
@@ -151,6 +156,9 @@ export class AuthService {
         }),
         catchError((error: Error) => {
           console.error('Auth redirect callback error:', error);
+          // Update store with error
+          this.store.dispatch(AuthActions.loginFailure({ error }));
+
           // Special handling for URI malformed errors
           if (error.message && (error.message.includes('URI malformed') || error.message.includes('decodeURI'))) {
             console.log('Using fallback authentication approach');
@@ -171,12 +179,16 @@ export class AuthService {
         }),
         catchError((error: Error) => {
           console.error('Final error handler in handleAuthCallback:', error);
+          // Make sure store is updated with error in final catch
+          this.store.dispatch(AuthActions.loginFailure({ error }));
           this.ngZone.run(() => this.router.navigate(['/']));
           return of({ error });
         })
       );
     } catch (error) {
       console.error('Critical error in handleAuthCallback:', error);
+      // Update store with error even in critical catch
+      this.store.dispatch(AuthActions.loginFailure({ error }));
       this.ngZone.run(() => this.router.navigate(['/']));
       return of({ error });
     }
