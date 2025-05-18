@@ -1,10 +1,20 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { AuthState } from '../reducers/auth.reducer';
 
+// Define the AuthViewModel interface
+export interface AuthViewModel {
+  isAuthenticated: boolean;
+  user: any | null;
+  isLoading: boolean;
+  error: any | null;
+  organizationId: string | null;
+  isEnterpriseSSOEnabled: boolean;
+}
+
 // Feature selector
 export const selectAuthState = createFeatureSelector<AuthState>('auth');
 
-// Selectors for different parts of the auth state
+// Individual selectors for different parts of the auth state
 export const selectIsAuthenticated = createSelector(
   selectAuthState,
   (state: AuthState) => state.isAuthenticated
@@ -23,4 +33,32 @@ export const selectAuthLoading = createSelector(
 export const selectAuthError = createSelector(
   selectAuthState,
   (state: AuthState) => state.error
+);
+
+export const selectOrganizationId = createSelector(
+  selectAuthState,
+  (state: AuthState) => state.organizationId
+);
+
+export const selectIsEnterpriseSSOEnabled = createSelector(
+  selectAuthState,
+  (state: AuthState) => state.isEnterpriseSSOEnabled
+);
+
+// Create a unified view model combining all auth-related state
+export const selectAuthViewModel = createSelector(
+  selectIsAuthenticated,
+  selectCurrentUser,
+  selectAuthLoading,
+  selectAuthError,
+  selectOrganizationId,
+  selectIsEnterpriseSSOEnabled,
+  (isAuthenticated, user, isLoading, error, organizationId, isEnterpriseSSOEnabled): AuthViewModel => ({
+    isAuthenticated,
+    user,
+    isLoading,
+    error,
+    organizationId,
+    isEnterpriseSSOEnabled
+  })
 );

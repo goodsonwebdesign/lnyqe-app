@@ -9,6 +9,10 @@
 
 /* Add base styles */
 @layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  
   html {
     @apply text-neutral-900 bg-white;
   }
@@ -19,10 +23,31 @@
 
   body {
     @apply font-sans antialiased;
+    margin: 0;
+    padding: 0;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-semibold;
+  }
+}
+
+/* Add custom components */
+@layer components {
+  .lnyqe-container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: max(env(safe-area-inset-left, 0px), 1rem);
+    padding-right: max(env(safe-area-inset-right, 0px), 1rem);
+    box-sizing: border-box;
+  }
+  
+  .lnyqe-card {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
   }
 }
 

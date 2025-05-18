@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -6,17 +6,21 @@ import { Subscription } from 'rxjs';
 import { ClickOutsideDirective } from '../../directives/click-outside.directive';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { selectIsAuthenticated, selectCurrentUser } from '../../../store/selectors/auth.selectors';
+import { IconComponent } from '../ui/icon/icon.component';
 
 @Component({
   selector: 'app-user-menu',
   standalone: true,
-  imports: [CommonModule, ClickOutsideDirective, RouterModule],
+  imports: [CommonModule, ClickOutsideDirective, RouterModule, IconComponent],
   templateUrl: './user-menu.component.html',
   styleUrls: ['./user-menu.component.scss']
 })
 export class UserMenuComponent implements OnInit, OnDestroy {
+  @Input() userName: string = '';
+  @Input() isLoggedIn: boolean = false;
+  @Output() loginClick = new EventEmitter<void>();
+
   isMenuOpen = false;
-  isLoggedIn = false;
   user: any = null;
   private store = inject(Store);
   private authService = inject(AuthService);
@@ -30,12 +34,14 @@ export class UserMenuComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Subscribe to user data from the store
-    this.subscriptions.add(
-      this.store.select(selectCurrentUser).subscribe(user => {
-        this.user = user;
-      })
-    );
+    // Subscribe to user data from the store if we don't have it from input
+    if (!this.userName) {
+      this.subscriptions.add(
+        this.store.select(selectCurrentUser).subscribe(user => {
+          this.user = user;
+        })
+      );
+    }
   }
 
   ngOnDestroy(): void {
@@ -54,9 +60,10 @@ export class UserMenuComponent implements OnInit, OnDestroy {
   }
 
   // Login method - uses Auth0 service
-  login(): void {
+  handleLogin(): void {
     this.authService.login();
     this.closeMenu();
+    this.loginClick.emit();
   }
 
   // Logout method - uses Auth0 service

@@ -1,0 +1,119 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { provideMockStore, MockStore } from '@ngrx/store/testing';
+import { DashboardContainerComponent } from './dashboard-container.component';
+import { DashboardComponent } from './dashboard.component';
+import { selectCurrentUser } from '../../store/selectors/auth.selectors';
+
+describe('DashboardContainerComponent', () => {
+  let component: DashboardContainerComponent;
+  let fixture: ComponentFixture<DashboardContainerComponent>;
+  let store: MockStore;
+  let dispatchSpy: jasmine.Spy;
+
+  const initialState = {
+    auth: {
+      user: {
+        id: '123',
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@example.com',
+        role: 'admin'
+      }
+    }
+  };
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [DashboardContainerComponent, DashboardComponent],
+      providers: [
+        provideMockStore({ 
+          initialState,
+          selectors: [
+            { selector: selectCurrentUser, value: initialState.auth.user }
+          ]
+        })
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(DashboardContainerComponent);
+    component = fixture.componentInstance;
+    store = TestBed.inject(MockStore);
+    dispatchSpy = spyOn(store, 'dispatch').and.callThrough();
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should get user from store on initialization', () => {
+    expect(component.user).toEqual(initialState.auth.user);
+  });
+
+  it('should provide quickActions to the dashboard component', () => {
+    expect(component.quickActions.length).toBeGreaterThan(0);
+    const dashboardDebugEl = fixture.debugElement.query(By.directive(DashboardComponent));
+    const dashboardComponent = dashboardDebugEl.componentInstance;
+    expect(dashboardComponent.quickActions).toEqual(component.quickActions);
+  });
+
+  it('should provide adminActions to the dashboard component', () => {
+    expect(component.adminActions.length).toBeGreaterThan(0);
+    const dashboardDebugEl = fixture.debugElement.query(By.directive(DashboardComponent));
+    const dashboardComponent = dashboardDebugEl.componentInstance;
+    expect(dashboardComponent.adminActions).toEqual(component.adminActions);
+  });
+
+  it('should handle section changes', () => {
+    // Default active section is 'admin'
+    expect(component.activeSection).toBe('admin');
+    
+    // Change section to 'tasks'
+    component.setActiveSection('tasks');
+    fixture.detectChanges();
+    
+    expect(component.activeSection).toBe('tasks');
+    
+    // Verify the change is passed to the dashboard component
+    const dashboardDebugEl = fixture.debugElement.query(By.directive(DashboardComponent));
+    const dashboardComponent = dashboardDebugEl.componentInstance;
+    expect(dashboardComponent.activeSection).toBe('tasks');
+  });
+
+  it('should handle createTask action', () => {
+    spyOn(console, 'log');
+    component.createTask();
+    expect(console.log).toHaveBeenCalledWith('Create task action triggered');
+  });
+
+  it('should handle scheduleEvent action', () => {
+    spyOn(console, 'log');
+    component.scheduleEvent();
+    expect(console.log).toHaveBeenCalledWith('Schedule event action triggered');
+  });
+
+  it('should handle addUser action', () => {
+    spyOn(console, 'log');
+    component.addUser();
+    expect(console.log).toHaveBeenCalledWith('Add user action triggered');
+  });
+
+  it('should handle manageGroups action', () => {
+    spyOn(console, 'log');
+    component.manageGroups();
+    expect(console.log).toHaveBeenCalledWith('Manage groups action triggered');
+  });
+
+  it('should handle systemSettings action', () => {
+    spyOn(console, 'log');
+    component.systemSettings();
+    expect(console.log).toHaveBeenCalledWith('System settings action triggered');
+  });
+
+  it('should clean up subscriptions on destroy', () => {
+    spyOn(component['subscriptions'], 'unsubscribe');
+    component.ngOnDestroy();
+    expect(component['subscriptions'].unsubscribe).toHaveBeenCalled();
+  });
+});

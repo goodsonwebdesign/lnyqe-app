@@ -1,0 +1,86 @@
+/* Global Responsive Utilities */
+
+/* Safe area insets for modern mobile devices */
+:root {
+  --app-height: 100%;
+}
+
+/* Fix for 100vh issue on mobile browsers */
+@supports (-webkit-touch-callout: none) {
+  body, html {
+    height: -webkit-fill-available;
+  }
+  
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Safe area utilities with fallbacks */
+.safe-area-inset-left {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+.safe-area-inset-right {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Improved focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* Hide scrollbars but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch optimization class */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Text truncation with ellipsis */
+.truncate-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Prevent content from being cut off on tiny screens */
+.min-content-width {
+  min-width: 320px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Font size adjustments for very small screens */
+@media (max-width: 359px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+/* Maintain readable line lengths on extra large screens */
+@media (min-width: 1920px) {
+  .max-w-readable {
+    max-width: 70ch;
+  }
+}

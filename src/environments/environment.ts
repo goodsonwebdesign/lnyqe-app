@@ -3,6 +3,9 @@ export const environment = {
   // Add a build timestamp to force cache invalidation
   buildTimestamp: new Date().getTime(),
 
+  // API base URL
+  apiUrl: 'http://localhost:3000/api',
+
   // Add specific configurations to prevent URI malformed errors
   viteOptions: {
     // Set to true to disable URI decoding in routing

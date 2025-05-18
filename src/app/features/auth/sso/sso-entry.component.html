@@ -1,0 +1,76 @@
+<div class="flex flex-col items-center justify-center min-h-screen p-4 bg-neutral-50 dark:bg-neutral-900">
+  <div class="w-full max-w-md p-6 space-y-6 bg-white dark:bg-neutral-800 rounded-lg shadow-md">
+    <div class="text-center">
+      <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">Enterprise SSO Login</h1>
+      <p class="mt-2 text-neutral-600 dark:text-neutral-300">
+        Enter your work email to continue with your organization's login
+      </p>
+    </div>
+
+    <form [formGroup]="ssoForm" (ngSubmit)="onSubmit()" class="space-y-4">
+      <div>
+        <label for="email" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+          Work Email
+        </label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          class="mt-1 block w-full px-3 py-2 border border-neutral-300 dark:border-neutral-700 rounded-md 
+                 shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 
+                 dark:bg-neutral-700 dark:text-white"
+          placeholder="your.name@company.com"
+          required
+        />
+        <p *ngIf="emailControl?.invalid && emailControl?.touched" 
+           class="mt-1 text-sm text-red-600 dark:text-red-400">
+          Please enter a valid email address
+        </p>
+      </div>
+
+      <div>
+        <button
+          type="submit"
+          [disabled]="ssoForm.invalid || isLoading"
+          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md 
+                 shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 
+                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500
+                 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span *ngIf="isLoading" class="mr-2">
+            <app-icon name="mdi:loading" size="sm" className="animate-spin text-white"></app-icon>
+          </span>
+          Continue with SSO
+        </button>
+      </div>
+    </form>
+
+    <!-- Organization detected notification -->
+    <div *ngIf="detectedOrganization" 
+         class="p-3 bg-green-100 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-md text-center animate-pulse">
+      <p class="text-sm text-green-800 dark:text-green-300">
+        <span class="font-semibold">Organization detected:</span> {{ detectedOrganization }}
+      </p>
+      <p class="text-xs text-green-700 dark:text-green-400 mt-1">
+        Redirecting to your organization's login...
+      </p>
+    </div>
+
+    <div class="text-center">
+      <p class="text-sm text-neutral-600 dark:text-neutral-400">
+        Don't have SSO? 
+        <a 
+          (click)="loginWithPassword()" 
+          class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 
+                 dark:hover:text-primary-300 cursor-pointer"
+        >
+          Log in with password
+        </a>
+      </p>
+    </div>
+
+    <div *ngIf="error" class="p-3 bg-red-100 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-md">
+      <p class="text-sm text-red-800 dark:text-red-300">{{ error }}</p>
+    </div>
+  </div>
+</div>

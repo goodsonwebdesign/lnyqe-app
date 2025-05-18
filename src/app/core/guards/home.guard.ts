@@ -4,6 +4,12 @@ import { Store } from '@ngrx/store';
 import { map, take } from 'rxjs/operators';
 import { selectIsAuthenticated } from '../../store/selectors/auth.selectors';
 
+/**
+ * Simple Home Guard
+ * 
+ * A simplified guard for the home route that redirects authenticated users to dashboard.
+ * This guard has been simplified to avoid refresh loops.
+ */
 export const homeGuard: CanActivateFn = (route, state) => {
   const store = inject(Store);
   const router = inject(Router);
@@ -12,7 +18,7 @@ export const homeGuard: CanActivateFn = (route, state) => {
     take(1),
     map(isAuthenticated => {
       if (isAuthenticated) {
-        // Redirect to dashboard if authenticated
+        console.log('User already authenticated, redirecting to dashboard');
         return router.createUrlTree(['/dashboard']);
       }
 

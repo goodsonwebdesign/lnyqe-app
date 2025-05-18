@@ -1,0 +1,34 @@
+// Toolbar-specific styles
+:host {
+  display: block;
+  width: 100%;
+  // Using fixed positioning for better cross-browser compatibility
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+
+  // Add minimum spacing for toolbar
+  .toolbar-container {
+    min-height: 4rem;
+  }
+
+  // Make sure buttons don't shrink too much
+  button {
+    flex-shrink: 0;
+    min-width: 2.5rem;
+  }
+
+  // Ensure logo has reasonable minimum size
+  .logo-container {
+    min-width: 2rem;
+  }
+
+  // Custom user name truncation for extra small screens
+  @media (max-width: 359px) {
+    .user-name {
+      max-width: 60px;
+    }
+  }
+}

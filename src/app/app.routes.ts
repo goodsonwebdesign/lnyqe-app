@@ -1,11 +1,9 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
-import { HomeComponent } from './features/home/home.component';
-import { CallbackComponent } from './features/auth/callback/callback.component';
-import { DashboardComponent } from './features/dashboard/dashboard.component';
+import { HomeContainerComponent } from './features/home/home-container.component';
+import { DashboardContainerComponent } from './features/dashboard/dashboard-container.component';
 import { UserPreferencesComponent } from './features/user-preferences/user-preferences.component';
 import { authGuard } from './core/guards/auth.guard';
-import { homeGuard } from './core/guards/home.guard';
 
 export const routes: Routes = [
   {
@@ -14,13 +12,12 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        component: HomeComponent,
-        canActivate: [homeGuard],
+        component: HomeContainerComponent,
         title: 'LNYQE - Home'
       },
       {
         path: 'dashboard',
-        component: DashboardComponent,
+        component: DashboardContainerComponent,
         canActivate: [authGuard],
         title: 'LNYQE - Dashboard'
       },
@@ -36,11 +33,11 @@ export const routes: Routes = [
       }
     ]
   },
-  // Keep the callback component route for future use, but we're handling auth in app.component now
+  // Simple callback route that Auth0 can use
   {
     path: 'callback',
-    component: CallbackComponent,
-    title: 'Authentication Callback'
+    component: HomeContainerComponent, // Use HomeContainer component as a landing page
+    title: 'Authentication'
   },
   // Fallback route for any unmatched routes
   { path: '**', redirectTo: '' }

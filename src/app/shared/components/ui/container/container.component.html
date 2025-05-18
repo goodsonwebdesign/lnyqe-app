@@ -1,6 +1,6 @@
 <div
   [ngClass]="[
-    'mx-auto',
+    'lnyqe-container mx-auto w-full',
     size === 'xs' ? 'max-w-xs' : '',
     size === 'sm' ? 'max-w-sm' : '',
     size === 'md' ? 'max-w-md' : '',
@@ -13,8 +13,23 @@
     size === '6xl' ? 'max-w-6xl' : '',
     size === '7xl' ? 'max-w-7xl' : '',
     size === 'full' ? 'max-w-full' : '',
-    padding ? 'px-' + padding : '',
+    padding ? 'px-' + padding : ''
   ]"
 >
   <ng-content></ng-content>
 </div>
+
+<!-- Add these utility classes -->
+<style>
+  .safe-area-x {
+    padding-left: max(env(safe-area-inset-left, 0px), 1rem);
+    padding-right: max(env(safe-area-inset-right, 0px), 1rem);
+  }
+
+  @media (min-width: 640px) {
+    .safe-area-x {
+      padding-left: max(env(safe-area-inset-left, 0px), 1.5rem);
+      padding-right: max(env(safe-area-inset-right, 0px), 1.5rem);
+    }
+  }
+</style>

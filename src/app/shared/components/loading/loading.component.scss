@@ -1,0 +1,30 @@
+// Custom animation styles that extend Tailwind's capabilities
+@keyframes orbit {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// Add any specific styles that can't be achieved with Tailwind classes
+.loading-enter, .loading-leave {
+  transition: opacity 0.5s ease;
+}
+
+.loading-enter {
+  opacity: 0;
+}
+
+.loading-enter-active {
+  opacity: In;
+}
+
+.loading-leave {
+  opacity: 1;
+}
+
+.loading-leave-active {
+  opacity: 0;
+}

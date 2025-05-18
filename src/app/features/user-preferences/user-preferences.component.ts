@@ -5,11 +5,12 @@ import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { selectCurrentUser } from '../../store/selectors/auth.selectors';
 import { ThemeService, Theme } from '../../core/services/theme.service';
+import { UI_COMPONENTS } from '../../shared/components/ui';
 
 @Component({
   selector: 'app-user-preferences',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ...UI_COMPONENTS],
   templateUrl: './user-preferences.component.html',
   styleUrl: './user-preferences.component.scss'
 })

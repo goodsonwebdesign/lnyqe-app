@@ -1,339 +1,362 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Store } from '@ngrx/store';
-import { CardComponent } from '../../shared/components/ui/card/card.component';
-import { ButtonComponent } from '../../shared/components/ui/button/button.component';
-import { FilterByPipe } from '../../shared/pipes/filter-by.pipe';
-import { selectCurrentUser } from '../../store/selectors/auth.selectors';
-
-interface TaskAction {
-  icon: string;
-  label: string;
-  description: string;
-  action: () => void;
-  size: 'large' | 'small';  // Added size property
-  primary?: boolean;       // Optional property for primary actions
-}
-
-interface ActionGroup {
-  name: string;
-  actions: TaskAction[];
-}
-
-interface RibbonTab {
-  id: string;
-  label: string;
-  groups: ActionGroup[];
-  permission: string;
-}
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, OnInit, NgZone } from '@angular/core';
+import { CommonModule, TitleCasePipe } from '@angular/common';
+import { UI_COMPONENTS } from '../../shared/components/ui';
+import {
+  ActionItem,
+  StatCard,
+  Task,
+  ScheduleItem,
+  Notification,
+  SystemStatus,
+  SectionType
+} from './dashboard.types';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, CardComponent, ButtonComponent, FilterByPipe],
+  imports: [
+    CommonModule,
+    ...UI_COMPONENTS,
+    TitleCasePipe
+  ],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  styleUrls: ['./dashboard.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent implements OnInit {
-  user: any = null;
-  userRole: string = 'admin'; // Default to admin for now, will be dynamic in the future
-  private store = inject(Store);
+  // Input properties
+  @Input() user: any = null;
+  @Input() userRole: string = 'admin';
+  @Input() activeSection: SectionType = 'overview';
+  @Input() quickActions: ActionItem[] = [];
+  @Input() adminActions: ActionItem[] = [];
+  @Input() statCards: StatCard[] = [];
+  @Input() tasks: Task[] = [];
+  @Input() scheduleItems: ScheduleItem[] = [];
+  @Input() notifications: Notification[] = [];
+  @Input() systemStatuses: SystemStatus[] = [];
 
-  // Track active ribbon tab
-  activeTabId: string = 'home';
-  isRibbonCollapsed: boolean = false;
+  // Output events
+  @Output() sectionChange = new EventEmitter<SectionType>();
+  @Output() createTaskAction = new EventEmitter<void>();
+  @Output() scheduleEventAction = new EventEmitter<void>();
+  @Output() reportIssueAction = new EventEmitter<void>();
+  @Output() runReportsAction = new EventEmitter<void>();
+  @Output() addUserAction = new EventEmitter<void>();
+  @Output() manageGroupsAction = new EventEmitter<void>();
+  @Output() systemSettingsAction = new EventEmitter<void>();
+  @Output() facilityManagementAction = new EventEmitter<void>();
+  @Output() viewTasksAction = new EventEmitter<void>();
+  @Output() viewAlertsAction = new EventEmitter<void>();
+  @Output() viewMessagesAction = new EventEmitter<void>();
+  @Output() setViewAction = new EventEmitter<string>();
+  @Output() manageRolesAction = new EventEmitter<void>();
+  @Output() budgetTrackingAction = new EventEmitter<void>();
+  @Output() assignTasksAction = new EventEmitter<void>();
+  @Output() manageTaskStatusAction = new EventEmitter<void>();
+  @Output() scheduleTaskAction = new EventEmitter<void>();
+  @Output() setTaskPriorityAction = new EventEmitter<void>();
 
-  // Define ribbon tabs with action groups
-  ribbonTabs: RibbonTab[] = [
-    {
-      id: 'home',
-      label: 'Home',
-      permission: 'user',
-      groups: [
-        {
-          name: 'New',
-          actions: [
-            {
-              icon: 'M12 6v6m0 0v6m0-6h6m-6 0H6',
-              label: 'Create Task',
-              description: 'Create a new task',
-              action: () => this.createTask(),
-              size: 'large',
-              primary: true
-            },
-            {
-              icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
-              label: 'Event',
-              description: 'Schedule a new event',
-              action: () => this.scheduleEvent(),
-              size: 'large'
-            }
-          ]
-        },
-        {
-          name: 'Quick Actions',
-          actions: [
-            {
-              icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
-              label: 'Tasks',
-              description: 'View all tasks',
-              action: () => this.viewTasks(),
-              size: 'small'
-            },
-            {
-              icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
-              label: 'Alerts',
-              description: 'View alerts',
-              action: () => this.viewAlerts(),
-              size: 'small'
-            },
-            {
-              icon: 'M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z',
-              label: 'Messages',
-              description: 'View messages',
-              action: () => this.viewMessages(),
-              size: 'small'
-            }
-          ]
-        },
-        {
-          name: 'View',
-          actions: [
-            {
-              icon: 'M4 6h16M4 10h16M4 14h16M4 18h16',
-              label: 'List',
-              description: 'List view',
-              action: () => this.setView('list'),
-              size: 'small'
-            },
-            {
-              icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z',
-              label: 'Cards',
-              description: 'Card view',
-              action: () => this.setView('cards'),
-              size: 'small'
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: 'admin',
-      label: 'Administration',
-      permission: 'admin',
-      groups: [
-        {
-          name: 'User Management',
-          actions: [
-            {
-              icon: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z',
-              label: 'Add User',
-              description: 'Create a new user account',
-              action: () => this.addUser(),
-              size: 'large',
-              primary: true
-            },
-            {
-              icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z',
-              label: 'Groups',
-              description: 'Manage user groups',
-              action: () => this.manageGroups(),
-              size: 'small'
-            },
-            {
-              icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
-              label: 'Roles',
-              description: 'Manage user roles',
-              action: () => this.manageRoles(),
-              size: 'small'
-            }
-          ]
-        },
-        {
-          name: 'System',
-          actions: [
-            {
-              icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-              label: 'Reports',
-              description: 'Generate system reports',
-              action: () => this.runReports(),
-              size: 'large'
-            },
-            {
-              icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z',
-              label: 'Settings',
-              description: 'Configure system parameters',
-              action: () => this.systemSettings(),
-              size: 'small'
-            }
-          ]
-        },
-        {
-          name: 'Resources',
-          actions: [
-            {
-              icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
-              label: 'Facilities',
-              description: 'Manage buildings and spaces',
-              action: () => this.facilityManagement(),
-              size: 'small'
-            },
-            {
-              icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-              label: 'Budget',
-              description: 'Monitor expenses and budget',
-              action: () => this.budgetTracking(),
-              size: 'small'
-            }
-          ]
-        }
-      ]
-    },
-    {
-      id: 'tasks',
-      label: 'Tasks',
-      permission: 'manager',
-      groups: [
-        {
-          name: 'Task Management',
-          actions: [
-            {
-              icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
-              label: 'Assign Tasks',
-              description: 'Assign and delegate tasks',
-              action: () => this.assignTasks(),
-              size: 'large',
-              primary: true
-            },
-            {
-              icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z',
-              label: 'Manage Status',
-              description: 'Update task statuses',
-              action: () => this.manageTaskStatus(),
-              size: 'small'
-            }
-          ]
-        },
-        {
-          name: 'Planning',
-          actions: [
-            {
-              icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
-              label: 'Schedule',
-              description: 'Task scheduling',
-              action: () => this.scheduleTask(),
-              size: 'small'
-            },
-            {
-              icon: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z',
-              label: 'Priority',
-              description: 'Set task priorities',
-              action: () => this.setTaskPriority(),
-              size: 'small'
-            }
-          ]
-        }
-      ]
-    }
-  ];
+  // Constants for section values to ensure AOT compiler understands them
+  readonly SECTION_OVERVIEW: SectionType = 'overview';
+  readonly SECTION_TASKS: SectionType = 'tasks';
+  readonly SECTION_SCHEDULE: SectionType = 'schedule';
+  readonly SECTION_ADMIN: SectionType = 'admin';
+
+  // Cache for expensive computations
+  private statusClassCache = new Map<string, string>();
+  private notificationIconCache = new Map<string, string>();
+  private notificationIconBgCache = new Map<string, string>();
+  private notificationIconColorCache = new Map<string, string>();
+
+  constructor(private ngZone: NgZone) {}
 
   ngOnInit(): void {
-    // Get the current authenticated user from the store
-    this.store.select(selectCurrentUser).subscribe(user => {
-      this.user = user;
-      // In a real application, you would set the userRole based on the user data
-      // this.userRole = user?.role || 'user';
+    // Pre-cache common status classes and icons for better performance
+    this.precacheCommonValues();
+
+    // Optimize animation frames for better performance on mobile devices
+    this.optimizeForMobile();
+  }
+
+  // Methods to handle section changes
+  setActiveSection(section: SectionType): void {
+    // Use NgZone.runOutsideAngular for UI events that don't affect data model
+    this.ngZone.runOutsideAngular(() => {
+      // Use requestAnimationFrame for smoother UI transitions
+      requestAnimationFrame(() => {
+        // Then run back inside Angular zone when we need to update the model
+        this.ngZone.run(() => {
+          this.sectionChange.emit(section);
+        });
+      });
     });
   }
 
-  // Filter tabs based on user permissions
-  get filteredRibbonTabs(): RibbonTab[] {
-    if (this.userRole === 'admin') {
-      return this.ribbonTabs; // Admin can see all tabs
-    } else if (this.userRole === 'manager') {
-      return this.ribbonTabs.filter(tab =>
-        tab.permission === 'manager' || tab.permission === 'user');
-    } else {
-      return this.ribbonTabs.filter(tab => tab.permission === 'user');
+  // Check if a section is active (for use in template)
+  isSectionActive(section: SectionType): boolean {
+    return this.activeSection === section;
+  }
+
+  // Helper UI methods with memoization for performance
+  getStatusClass(status: string): string {
+    if (this.statusClassCache.has(status)) {
+      return this.statusClassCache.get(status)!;
+    }
+
+    let result: string;
+    switch (status) {
+      case 'urgent':
+        result = 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200';
+        break;
+      case 'in-progress':
+        result = 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200';
+        break;
+      case 'pending':
+        result = 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200';
+        break;
+      case 'completed':
+        result = 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200';
+        break;
+      case 'online':
+        result = 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200';
+        break;
+      case 'offline':
+        result = 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200';
+        break;
+      case 'maintenance':
+        result = 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200';
+        break;
+      case 'warning':
+        result = 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200';
+        break;
+      default:
+        result = 'bg-neutral-100 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200';
+    }
+
+    this.statusClassCache.set(status, result);
+    return result;
+  }
+
+  // Get notification icon based on type with memoization
+  getNotificationIcon(type: string): string {
+    if (this.notificationIconCache.has(type)) {
+      return this.notificationIconCache.get(type)!;
+    }
+
+    let result: string;
+    switch (type) {
+      case 'message':
+        result = 'M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z';
+        break;
+      case 'success':
+        result = 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z';
+        break;
+      case 'warning':
+        result = 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9';
+        break;
+      case 'alert':
+        result = 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z';
+        break;
+      default:
+        result = 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
+    }
+
+    this.notificationIconCache.set(type, result);
+    return result;
+  }
+
+  // New method for getting notification icon name for the template
+  getNotificationIconName(type: string): string {
+    switch (type) {
+      case 'message':
+        return 'mdi:message';
+      case 'success':
+        return 'mdi:check-circle';
+      case 'warning':
+        return 'mdi:bell';
+      case 'alert':
+        return 'mdi:alert-triangle';
+      default:
+        return 'mdi:information';
     }
   }
 
-  // Switch between tabs
-  setActiveTab(tabId: string): void {
-    this.activeTabId = tabId;
+  getNotificationIconBg(type: string): string {
+    if (this.notificationIconBgCache.has(type)) {
+      return this.notificationIconBgCache.get(type)!;
+    }
+
+    let result: string;
+    switch (type) {
+      case 'message':
+        result = 'bg-primary-100 dark:bg-primary-900';
+        break;
+      case 'success':
+        result = 'bg-green-100 dark:bg-green-900';
+        break;
+      case 'warning':
+        result = 'bg-amber-100 dark:bg-amber-900';
+        break;
+      case 'alert':
+        result = 'bg-red-100 dark:bg-red-900';
+        break;
+      default:
+        result = 'bg-neutral-100 dark:bg-neutral-700';
+    }
+
+    this.notificationIconBgCache.set(type, result);
+    return result;
   }
 
-  // Toggle ribbon collapse state
-  toggleRibbon(): void {
-    this.isRibbonCollapsed = !this.isRibbonCollapsed;
+  getNotificationIconColor(type: string): string {
+    if (this.notificationIconColorCache.has(type)) {
+      return this.notificationIconColorCache.get(type)!;
+    }
+
+    let result: string;
+    switch (type) {
+      case 'message':
+        result = 'text-primary-600 dark:text-primary-400';
+        break;
+      case 'success':
+        result = 'text-green-600 dark:text-green-400';
+        break;
+      case 'warning':
+        result = 'text-amber-600 dark:text-amber-400';
+        break;
+      case 'alert':
+        result = 'text-red-600 dark:text-red-400';
+        break;
+      default:
+        result = 'text-neutral-600 dark:text-neutral-400';
+    }
+
+    this.notificationIconColorCache.set(type, result);
+    return result;
   }
 
-  // Action methods
-  createTask(): void {
-    console.log('Create task action triggered');
+  // Action handlers - emit events to container component
+  handleAction(action: string): void {
+    switch (action) {
+      case 'createTask':
+        this.createTaskAction.emit();
+        break;
+      case 'scheduleEvent':
+        this.scheduleEventAction.emit();
+        break;
+      case 'reportIssue':
+        this.reportIssueAction.emit();
+        break;
+      case 'runReports':
+        this.runReportsAction.emit();
+        break;
+      case 'addUser':
+        this.addUserAction.emit();
+        break;
+      case 'manageGroups':
+        this.manageGroupsAction.emit();
+        break;
+      case 'systemSettings':
+        this.systemSettingsAction.emit();
+        break;
+      case 'facilityManagement':
+        this.facilityManagementAction.emit();
+        break;
+      case 'viewTasks':
+        this.viewTasksAction.emit();
+        break;
+      case 'viewAlerts':
+        this.viewAlertsAction.emit();
+        break;
+      case 'viewMessages':
+        this.viewMessagesAction.emit();
+        break;
+      case 'manageRoles':
+        this.manageRolesAction.emit();
+        break;
+      case 'budgetTracking':
+        this.budgetTrackingAction.emit();
+        break;
+      case 'assignTasks':
+        this.assignTasksAction.emit();
+        break;
+      case 'manageTaskStatus':
+        this.manageTaskStatusAction.emit();
+        break;
+      case 'scheduleTask':
+        this.scheduleTaskAction.emit();
+        break;
+      case 'setTaskPriority':
+        this.setTaskPriorityAction.emit();
+        break;
+      default:
+        console.warn('Unknown action:', action);
+    }
   }
 
-  scheduleEvent(): void {
-    console.log('Schedule event action triggered');
+  // Pre-cache commonly used values for better performance
+  private precacheCommonValues(): void {
+    // Precache status classes
+    ['urgent', 'in-progress', 'pending', 'completed', 'online', 'offline', 'maintenance', 'warning'].forEach(status => {
+      this.getStatusClass(status);
+    });
+
+    // Precache notification icons
+    ['message', 'success', 'warning', 'alert'].forEach(type => {
+      this.getNotificationIcon(type);
+      this.getNotificationIconBg(type);
+      this.getNotificationIconColor(type);
+    });
   }
 
-  viewTasks(): void {
-    console.log('View tasks action triggered');
+  // Optimize for mobile devices
+  private optimizeForMobile(): void {
+    this.ngZone.runOutsideAngular(() => {
+      // Add passive event listeners to improve scroll performance
+      document.addEventListener('touchstart', () => {}, { passive: true });
+
+      // Use Intersection Observer for lazy loading if necessary
+      this.setupLazyLoading();
+    });
   }
 
-  viewAlerts(): void {
-    console.log('View alerts action triggered');
-  }
+  // Setup lazy loading with Intersection Observer
+  private setupLazyLoading(): void {
+    if ('IntersectionObserver' in window) {
+      const options = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+      };
 
-  viewMessages(): void {
-    console.log('View messages action triggered');
-  }
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // When element is visible, run this code inside Angular zone
+            this.ngZone.run(() => {
+              const element = entry.target as HTMLElement;
+              const sectionType = element.dataset['section'] as SectionType;
 
-  setView(viewType: string): void {
-    console.log(`Set view to ${viewType}`);
-  }
+              // Load section data if needed
+              if (sectionType && this.isSectionActive(sectionType)) {
+                // This would be where you load data for a specific section
+                // For now we're just using the data passed via inputs
+              }
+            });
 
-  addUser(): void {
-    console.log('Add user action triggered');
-  }
+            // Unobserve the element since we only need to load it once
+            observer.unobserve(entry.target);
+          }
+        });
+      }, options);
 
-  manageGroups(): void {
-    console.log('Manage groups action triggered');
-  }
-
-  manageRoles(): void {
-    console.log('Manage roles action triggered');
-  }
-
-  runReports(): void {
-    console.log('Run reports action triggered');
-  }
-
-  systemSettings(): void {
-    console.log('System settings action triggered');
-  }
-
-  facilityManagement(): void {
-    console.log('Facility management action triggered');
-  }
-
-  budgetTracking(): void {
-    console.log('Budget tracking action triggered');
-  }
-
-  assignTasks(): void {
-    console.log('Assign tasks action triggered');
-  }
-
-  manageTaskStatus(): void {
-    console.log('Manage task status action triggered');
-  }
-
-  scheduleTask(): void {
-    console.log('Schedule task action triggered');
-  }
-
-  setTaskPriority(): void {
-    console.log('Set task priority action triggered');
+      // Start observing sections after a short delay to prioritize initial render
+      setTimeout(() => {
+        document.querySelectorAll('[data-section]').forEach(section => {
+          observer.observe(section);
+        });
+      }, 100);
+    }
   }
 }

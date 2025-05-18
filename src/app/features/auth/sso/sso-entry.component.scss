@@ -1,0 +1,16 @@
+/* SSO Entry Component Styles */
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Animation for loading state */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

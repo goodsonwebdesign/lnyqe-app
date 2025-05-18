@@ -2,56 +2,79 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth/auth.service';
+import { Store } from '@ngrx/store';
+import * as AppActions from '../../../store/actions/app.actions';
+import { AuthService as Auth0Service } from '@auth0/auth0-angular';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-callback',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="flex items-center justify-center h-screen">
-      <div class="text-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 mx-auto mb-4"></div>
-        <p class="text-lg">Completing authentication...</p>
-      </div>
-    </div>
-  `
+  template: `<div></div>` // Empty template since we're using global loading
 })
 export class CallbackComponent implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
+  private auth0Service = inject(Auth0Service);
+  private store = inject(Store);
+  
+  // Add a flag to prevent multiple redirects
+  private hasRedirected = false;
 
   ngOnInit(): void {
-    // Use a try/catch block to safely handle any potential URI errors
-    try {
-      // We'll use a more robust approach that doesn't rely on URL parameter decoding
-      // Just check if we're on the callback page
-      if (window.location.pathname.endsWith('/callback')) {
-        console.log('Callback component activated');
-
-        // Let the AuthService handle the callback, but don't directly parse URL params here
-        this.authService.handleAuthCallback().subscribe({
-          next: () => {
-            console.log('Auth callback successfully handled by callback component');
-            // Success will be handled by the auth service
-          },
-          error: (err) => {
-            console.error('Auth callback error in callback component:', err);
-            this.router.navigate(['/']);
-          }
-        });
-      } else {
-        // Fallback redirect
-        console.log('Not on callback path, using fallback redirect');
-        setTimeout(() => {
-          this.router.navigate(['/dashboard']);
-        }, 1000);
-      }
-    } catch (error) {
-      // Catch any URI decoding errors or other issues
-      console.error('Callback component error:', error);
-      setTimeout(() => {
-        this.router.navigate(['/']);
-      }, 1000);
+    console.log('Callback component initialized');
+    
+    // Force break any refresh loops
+    if (window.sessionStorage.getItem('breaking_auth_loop')) {
+      console.log('Breaking auth loop');
+      // Just go to home without any auth processing
+      this.router.navigate(['/']);
+      this.store.dispatch(AppActions.appLoaded());
+      return;
     }
+    
+    // Set a flag to break out of any potential loops on next refresh
+    window.sessionStorage.setItem('breaking_auth_loop', 'true');
+    
+    // Remove the break flag after 5 seconds - this ensures we only break one refresh cycle
+    setTimeout(() => {
+      window.sessionStorage.removeItem('breaking_auth_loop');
+    }, 5000);
+    
+    // Display loading state
+    this.store.dispatch(AppActions.appLoading());
+    
+    // Simple and direct approach - just redirect to dashboard after a short delay
+    // This skips complex auth state handling that might be causing loops
+    setTimeout(() => {
+      if (this.hasRedirected) return;
+      
+      this.hasRedirected = true;
+      console.log('Redirect timeout triggered, navigating to dashboard');
+      this.router.navigate(['/dashboard']);
+      this.store.dispatch(AppActions.appLoaded());
+    }, 1000);
+    
+    // As a backup, check auth state once and only once
+    this.auth0Service.isAuthenticated$.pipe(
+      take(1) // *** CRITICAL FIX - only take one emission from this observable ***
+    ).subscribe(isAuthenticated => {
+      if (this.hasRedirected) return;
+      
+      this.hasRedirected = true;
+      console.log('Auth state in callback:', isAuthenticated);
+      
+      // Clear loading state
+      this.store.dispatch(AppActions.appLoaded());
+      
+      if (isAuthenticated) {
+        console.log('User authenticated, redirecting to dashboard');
+        this.router.navigate(['/dashboard']);
+      } else {
+        console.log('User not authenticated, redirecting to home');
+        this.router.navigate(['/']);
+      }
+    });
   }
 }

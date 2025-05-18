@@ -2,11 +2,17 @@ import { Injectable, inject, NgZone } from '@angular/core';
 import { AuthService as Auth0Service } from '@auth0/auth0-angular';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, from, of } from 'rxjs';
-import { tap, catchError, switchMap, filter, take } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { filter, take, distinctUntilChanged } from 'rxjs/operators';
 import * as AuthActions from '../../../store/actions/auth.actions';
 import { selectIsAuthenticated, selectCurrentUser } from '../../../store/selectors/auth.selectors';
+import { User, UserRole } from '../../models/user.model';
 
+/**
+ * Simplified Auth Service
+ * 
+ * Handles basic authentication with Auth0
+ */
 @Injectable({
   providedIn: 'root'
 })
@@ -15,59 +21,64 @@ export class AuthService {
   private router = inject(Router);
   private store = inject(Store);
   private ngZone = inject(NgZone);
-  private isLoggingOut = false;
+  
+  // Track if this is the first auth check
+  private isInitialAuthCheck = true;
 
   constructor() {
-    // Subscribe to authentication state changes from Auth0
-    this.auth0Service.isAuthenticated$.subscribe(isAuthenticated => {
+    console.log('Auth Service initialized');
+    
+    // Monitor Auth0 authentication state
+    this.auth0Service.isAuthenticated$.pipe(
+      filter(isAuthenticated => isAuthenticated !== undefined),
+      distinctUntilChanged()
+    ).subscribe(isAuthenticated => {
+      console.log('Auth state:', isAuthenticated);
+      
       if (isAuthenticated) {
+        // User is logged in, get user info
         this.auth0Service.user$.pipe(
           filter(user => !!user),
           take(1)
         ).subscribe(user => {
-          console.log('User authenticated:', user);
+          console.log('User authenticated:', user?.email);
           this.store.dispatch(AuthActions.loginSuccess({ user }));
-
-          // Check if we're on the home page or callback page, and redirect to dashboard if so
-          const currentPath = window.location.pathname;
-          if (currentPath === '/' || currentPath === '/callback') {
-            this.ngZone.run(() => {
-              console.log('Redirecting to dashboard after authentication');
-              this.router.navigate(['/dashboard']);
-            });
-          }
         });
-      } else if (!this.isLoggingOut) {
-        // Only dispatch logout if we're not in the process of logging out
-        // This prevents double-logout when auth0Service.logout() triggers isAuthenticated$ to emit false
-        this.store.dispatch(AuthActions.logout());
+        
+        this.isInitialAuthCheck = false;
+      } else {
+        // Handle unauthenticated state
+        if (!this.isInitialAuthCheck) {
+          this.store.dispatch(AuthActions.logout());
+        } else {
+          this.store.dispatch(AuthActions.setAuthState({ isAuthenticated: false }));
+          this.isInitialAuthCheck = false;
+        }
       }
     });
-
-    // Handle callback if we detect Auth0 params in the URL
-    this.handleAuthenticationCallback();
   }
 
-  // Login method - more direct approach
-  login(): void {
-    this.store.dispatch(AuthActions.loginRequest());
-    this.auth0Service.loginWithRedirect({
-      appState: { target: '/dashboard' }
+  /**
+   * Log in user via Auth0
+   */
+  login(organization?: string): void {
+    console.log('Redirecting to Auth0 login page...');
+    
+    // Use NgZone to ensure the redirect happens properly
+    this.ngZone.run(() => {
+      this.auth0Service.loginWithRedirect({
+        appState: { target: '/dashboard' },
+        authorizationParams: organization ? { organization } : undefined
+      });
     });
   }
 
-  // Logout method
+  /**
+   * Log out user
+   */
   logout(): void {
-    // Set flag to prevent double logout
-    this.isLoggingOut = true;
-
-    // First dispatch the logout action to update application state
     this.store.dispatch(AuthActions.logout());
 
-    // First navigate to home page
-    this.router.navigate(['/']);
-
-    // Then perform the Auth0 logout with explicit return URL
     this.auth0Service.logout({
       logoutParams: {
         returnTo: window.location.origin,
@@ -76,121 +87,63 @@ export class AuthService {
     });
   }
 
-  // Get authenticated user - Use store instead of Auth0 directly
+  /**
+   * Get the current user
+   */
   getUser(): Observable<any> {
     return this.store.select(selectCurrentUser);
   }
 
-  // Check if user is authenticated - Use store instead of Auth0 directly
+  /**
+   * Check if user is authenticated
+   */
   isAuthenticated(): Observable<boolean> {
     return this.store.select(selectIsAuthenticated);
   }
 
-  // Handle the authentication callback directly in the service
-  private handleAuthenticationCallback(): void {
-    // Only attempt to process if on the callback page
-    if (window.location.pathname === '/callback') {
-      console.log('On callback page, handling Auth0 callback');
-
-      try {
-        // Don't use URLSearchParams directly to avoid URI decoding issues
-        // Instead, just attempt to handle the redirect without inspecting URL parameters
-        from(this.auth0Service.handleRedirectCallback()).pipe(
-          tap((appState) => {
-            console.log('Auth0 callback handled successfully', appState);
-            // Navigate to dashboard or the target from appState after successful authentication
-            this.ngZone.run(() => {
-              const targetUrl = appState?.appState?.target || '/dashboard';
-              console.log('Redirecting to:', targetUrl);
-              this.router.navigate([targetUrl]);
-            });
-          }),
-          catchError(error => {
-            console.error('Authentication callback error:', error);
-            // Update the store with the error
-            this.store.dispatch(AuthActions.loginFailure({ error }));
-
-            // If there's a URI malformed error, try a more direct approach
-            if (error.message && (error.message.includes('URI malformed') || error.message.includes('decodeURI'))) {
-              console.log('Detected URI error, using safe fallback approach');
-              // Just check if the user is authenticated and redirect
-              this.auth0Service.isAuthenticated$.pipe(
-                take(1)
-              ).subscribe(isAuthenticated => {
-                this.ngZone.run(() => {
-                  if (isAuthenticated) {
-                    this.router.navigate(['/dashboard']);
-                  } else {
-                    // If not authenticated, redirect to home
-                    this.router.navigate(['/']);
-                  }
-                });
-              });
-            } else {
-              // For other errors, log and redirect to home
-              console.error('Non-URI related auth error:', error);
-              this.ngZone.run(() => this.router.navigate(['/']));
-            }
-            return of(null);
-          })
-        ).subscribe();
-      } catch (error) {
-        console.error('Critical error handling authentication callback:', error);
-        this.store.dispatch(AuthActions.loginFailure({ error }));
-        this.ngZone.run(() => this.router.navigate(['/']));
-      }
+  /**
+   * Process Auth0 user data into our User model
+   */
+  processUserProfile(auth0User: any): User {
+    if (!auth0User) {
+      throw new Error('No user data available');
     }
+
+    return {
+      id: auth0User.sub,
+      email: auth0User.email,
+      name: auth0User.name || auth0User.email,
+      firstName: auth0User.given_name || '',
+      lastName: auth0User.family_name || '',
+      picture: auth0User.picture,
+      emailVerified: auth0User.email_verified,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastLogin: new Date(),
+      organizationId: auth0User?.org_id || '',
+      usesSSO: !!auth0User?.org_id,
+      role: this.determineUserRole(auth0User),
+      department: auth0User?.['https://lnyqe.io/department'] || '',
+      jobTitle: auth0User?.['https://lnyqe.io/job_title'] || '',
+      employeeId: auth0User?.['https://lnyqe.io/employee_id'] || '',
+      location: auth0User?.['https://lnyqe.io/location'] || ''
+    };
   }
 
-  // Public method for the callback component to use if needed
-  handleAuthCallback(): Observable<any> {
-    // Wrap in try/catch to prevent URI errors from breaking the app
-    try {
-      return this.auth0Service.handleRedirectCallback().pipe(
-        tap((result) => {
-          const targetUrl = result?.appState?.target || '/dashboard';
-          console.log('Auth callback successful, redirecting to:', targetUrl);
-          this.ngZone.run(() => {
-            this.router.navigate([targetUrl]);
-          });
-        }),
-        catchError((error: Error) => {
-          console.error('Auth redirect callback error:', error);
-          // Update store with error
-          this.store.dispatch(AuthActions.loginFailure({ error }));
-
-          // Special handling for URI malformed errors
-          if (error.message && (error.message.includes('URI malformed') || error.message.includes('decodeURI'))) {
-            console.log('Using fallback authentication approach');
-            return this.auth0Service.isAuthenticated$.pipe(
-              take(1),
-              switchMap(isAuthenticated => {
-                if (isAuthenticated) {
-                  this.ngZone.run(() => this.router.navigate(['/dashboard']));
-                  return of({ redirected: true });
-                } else {
-                  throw error;
-                }
-              })
-            );
-          } else {
-            throw error;
-          }
-        }),
-        catchError((error: Error) => {
-          console.error('Final error handler in handleAuthCallback:', error);
-          // Make sure store is updated with error in final catch
-          this.store.dispatch(AuthActions.loginFailure({ error }));
-          this.ngZone.run(() => this.router.navigate(['/']));
-          return of({ error });
-        })
-      );
-    } catch (error) {
-      console.error('Critical error in handleAuthCallback:', error);
-      // Update store with error even in critical catch
-      this.store.dispatch(AuthActions.loginFailure({ error }));
-      this.ngZone.run(() => this.router.navigate(['/']));
-      return of({ error });
+  /**
+   * Simple role determination
+   */
+  private determineUserRole(auth0User: any): UserRole {
+    const roles = auth0User?.['https://lnyqe.io/roles'] || [];
+    
+    if (roles.includes('admin')) {
+      return UserRole.ADMIN;
+    } else if (roles.includes('facility_manager')) {
+      return UserRole.FACILITY_MANAGER;
+    } else if (roles.includes('staff')) {
+      return UserRole.STAFF;
+    } else {
+      return UserRole.GUEST;
     }
   }
 }

@@ -78,9 +78,16 @@ export default defineConfig({
     },
     hmr: {
       overlay: false, // Disable error overlay that can trigger URI issues
+      timeout: 5000, // Increase timeout for HMR connections
+      protocol: 'ws', // Use WebSocket protocol for more reliable connections
+      clientPort: 4200 // Ensure client connects to the correct port
     },
     cors: true,
     host: 'localhost',
+    watch: {
+      usePolling: true, // More reliable file watching
+      interval: 1000 // Check for changes every second
+    }
   },
   resolve: {
     preserveSymlinks: true,
@@ -93,7 +100,7 @@ export default defineConfig({
     sourcemap: environment.production ? false : true
   },
   optimizeDeps: {
-    include: ['@angular/common', '@angular/core']
+    include: ['@angular/common', '@angular/core', '@auth0/auth0-angular']
   },
   plugins: [
     safeDecodeUriPlugin(),

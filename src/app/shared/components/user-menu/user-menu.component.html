@@ -8,21 +8,12 @@
     aria-label="User menu"
   >
     <!-- User icon when not logged in -->
-    <svg
+    <app-icon 
       *ngIf="!isLoggedIn"
-      xmlns="http://www.w3.org/2000/svg"
-      class="h-6 w-6"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-      />
-    </svg>
+      name="mdi:account"
+      size="md"
+      className="text-current"
+    ></app-icon>
 
     <!-- User avatar if available -->
     <img
@@ -35,7 +26,7 @@
     <!-- User initials when logged in but no picture -->
     <div
       *ngIf="isLoggedIn && !user?.picture"
-      class="text-sm font-medium h-6 w-6 rounded-full flex items-center justify-center text-neutral-700 dark:text-neutral-200"
+      class="h-6 w-6 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-800 flex items-center justify-center text-white text-xs font-semibold"
     >
       {{ getUserInitials() }}
     </div>
@@ -49,15 +40,17 @@
     <!-- Not logged in menu -->
     <div *ngIf="!isLoggedIn">
       <a
-        class="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
-        (click)="login()"
+        class="flex items-center px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
+        (click)="handleLogin()"
       >
+        <app-icon name="mdi:login" size="sm" className="mr-2"></app-icon>
         Log In
       </a>
       <a
-        class="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
-        (click)="login()"
+        class="flex items-center px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
+        (click)="handleLogin()"
       >
+        <app-icon name="mdi:account-plus" size="sm" className="mr-2"></app-icon>
         Sign Up
       </a>
     </div>
@@ -68,16 +61,18 @@
         Signed in as <span class="font-medium text-neutral-900 dark:text-neutral-200">{{ user?.name || user?.email }}</span>
       </div>
       <a
-        class="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
+        class="flex items-center px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
         routerLink="/preferences"
         (click)="closeMenu()"
       >
+        <app-icon name="mdi:cog" size="sm" className="mr-2"></app-icon>
         Preferences
       </a>
       <a
-        class="block px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
+        class="flex items-center px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer"
         (click)="logout()"
       >
+        <app-icon name="mdi:logout" size="sm" className="mr-2"></app-icon>
         Sign Out
       </a>
     </div>
