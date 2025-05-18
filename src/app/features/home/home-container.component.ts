@@ -123,10 +123,10 @@ export class HomeContainerComponent implements OnInit, OnDestroy {
 
     const timeString = `${formattedHours}:${formattedMinutes} ${ampm}`;
     this.currentTime = timeString;
-    
+
     // Explicitly trigger change detection since we're using OnPush
     this.cdr.markForCheck();
-    
+
     return timeString;
   }
 

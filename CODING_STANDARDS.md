@@ -479,23 +479,89 @@ Example:
 - Implement Prettier for consistent formatting
 - Run linting as part of CI/CD pipeline
 
+### Test Updates with Code Changes
+
+- **Always update tests when changing interfaces or component contracts**
+- When adding required properties to interfaces, update all test fixtures to include the new property
+- Component property changes must be reflected in both unit and integration tests
+- Check for affected mock data in test files throughout the codebase, not just in the component's own tests
+- Run the test suite locally before committing changes to ensure no regressions
+
 ### Unit Testing
 
 - Aim for minimum 80% code coverage
 - Test components, services, pipes, and directives
 - Mock external dependencies
+- Use `TestBed.configureTestingModule` with appropriate providers
+- For components using NgRx, use `provideMockStore` to provide test store state
+- For components using external services like Auth0, properly mock those services
+- Focus on testing logic rather than implementation details
+- Use test-driven development for new features and bug fixes
+
+### Testing Best Practices
+
+- Write tests that validate behavior, not implementation
+- For components with complex conditional rendering logic, test the conditions directly rather than DOM elements
+- When dealing with asynchronous operations, use Jasmine's done callback or Angular's fakeAsync/tick
+- Mock NgZone for components that use it to avoid timing issues in tests
+- Use spies to verify method calls and parameter values
+- Test both success and error paths
 
 ### Integration Testing
 
 - Test component interactions
 - Test routing and navigation
 - Test forms and user input
+- Ensure parent-child component interactions work correctly
+- Test events propagate correctly between components
 
 ### End-to-End Testing
 
 - Use Cypress for E2E testing
 - Test critical user flows
 - Include visual regression testing
+- Update E2E tests whenever:
+  - New features are added
+  - Existing features are modified
+  - UI components change
+  - Data models are updated
+  - Routes are added or modified
+- Structure Cypress tests to be resilient to minor UI changes:
+  - Use data-testid attributes for element selection instead of CSS selectors
+  - Avoid relying on text content that might change
+  - Create reusable commands for common operations
+
+### Cypress Test Maintenance
+
+- Run Cypress tests locally before pushing changes to ensure they pass
+- Organize tests by feature or user flow, not by page
+- Use Cypress fixtures for test data
+- Implement custom Cypress commands for repetitive actions
+- Keep tests independent of one another
+- Reset application state between tests
+- Implement proper error handling in tests
+- Document test setup and requirements
+
+### Test Automation
+
+- Set up CI workflows to automatically run tests
+- Configure automatic failure notifications
+- Include both unit and E2E test runs in the CI pipeline
+- Set up regular scheduled test runs for long-running tests
+
+### Test Performance
+
+- Keep unit tests fast (under 100ms per test)
+- Group slow tests together and mark them appropriately
+- Consider splitting E2E tests into fast and slow suites
+- Optimize tests that interact with the DOM
+
+### Manual Testing
+
+- Create a manual testing checklist for critical features
+- Perform cross-browser testing for major releases
+- Include mobile device testing in the QA process
+- Create and maintain a test plan for major features
 
 ## Documentation Standards
 

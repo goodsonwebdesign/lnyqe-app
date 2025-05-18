@@ -12,7 +12,7 @@
   *, *::before, *::after {
     box-sizing: border-box;
   }
-  
+
   html {
     @apply text-neutral-900 bg-white;
   }
@@ -42,7 +42,7 @@
     padding-right: max(env(safe-area-inset-right, 0px), 1rem);
     box-sizing: border-box;
   }
-  
+
   .lnyqe-card {
     box-sizing: border-box;
     display: flex;

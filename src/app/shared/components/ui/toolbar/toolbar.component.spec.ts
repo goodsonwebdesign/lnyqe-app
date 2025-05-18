@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ToolbarComponent } from './toolbar.component';
+import { provideMockStore } from '@ngrx/store/testing';
+import { DOCUMENT } from '@angular/common';
+import { AuthModule } from '@auth0/auth0-angular';
 
 describe('ToolbarComponent', () => {
   let component: ToolbarComponent;
@@ -10,7 +13,18 @@ describe('ToolbarComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ToolbarComponent,
-        RouterTestingModule // Add RouterTestingModule to provide ActivatedRoute
+        RouterTestingModule, // Add RouterTestingModule to provide ActivatedRoute
+        AuthModule.forRoot({ // Properly mock Auth0
+          domain: 'test.domain.com',
+          clientId: 'test-client-id',
+          authorizationParams: {
+            redirect_uri: window.location.origin
+          }
+        })
+      ],
+      providers: [
+        provideMockStore({ initialState: {} }), // Provide mock store
+        { provide: DOCUMENT, useValue: document }  // Provide document for Auth0 service
       ]
     })
     .compileComponents();
