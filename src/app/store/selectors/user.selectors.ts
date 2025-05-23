@@ -22,7 +22,7 @@ export const selectUserViewModel = createSelector(
   selectLoading,
   selectError,
   (users, loading, error): UserViewModel => ({
-    users,
+    users: users || [],
     loading,
     error
   })

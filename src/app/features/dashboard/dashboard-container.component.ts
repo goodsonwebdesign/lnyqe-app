@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
@@ -72,6 +73,7 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
   // Store access
   private store = inject(Store);
   private subscriptions = new Subscription();
+  private router = inject(Router);
 
   // Dashboard data
   quickActions: ActionItem[] = [
@@ -351,9 +353,12 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
 
   /**
    * Manage users action handler
-   * Dispatches the loadUsers action to trigger API call via effects
+   * Dispatches the loadUsers action and navigates to users management
    */
   manageUsers(): void {
+    // Load users data
     this.store.dispatch(UserActions.loadUsers());
+    // Navigate to users management
+    this.router.navigate(['/features/users-management']);
   }
 }

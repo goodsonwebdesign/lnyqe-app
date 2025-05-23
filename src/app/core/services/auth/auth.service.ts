@@ -10,7 +10,7 @@ import { User, UserRole } from '../../models/user.model';
 
 /**
  * Simplified Auth Service
- * 
+ *
  * Handles basic authentication with Auth0
  */
 @Injectable({
@@ -21,20 +21,20 @@ export class AuthService {
   private router = inject(Router);
   private store = inject(Store);
   private ngZone = inject(NgZone);
-  
+
   // Track if this is the first auth check
   private isInitialAuthCheck = true;
 
   constructor() {
     console.log('Auth Service initialized');
-    
+
     // Monitor Auth0 authentication state
     this.auth0Service.isAuthenticated$.pipe(
       filter(isAuthenticated => isAuthenticated !== undefined),
       distinctUntilChanged()
     ).subscribe(isAuthenticated => {
       console.log('Auth state:', isAuthenticated);
-      
+
       if (isAuthenticated) {
         // User is logged in, get user info
         this.auth0Service.user$.pipe(
@@ -44,7 +44,7 @@ export class AuthService {
           console.log('User authenticated:', user?.email);
           this.store.dispatch(AuthActions.loginSuccess({ user }));
         });
-        
+
         this.isInitialAuthCheck = false;
       } else {
         // Handle unauthenticated state
@@ -63,7 +63,7 @@ export class AuthService {
    */
   login(organization?: string): void {
     console.log('Redirecting to Auth0 login page...');
-    
+
     // Use NgZone to ensure the redirect happens properly
     this.ngZone.run(() => {
       this.auth0Service.loginWithRedirect({
@@ -112,21 +112,19 @@ export class AuthService {
     return {
       id: auth0User.sub,
       email: auth0User.email,
-      name: auth0User.name || auth0User.email,
-      firstName: auth0User.given_name || '',
-      lastName: auth0User.family_name || '',
-      picture: auth0User.picture,
+      first_name: auth0User.given_name || '',
+      last_name: auth0User.family_name || '',
+      avatar: auth0User.picture,
       emailVerified: auth0User.email_verified,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      lastLogin: new Date(),
-      organizationId: auth0User?.org_id || '',
-      usesSSO: !!auth0User?.org_id,
+      created_at: new Date().toISOString(),
       role: this.determineUserRole(auth0User),
+      status: 'active',
       department: auth0User?.['https://lnyqe.io/department'] || '',
       jobTitle: auth0User?.['https://lnyqe.io/job_title'] || '',
       employeeId: auth0User?.['https://lnyqe.io/employee_id'] || '',
-      location: auth0User?.['https://lnyqe.io/location'] || ''
+      location: auth0User?.['https://lnyqe.io/location'] || '',
+      organizationId: auth0User?.org_id || '',
+      usesSSO: !!auth0User?.org_id
     };
   }
 
@@ -135,7 +133,7 @@ export class AuthService {
    */
   private determineUserRole(auth0User: any): UserRole {
     const roles = auth0User?.['https://lnyqe.io/roles'] || [];
-    
+
     if (roles.includes('admin')) {
       return UserRole.ADMIN;
     } else if (roles.includes('facility_manager')) {

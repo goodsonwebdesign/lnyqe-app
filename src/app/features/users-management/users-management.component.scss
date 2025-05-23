@@ -1,0 +1,30 @@
+// Additional styles for users-management component
+// Most styles are handled by Tailwind classes
+
+// Loading state overlay
+.loading-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+}
+
+// Custom scrollbar for the table
+.overflow-x-auto {
+  scrollbar-width: thin;
+  scrollbar-color: theme('colors.neutral.400') theme('colors.neutral.200');
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    @apply bg-neutral-200 dark:bg-neutral-700;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    @apply bg-neutral-400 dark:bg-neutral-600 rounded-full;
+  }
+}
+
+// Hover effect transitions
+tr {
+  transition: background-color 0.2s ease;
+}

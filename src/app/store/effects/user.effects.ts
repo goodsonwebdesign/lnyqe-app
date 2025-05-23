@@ -1,17 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
-import { catchError, map, switchMap, withLatestFrom } from 'rxjs/operators';
+import { map, catchError, switchMap, tap } from 'rxjs/operators';
 import { UsersService } from '../../core/services/users/users.service';
 import { UserActions } from '../actions/user.actions';
-import { selectCurrentUser } from '../selectors/auth.selectors';
+import { transformViewModelToUser } from '../../core/models/user.model';
 
 @Injectable()
 export class UserEffects {
   // Use inject() function for dependency injection
   private actions$ = inject(Actions);
-  private store = inject(Store);
   private usersService = inject(UsersService);
 
   /**
@@ -19,26 +17,58 @@ export class UserEffects {
    * Uses switchMap to cancel previous requests
    * Includes error handling for API failures
    */
-  loadUsers$ = createEffect(() => 
+  loadUsers$ = createEffect(() =>
     this.actions$.pipe(
       ofType(UserActions.loadUsers),
-      withLatestFrom(this.store.select(selectCurrentUser)),
-      switchMap(([_, currentUser]) => {
-        // Check if user exists and has the sub property which contains the token
-        if (!currentUser || !currentUser.sub) {
-          console.error('No authentication token available', currentUser);
-          return of(UserActions.loadUsersFailure({ error: 'No authentication token available' }));
-        }
-
-        // Use the sub property as the token
-        return this.usersService.getUsers(currentUser.sub).pipe(
-          map(users => UserActions.loadUsersSuccess({ users })),
+      tap(() => console.log('Loading users...')),
+      switchMap(() =>
+        this.usersService.getUsers().pipe(
+          map(users => {
+            // Service already returns transformed UserView[]
+            return UserActions.loadUsersSuccess({ users });
+          }),
           catchError(error => {
             console.error('Error fetching users:', error);
             return of(UserActions.loadUsersFailure({ error }));
           })
-        );
-      })
+        )
+      )
+    )
+  );
+
+  createUser$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(UserActions.createUser),
+      switchMap(({ user }) =>
+        this.usersService.createUser(transformViewModelToUser(user)).pipe(
+          map(createdUser => UserActions.createUserSuccess({ user: createdUser })),
+          catchError(error => of(UserActions.createUserFailure({ error })))
+        )
+      )
+    )
+  );
+
+  updateUser$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(UserActions.updateUser),
+      switchMap(({ id, user }) =>
+        this.usersService.updateUser(id, transformViewModelToUser(user)).pipe(
+          map(updatedUser => UserActions.updateUserSuccess({ user: updatedUser })),
+          catchError(error => of(UserActions.updateUserFailure({ error })))
+        )
+      )
+    )
+  );
+
+  deleteUser$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(UserActions.deleteUser),
+      switchMap(({ id }) =>
+        this.usersService.deleteUser(id).pipe(
+          map(() => UserActions.deleteUserSuccess({ id })),
+          catchError(error => of(UserActions.deleteUserFailure({ error })))
+        )
+      )
     )
   );
 }
