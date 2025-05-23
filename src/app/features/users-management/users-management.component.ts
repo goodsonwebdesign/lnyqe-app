@@ -75,68 +75,76 @@ import { UserActions } from '../../store/actions/user.actions';
       <!-- Users Table -->
       <ng-container *ngIf="!(isLoading$ | async) && !(error$ | async); else loadingOrError">
         <div class="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700">
-              <thead class="bg-neutral-50 dark:bg-neutral-900">
+          <div class="overflow-x-auto" style="max-height: 70vh; overflow-y: auto;">
+            <table class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700 fixed-table">
+              <thead class="bg-neutral-50 dark:bg-neutral-900 sticky-header">
                 <tr>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-900">
                     User
                   </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-900">
                     Last Login
                   </th>
-                  <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                  <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-900">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody class="bg-white dark:bg-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-700">
                 <tr *ngFor="let user of filteredUsers$ | async" class="hover:bg-neutral-50 dark:hover:bg-neutral-700">
-                  <td class="px-6 py-4 whitespace-nowrap">
+                  <td class="px-6 py-4">
                     <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10">
+                      <div class="flex-shrink-0 h-10 w-10 relative">
                         <img *ngIf="user.picture" [src]="user.picture" [alt]="user.name" class="h-10 w-10 rounded-full">
                         <div *ngIf="!user.picture" class="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
                           <span class="text-primary-600 dark:text-primary-400 text-sm font-medium">
                             {{ getUserInitials(user) }}
                           </span>
                         </div>
+                        <!-- Status indicator dot -->
+                        <div [ngClass]="{
+                          'absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-neutral-800': true,
+                          'bg-green-500': user.status === 'active',
+                          'bg-red-500': user.status === 'inactive',
+                          'bg-yellow-500': user.status === 'pending'
+                        }"></div>
                       </div>
                       <div class="ml-4">
-                        <div class="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                          {{ user.name }}
+                        <div class="flex items-center">
+                          <div class="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                            {{ user.name }}
+                          </div>
+                          <span [ngClass]="{
+                            'ml-2 text-xs px-2 py-0.5 rounded-full': true,
+                            'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': user.role === 'admin',
+                            'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': user.role === 'facility_manager',
+                            'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': user.role === 'staff',
+                            'bg-neutral-100 text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200': user.role === 'guest'
+                          }">{{ user.role | titlecase }}</span>
                         </div>
                         <div class="text-sm text-neutral-500 dark:text-neutral-400">
                           {{ user.email }}
                         </div>
+                        <div *ngIf="user.department || user.jobTitle" class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                          {{ user.department }}{{ user.department && user.jobTitle ? ' • ' : '' }}{{ user.jobTitle }}
+                        </div>
                       </div>
                     </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="text-sm text-neutral-900 dark:text-neutral-100">{{ user.role | titlecase }}</span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span [ngClass]="{
-                      'px-2 py-1 text-xs rounded-full': true,
-                      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': user.status === 'active',
-                      'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': user.status === 'inactive',
-                      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': user.status === 'pending'
-                    }">
-                      {{ user.status | titlecase }}
-                    </span>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500 dark:text-neutral-400">
                     {{ user.lastLogin | date:'medium' }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <app-button variant="ghost" size="sm" (click)="onEditUser(user)">Edit</app-button>
-                    <app-button variant="ghost" size="sm" (click)="onDeleteUser(user)" class="ml-2 text-red-600 dark:text-red-400">
+                  <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                    <app-button variant="ghost" size="sm" (click)="onViewProfile(user)">
+                      <app-icon name="mdi:account-details" size="sm" className="mr-1"></app-icon>
+                      Profile
+                    </app-button>
+                    <app-button variant="ghost" size="sm" (click)="onEditUser(user)">
+                      <app-icon name="mdi:pencil" size="sm" className="mr-1"></app-icon>
+                      Edit
+                    </app-button>
+                    <app-button variant="ghost" size="sm" (click)="onDeleteUser(user)" class="text-red-600 dark:text-red-400">
+                      <app-icon name="mdi:delete" size="sm" className="mr-1"></app-icon>
                       Delete
                     </app-button>
                   </td>
@@ -144,7 +152,7 @@ import { UserActions } from '../../store/actions/user.actions';
 
                 <!-- Empty State -->
                 <tr *ngIf="(filteredUsers$ | async)?.length === 0">
-                  <td colspan="5" class="px-6 py-8 text-center text-neutral-500 dark:text-neutral-400">
+                  <td colspan="3" class="px-6 py-8 text-center text-neutral-500 dark:text-neutral-400">
                     No users found matching your filters
                   </td>
                 </tr>
@@ -271,6 +279,11 @@ export class UsersManagementComponent implements OnInit, OnDestroy {
     if (confirm('Are you sure you want to delete this user?')) {
       this.store.dispatch(UserActions.deleteUser({ id: user.id }));
     }
+  }
+
+  onViewProfile(user: UserView): void {
+    // Navigate to user profile view (to be implemented)
+    console.log('View profile clicked', user);
   }
 
   retryLoad(): void {

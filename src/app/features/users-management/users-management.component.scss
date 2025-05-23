@@ -28,3 +28,15 @@
 tr {
   transition: background-color 0.2s ease;
 }
+
+// Sticky header styles
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+// Table with fixed layout for better column width control
+.fixed-table {
+  table-layout: fixed;
+}
