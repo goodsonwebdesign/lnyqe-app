@@ -8,8 +8,7 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root'
 })
 export class UsersService {
-  // The API URL should not include /api twice
-  // environment.apiUrl is already '/api'
+  // Remove /api from the path since it's already in environment.apiUrl
   private apiUrl = `${environment.apiUrl}/v1/users`;
 
   constructor(private http: HttpClient) {
