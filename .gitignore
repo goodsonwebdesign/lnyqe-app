@@ -40,3 +40,36 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Additional entries
+# Environment variables
+.env
+.env.local
+.env.*
+
+# Angular additional cache
+.angular/
+
+# Build artifacts
+/www
+/build
+/.vite/
+
+# Logs
+*.log.*
+logs/
+
+# Testing
+/cypress/videos/
+/cypress/screenshots/
+
+# Editor backup files
+*~
+*.swp
+*.swo
+
+# macOS specific
+.AppleDouble
+.LSOverride
+Icon
+._*

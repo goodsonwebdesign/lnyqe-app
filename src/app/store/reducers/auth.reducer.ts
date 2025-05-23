@@ -8,6 +8,7 @@ export interface AuthState {
   error: any | null;
   organizationId: string | null;
   isEnterpriseSSOEnabled: boolean;
+  role: string | null; // Added role field
 }
 
 export const initialAuthState: AuthState = {
@@ -16,7 +17,8 @@ export const initialAuthState: AuthState = {
   user: null,
   error: null,
   organizationId: null,
-  isEnterpriseSSOEnabled: false
+  isEnterpriseSSOEnabled: false,
+  role: null // Initialize role as null
 };
 
 export const authReducer = createReducer(
@@ -36,7 +38,9 @@ export const authReducer = createReducer(
     user,
     error: null,
     // Extract organization ID from user metadata if available
-    organizationId: user?.org_id || state.organizationId
+    organizationId: user?.org_id || state.organizationId,
+    // Extract role from user
+    role: user?.role || null
   })),
 
   on(AuthActions.loginFailure, (state, { error }) => ({
@@ -44,7 +48,8 @@ export const authReducer = createReducer(
     isAuthenticated: false,
     isLoading: false,
     user: null,
-    error
+    error,
+    role: null
   })),
 
   on(AuthActions.logout, () => ({

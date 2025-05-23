@@ -9,6 +9,7 @@ export interface AuthViewModel {
   error: any | null;
   organizationId: string | null;
   isEnterpriseSSOEnabled: boolean;
+  role: string | null;  // Added role field
 }
 
 // Feature selector
@@ -45,6 +46,12 @@ export const selectIsEnterpriseSSOEnabled = createSelector(
   (state: AuthState) => state.isEnterpriseSSOEnabled
 );
 
+// Create a selector for user role
+export const selectUserRole = createSelector(
+  selectCurrentUser,
+  (user: any) => user?.role || null
+);
+
 // Create a unified view model combining all auth-related state
 export const selectAuthViewModel = createSelector(
   selectIsAuthenticated,
@@ -53,12 +60,14 @@ export const selectAuthViewModel = createSelector(
   selectAuthError,
   selectOrganizationId,
   selectIsEnterpriseSSOEnabled,
-  (isAuthenticated, user, isLoading, error, organizationId, isEnterpriseSSOEnabled): AuthViewModel => ({
+  selectUserRole,
+  (isAuthenticated, user, isLoading, error, organizationId, isEnterpriseSSOEnabled, role): AuthViewModel => ({
     isAuthenticated,
     user,
     isLoading,
     error,
     organizationId,
-    isEnterpriseSSOEnabled
+    isEnterpriseSSOEnabled,
+    role
   })
 );

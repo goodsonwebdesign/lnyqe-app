@@ -43,7 +43,6 @@ export class DashboardComponent implements OnInit {
   @Output() reportIssueAction = new EventEmitter<void>();
   @Output() runReportsAction = new EventEmitter<void>();
   @Output() addUserAction = new EventEmitter<void>();
-  @Output() manageGroupsAction = new EventEmitter<void>();
   @Output() systemSettingsAction = new EventEmitter<void>();
   @Output() facilityManagementAction = new EventEmitter<void>();
   @Output() viewTasksAction = new EventEmitter<void>();
@@ -56,6 +55,7 @@ export class DashboardComponent implements OnInit {
   @Output() manageTaskStatusAction = new EventEmitter<void>();
   @Output() scheduleTaskAction = new EventEmitter<void>();
   @Output() setTaskPriorityAction = new EventEmitter<void>();
+  @Output() manageUsersAction = new EventEmitter<void>();
 
   // Constants for section values to ensure AOT compiler understands them
   readonly SECTION_OVERVIEW: SectionType = 'overview';
@@ -254,9 +254,6 @@ export class DashboardComponent implements OnInit {
       case 'addUser':
         this.addUserAction.emit();
         break;
-      case 'manageGroups':
-        this.manageGroupsAction.emit();
-        break;
       case 'systemSettings':
         this.systemSettingsAction.emit();
         break;
@@ -289,6 +286,9 @@ export class DashboardComponent implements OnInit {
         break;
       case 'setTaskPriority':
         this.setTaskPriorityAction.emit();
+        break;
+      case 'manageUsers':
+        this.manageUsersAction.emit();
         break;
       default:
         console.warn('Unknown action:', action);

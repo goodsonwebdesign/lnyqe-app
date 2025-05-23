@@ -16,7 +16,7 @@ export interface User {
   lastLogin?: Date;        // Last login timestamp
   createdAt: Date;         // When the user was first created
   updatedAt: Date;         // When the user record was last updated
-  
+
   // JWT Authentication
   token?: string;          // JWT access token for API authentication
   tokenExpires?: Date;     // Expiration date of the token
@@ -37,12 +37,12 @@ export interface User {
   jobTitle?: string;       // User's job title
   employeeId?: string;     // Organization's employee ID
   location?: string;       // User's office location
-  
+
   // Financial tracking
   payRate?: number;        // Hourly pay rate for cost tracking
   currency?: string;       // Currency code (default: USD)
   costCenter?: string;     // Cost center or budget code
-  
+
   // Vehicle information
   vehicle?: EmployeeVehicleSimple; // Simplified vehicle information for employees who have one
 }
@@ -58,17 +58,17 @@ export interface EmployeeVehicleSimple {
   year: number;                // Model year
   licensePlate: string;        // License plate number
   vin?: string;                // Vehicle Identification Number
-  
+
   // Financial tracking essentials
   isCompanyOwned: boolean;     // Whether the vehicle is company-owned
   mileageRate?: number;        // Reimbursement rate per mile
   currentMileage?: number;     // Current odometer reading
   assetId?: string;            // Asset tracking ID in company system
-  
+
   // Basic compliance and documentation
   insuranceExpiration?: Date;  // Insurance expiration date
   registrationExpiration?: Date; // Registration expiration date
-  
+
   // Optional detailed information
   vehicle?: EmployeeVehicle;   // Full detailed vehicle information (if needed)
 }
@@ -90,13 +90,13 @@ export interface EmployeeVehicle {
   engineType?: string;    // Engine details (V6, 4-cylinder, electric, etc.)
   transmission?: string;  // Transmission type (automatic, manual, CVT)
   driveType?: string;     // Drive type (FWD, RWD, AWD, 4WD)
-  
+
   // Dimensions and capacity
   capacity?: number;      // Passenger capacity
   cargoCapacity?: number; // Cargo capacity in cubic feet/volume
   maxPayload?: number;    // Maximum payload capacity in pounds
   towingCapacity?: number; // Maximum towing capacity in pounds
-  
+
   // Tracking
   initialMileage?: number;      // Starting odometer reading
   currentMileage?: number;      // Current odometer reading
@@ -109,7 +109,7 @@ export interface EmployeeVehicle {
   registrationExpiration?: Date; // Registration expiration date
   inspectionExpiration?: Date;  // State inspection expiration date
   assignmentHistory?: VehicleAssignment[]; // History of employee assignments
-  
+
   // Maintenance
   lastServiceDate?: Date;       // Last maintenance service date
   nextServiceDate?: Date;       // Next scheduled maintenance
@@ -118,7 +118,7 @@ export interface EmployeeVehicle {
   warrantyEndDate?: Date;       // Warranty expiration date
   warrantyMileage?: number;     // Warranty mileage limit
   recalls?: VehicleRecall[];    // Any active recalls
-  
+
   // Financial
   fuelType?: string;            // Type of fuel used (gasoline, diesel, electric)
   fuelCapacity?: number;        // Fuel tank capacity in gallons
@@ -133,7 +133,7 @@ export interface EmployeeVehicle {
   yearlyInsuranceCost?: number; // Annual insurance cost
   isCompanyOwned?: boolean;     // Whether the vehicle is company-owned
   assetId?: string;             // Asset tracking ID in company system
-  
+
   // Operational data
   primaryLocation?: string;     // Primary garage/parking location
   keyLocation?: string;         // Where keys are kept or key code
@@ -141,7 +141,7 @@ export interface EmployeeVehicle {
   ezPassId?: string;            // Toll pass ID
   gpsUnit?: string;             // GPS tracking unit ID
   telematics?: VehicleTelematicsData; // Connected vehicle data
-  
+
   // Compliance
   isApprovedForPersonalUse?: boolean; // Whether approved for personal use
   requiresCDL?: boolean;        // Whether requires commercial driver's license
@@ -161,25 +161,25 @@ export interface VehicleMaintenance {
   description: string;         // Detailed description of work done
   isRoutine: boolean;          // Whether this was routine maintenance or repair
   isWarrantyCovered?: boolean; // Whether this was covered under warranty
-  
+
   // Financial information
   cost: number;                // Cost of service
   laborCost?: number;          // Labor cost component
   partsCost?: number;          // Parts cost component
   taxAmount?: number;          // Tax amount
-  
+
   // Service details
   provider: string;            // Service provider/mechanic
   technicianName?: string;     // Technician who performed the service
   workOrderNumber?: string;    // Work order or invoice number
   partsReplaced?: string[];    // List of parts replaced
   fluidsAdded?: Record<string, number>; // Fluids added (type and amount)
-  
+
   // Documentation
   receiptImage?: string;       // Receipt image URL
   workOrderImage?: string;     // Work order image URL
   notes?: string;              // Additional notes
-  
+
   // Follow-up
   nextServiceMileage?: number; // Mileage for next recommended service
   nextServiceDate?: Date;      // Date for next recommended service

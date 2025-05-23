@@ -9,6 +9,37 @@
   right: 0;
   z-index: 50;
 
+  // Enhance the glass effect to work on macOS
+  header {
+    // Improve Safari backdrop-filter support with these settings
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+
+    // Support for older browsers that don't support backdrop-filter
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: inherit;
+      opacity: 0.95;
+    }
+    
+    // Ensure the header content is above the pseudo-element
+    & > * {
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  // Improves glass effect on scroll
+  &.scrolled header {
+    // Increase blur effect on scroll to enhance glass appearance
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
   // Add minimum spacing for toolbar
   .toolbar-container {
     min-height: 4rem;

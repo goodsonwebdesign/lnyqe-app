@@ -27,7 +27,7 @@ describe('DashboardComponent', () => {
 
     fixture = TestBed.createComponent(DashboardComponent);
     component = fixture.componentInstance;
-    
+
     // Provide mock data
     component.userRole = 'admin';
     component.activeSection = 'overview';
@@ -65,7 +65,7 @@ describe('DashboardComponent', () => {
         iconColor: 'text-amber-600 dark:text-amber-400'
       }
     ];
-    
+
     fixture.detectChanges();
   });
 
@@ -90,7 +90,7 @@ describe('DashboardComponent', () => {
   it('should show all four sections when userRole is admin', () => {
     component.userRole = 'admin';
     fixture.detectChanges();
-    
+
     // Get all section buttons in mobile nav
     const sectionButtons = fixture.debugElement.queryAll(
       By.css('.sm\\:hidden button')
@@ -102,10 +102,10 @@ describe('DashboardComponent', () => {
     // Simply set the userRole to 'user' and check conditions directly
     component.userRole = 'user';
     fixture.detectChanges();
-    
+
     // Verify the condition that would hide the admin button
     expect(component.userRole).not.toBe('admin');
-    
+
     // The admin section should not be visible when user is not admin
     const adminSectionShouldBeHidden = component.userRole !== 'admin';
     expect(adminSectionShouldBeHidden).toBe(true);
@@ -113,51 +113,51 @@ describe('DashboardComponent', () => {
 
   it('should emit sectionChange event when section is clicked', () => {
     spyOn(component.sectionChange, 'emit');
-    
+
     // Call the method directly instead of clicking to avoid NgZone complexities
     component.setActiveSection('tasks');
-    
+
     expect(component.sectionChange.emit).toHaveBeenCalledWith('tasks');
   });
 
   it('should handle action correctly when quick action is clicked', () => {
     spyOn(component, 'handleAction');
-    
+
     const actionButton = fixture.debugElement.query(
       By.css('.grid.grid-cols-2 button')
     );
-    
+
     actionButton.nativeElement.click();
     fixture.detectChanges();
-    
+
     expect(component.handleAction).toHaveBeenCalledWith('createTask');
   });
 
   it('should emit correct action when handleAction is called', () => {
     spyOn(component.createTaskAction, 'emit');
-    
+
     component.handleAction('createTask');
-    
+
     expect(component.createTaskAction.emit).toHaveBeenCalled();
   });
 
   it('should conditionally display admin section', () => {
     // Instead of testing the DOM directly, test the condition that would cause
     // the admin section to be displayed
-    
+
     // First check with admin role and admin section active
     component.userRole = 'admin';
     component.activeSection = 'admin';
     fixture.detectChanges();
-    
+
     // Test the condition directly
     const adminSectionVisible = component.isSectionActive('admin') && component.userRole === 'admin';
     expect(adminSectionVisible).toBe(true);
-    
+
     // Then check with user role
     component.userRole = 'user';
     fixture.detectChanges();
-    
+
     // Test the condition again, now it should be false
     const adminSectionNotVisible = component.isSectionActive('admin') && component.userRole === 'admin';
     expect(adminSectionNotVisible).toBe(false);

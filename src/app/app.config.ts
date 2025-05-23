@@ -15,9 +15,11 @@ import { AUTH_CONFIG } from './core/services/auth/auth.config';
 import { Router } from '@angular/router';
 import { AuthService } from './core/services/auth/auth.service';
 import { serviceRequestFeature } from './store/reducers/service-request.reducer';
+import { userFeature } from './store/reducers/user.reducer';
 import { ServiceRequestEffects } from './store/effects/service-request.effects';
 import { authReducer } from './store/reducers/auth.reducer';
 import { AuthEffects } from './store/effects/auth.effects';
+import { UserEffects } from './store/effects/user.effects';
 import { setupIconify } from './shared/utils/iconify';
 
 // Factory function to handle authentication state on app initialization
@@ -74,6 +76,8 @@ export const appConfig: ApplicationConfig = {
     provideState('auth', authReducer),
     // Register the service request feature state correctly
     provideState(serviceRequestFeature.name, serviceRequestFeature.reducer),
+    // Register the user feature state
+    provideState(userFeature.name, userFeature.reducer),
     provideStoreDevtools({
       maxAge: 25,
       logOnly: !isDevMode(),
@@ -82,7 +86,7 @@ export const appConfig: ApplicationConfig = {
       traceLimit: 75,
     }),
     provideRouterStore(),
-    provideEffects([ServiceRequestEffects, AuthEffects]),
+    provideEffects([ServiceRequestEffects, AuthEffects, UserEffects]),
     // Add initializer to handle auth state on app startup
     {
       provide: APP_INITIALIZER,

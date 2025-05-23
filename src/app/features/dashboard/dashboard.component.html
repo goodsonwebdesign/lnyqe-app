@@ -1,12 +1,12 @@
 <div class="container max-w-full px-4 py-6 space-y-6" data-testid="dashboard-container">
   <!-- Mobile Navigation Tabs - Only visible on smaller screens -->
-  <div class="sm:hidden bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 shadow-sm overflow-x-auto" 
-       data-testid="dashboard-mobile-nav" 
-       role="tablist" 
+  <div class="sm:hidden bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 shadow-sm overflow-x-auto"
+       data-testid="dashboard-mobile-nav"
+       role="tablist"
        aria-label="Dashboard Sections">
     <div class="flex divide-x divide-neutral-200 dark:divide-neutral-700">
-      <button 
-        (click)="setActiveSection(SECTION_OVERVIEW)" 
+      <button
+        (click)="setActiveSection(SECTION_OVERVIEW)"
         [ngClass]="{
           'bg-primary-50': isSectionActive(SECTION_OVERVIEW),
           'dark:bg-primary-900/30': isSectionActive(SECTION_OVERVIEW),
@@ -20,8 +20,8 @@
         class="flex-1 py-3 px-3 text-sm font-medium whitespace-nowrap touch-manipulation">
         Overview
       </button>
-      <button 
-        (click)="setActiveSection(SECTION_TASKS)" 
+      <button
+        (click)="setActiveSection(SECTION_TASKS)"
         [ngClass]="{
           'bg-primary-50': isSectionActive(SECTION_TASKS),
           'dark:bg-primary-900/30': isSectionActive(SECTION_TASKS),
@@ -35,8 +35,8 @@
         class="flex-1 py-3 px-3 text-sm font-medium whitespace-nowrap touch-manipulation">
         Tasks
       </button>
-      <button 
-        (click)="setActiveSection(SECTION_SCHEDULE)" 
+      <button
+        (click)="setActiveSection(SECTION_SCHEDULE)"
         [ngClass]="{
           'bg-primary-50': isSectionActive(SECTION_SCHEDULE),
           'dark:bg-primary-900/30': isSectionActive(SECTION_SCHEDULE),
@@ -50,9 +50,9 @@
         class="flex-1 py-3 px-3 text-sm font-medium whitespace-nowrap touch-manipulation">
         Schedule
       </button>
-      <button 
+      <button
         *ngIf="userRole === 'admin'"
-        (click)="setActiveSection(SECTION_ADMIN)" 
+        (click)="setActiveSection(SECTION_ADMIN)"
         [ngClass]="{
           'bg-primary-50': isSectionActive(SECTION_ADMIN),
           'dark:bg-primary-900/30': isSectionActive(SECTION_ADMIN),
@@ -73,12 +73,12 @@
   <div class="bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 shadow-sm p-4"
        data-testid="dashboard-quick-actions">
     <h2 class="text-lg font-bold mb-4 text-neutral-800 dark:text-neutral-200 hidden sm:block">Quick Actions</h2>
-    
+
     <!-- Grid for actions - Scales from 2 columns on mobile to 4 on larger screens -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
-      <button 
+      <button
         *ngFor="let action of quickActions"
-        (click)="handleAction(action.action)" 
+        (click)="handleAction(action.action)"
         [ngClass]="{
           'bg-primary-100': action.variant === 'primary',
           'dark:bg-primary-900/50': action.variant === 'primary',
@@ -113,9 +113,9 @@
   <!-- OVERVIEW, TASKS, and SCHEDULE sections -->
   <div *ngIf="isSectionActive(SECTION_OVERVIEW) || isSectionActive(SECTION_TASKS) || isSectionActive(SECTION_SCHEDULE)" class="space-y-6">
     <!-- Stats Overview Cards - Only shown in overview section on mobile -->
-    <div *ngIf="isSectionActive(SECTION_OVERVIEW)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" 
-         id="section-overview" 
-         role="tabpanel" 
+    <div *ngIf="isSectionActive(SECTION_OVERVIEW)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+         id="section-overview"
+         role="tabpanel"
          [attr.aria-labelledby]="'nav-overview-button'"
          data-testid="dashboard-section-overview">
       <app-card *ngFor="let stat of statCards; let i = index" class="border border-neutral-200 dark:border-neutral-700"
@@ -131,8 +131,8 @@
             </div>
           </div>
           <div class="mt-3">
-            <span *ngIf="stat.change" class="text-sm font-medium flex items-center" 
-                  [class.text-green-500]="stat.change.isPositive" 
+            <span *ngIf="stat.change" class="text-sm font-medium flex items-center"
+                  [class.text-green-500]="stat.change.isPositive"
                   [class.text-red-500]="!stat.change.isPositive">
               <app-icon *ngIf="stat.change.isPositive" name="mdi:arrow-up" size="xs" className="mr-1"></app-icon>
               <app-icon *ngIf="!stat.change.isPositive" name="mdi:arrow-down" size="xs" className="mr-1"></app-icon>
@@ -152,7 +152,7 @@
       <div class="lg:col-span-2 space-y-6">
         <!-- Tasks Section - Only shown in overview or tasks section -->
         <app-card *ngIf="isSectionActive(SECTION_OVERVIEW) || isSectionActive(SECTION_TASKS)" class="border border-neutral-200 dark:border-neutral-700">
-          <div class="p-4" [attr.id]="isSectionActive(SECTION_TASKS) ? 'section-tasks' : ''" 
+          <div class="p-4" [attr.id]="isSectionActive(SECTION_TASKS) ? 'section-tasks' : ''"
                [attr.role]="isSectionActive(SECTION_TASKS) ? 'tabpanel' : null"
                [attr.aria-labelledby]="isSectionActive(SECTION_TASKS) ? 'nav-tasks-button' : null"
                [attr.data-testid]="isSectionActive(SECTION_TASKS) ? 'dashboard-section-tasks' : 'dashboard-tasks-preview'">
@@ -168,7 +168,7 @@
             </div>
 
             <div class="space-y-3">
-              <div *ngFor="let task of tasks; let i = index" 
+              <div *ngFor="let task of tasks; let i = index"
                    class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-3 rounded-lg flex flex-wrap sm:flex-nowrap items-center justify-between gap-3"
                    [attr.data-testid]="'task-item-' + i">
                 <div class="flex items-start space-x-3 min-w-0">
@@ -191,7 +191,7 @@
 
         <!-- Schedule Section - Only shown in overview or schedule section -->
         <app-card *ngIf="isSectionActive(SECTION_OVERVIEW) || isSectionActive(SECTION_SCHEDULE)" class="border border-neutral-200 dark:border-neutral-700">
-          <div class="p-4" [attr.id]="isSectionActive(SECTION_SCHEDULE) ? 'section-schedule' : ''" 
+          <div class="p-4" [attr.id]="isSectionActive(SECTION_SCHEDULE) ? 'section-schedule' : ''"
                [attr.role]="isSectionActive(SECTION_SCHEDULE) ? 'tabpanel' : null"
                [attr.aria-labelledby]="isSectionActive(SECTION_SCHEDULE) ? 'nav-schedule-button' : null"
                [attr.data-testid]="isSectionActive(SECTION_SCHEDULE) ? 'dashboard-section-schedule' : 'dashboard-schedule-preview'">
@@ -207,7 +207,7 @@
             </div>
 
             <div class="space-y-3">
-              <div *ngFor="let item of scheduleItems; let i = index" 
+              <div *ngFor="let item of scheduleItems; let i = index"
                    class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 p-3 rounded-lg flex flex-wrap sm:flex-nowrap items-center justify-between gap-3"
                    [attr.data-testid]="'schedule-item-' + i">
                 <div class="flex items-start space-x-3 min-w-0">
@@ -221,8 +221,8 @@
                   </div>
                 </div>
                 <div class="flex space-x-1 flex-shrink-0">
-                  <div *ngFor="let attendee of item.attendees" 
-                       class="h-7 w-7 rounded-full flex items-center justify-center text-xs" 
+                  <div *ngFor="let attendee of item.attendees"
+                       class="h-7 w-7 rounded-full flex items-center justify-center text-xs"
                        [class]="attendee.color"
                        [attr.title]="'Attendee: ' + attendee.initials"
                        [attr.aria-label]="'Attendee: ' + attendee.initials">
@@ -243,7 +243,7 @@
             <h2 class="text-lg font-bold mb-4">Admin Tools</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2" data-testid="admin-actions">
               <button *ngFor="let action of adminActions"
-                      (click)="handleAction(action.action)" 
+                      (click)="handleAction(action.action)"
                       [ngClass]="{
                         'bg-primary-100': action.variant === 'primary',
                         'dark:bg-primary-900/50': action.variant === 'primary',
@@ -264,8 +264,9 @@
                         'border-neutral-200': action.variant === 'neutral' || !action.variant,
                         'dark:border-neutral-700': action.variant === 'neutral' || !action.variant
                       }"
-                      [attr.data-testid]="action.action + '-button'"
-                      [attr.aria-label]="action.label"
+                      [attr.data-action]="action.action"
+                      [attr.data-label]="action.label"
+                      [attr.data-testid]="'sidebar-' + action.action + '-button'"
                       class="flex items-center gap-2 p-3 rounded-lg border touch-manipulation transition-colors">
                 <app-icon [name]="action.iconName || 'mdi:cog'" size="sm" className="flex-shrink-0"></app-icon>
                 <span class="truncate">{{ action.label }}</span>
@@ -283,7 +284,7 @@
             </div>
 
             <div class="space-y-3" data-testid="notifications-list">
-              <div *ngFor="let notification of notifications; let i = index" 
+              <div *ngFor="let notification of notifications; let i = index"
                    class="flex items-start space-x-3"
                    [attr.data-testid]="'notification-' + i">
                 <div class="mt-1 rounded-full p-1 flex-shrink-0" [class]="getNotificationIconBg(notification.type)" aria-hidden="true">
@@ -304,7 +305,7 @@
             <h2 class="text-lg font-bold mb-4">System Status</h2>
 
             <div class="space-y-3">
-              <div *ngFor="let system of systemStatuses; let i = index" 
+              <div *ngFor="let system of systemStatuses; let i = index"
                    class="flex justify-between items-center"
                    [attr.data-testid]="'system-status-' + i">
                 <span class="text-sm">{{ system.name }}</span>
@@ -325,10 +326,10 @@
   </div>
 
   <!-- ADMIN Section -->
-  <div *ngIf="isSectionActive(SECTION_ADMIN) && userRole === 'admin'" 
-       class="space-y-6" 
-       id="section-admin" 
-       role="tabpanel" 
+  <div *ngIf="isSectionActive(SECTION_ADMIN) && userRole === 'admin'"
+       class="space-y-6"
+       id="section-admin"
+       role="tabpanel"
        aria-labelledby="nav-admin-button"
        data-testid="dashboard-section-admin">
     <!-- Admin Overview Cards -->
@@ -352,7 +353,7 @@
           </div>
         </div>
       </app-card>
-      
+
       <app-card class="border border-neutral-200 dark:border-neutral-700">
         <div class="p-4">
           <div class="flex items-center justify-between">
@@ -371,7 +372,7 @@
           </div>
         </div>
       </app-card>
-      
+
       <app-card class="border border-neutral-200 dark:border-neutral-700">
         <div class="p-4">
           <div class="flex items-center justify-between">
@@ -391,7 +392,7 @@
           </div>
         </div>
       </app-card>
-      
+
       <app-card class="border border-neutral-200 dark:border-neutral-700">
         <div class="p-4">
           <div class="flex items-center justify-between">
@@ -411,7 +412,7 @@
         </div>
       </app-card>
     </div>
-    
+
     <!-- Admin Main Content -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Left Column - Admin Functions (2/3 width on large screens) -->
@@ -421,47 +422,62 @@
           <div class="p-4">
             <h2 class="text-lg font-bold mb-4">Admin Actions</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <button 
-                *ngFor="let action of adminActions"
-                (click)="handleAction(action.action)" 
-                [ngClass]="{
-                  'bg-primary-100': action.variant === 'primary',
-                  'dark:bg-primary-900/50': action.variant === 'primary',
-                  'text-primary-700': action.variant === 'primary',
-                  'dark:text-primary-300': action.variant === 'primary',
-                  'border-primary-200': action.variant === 'primary',
-                  'dark:border-primary-800': action.variant === 'primary',
-                  'bg-secondary-100': action.variant === 'secondary',
-                  'dark:bg-secondary-900/50': action.variant === 'secondary',
-                  'text-secondary-700': action.variant === 'secondary',
-                  'dark:text-secondary-300': action.variant === 'secondary',
-                  'border-secondary-200': action.variant === 'secondary',
-                  'dark:border-secondary-800': action.variant === 'secondary',
-                  'bg-white': action.variant === 'neutral' || !action.variant,
-                  'dark:bg-neutral-800': action.variant === 'neutral' || !action.variant,
-                  'hover:bg-neutral-100': action.variant === 'neutral' || !action.variant,
-                  'dark:hover:bg-neutral-700': action.variant === 'neutral' || !action.variant,
-                  'border-neutral-200': action.variant === 'neutral' || !action.variant,
-                  'dark:border-neutral-700': action.variant === 'neutral' || !action.variant
-                }"
-                class="flex items-center p-4 rounded-lg border touch-manipulation transition-colors">
-                <div class="p-2 rounded-full mr-3 flex-shrink-0"
-                     [ngClass]="{
-                       'bg-primary-100 dark:bg-primary-900': action.variant === 'primary',
-                       'bg-secondary-100 dark:bg-secondary-900': action.variant === 'secondary',
-                       'bg-neutral-100 dark:bg-neutral-700': action.variant === 'neutral' || !action.variant
-                     }">
-                  <app-icon [name]="action.iconName || 'mdi:cog'" size="sm" className="flex-shrink-0"></app-icon>
+              <!-- Using direct action bindings instead of iterating through the array to ensure correct bindings -->
+              <button
+                (click)="addUserAction.emit()"
+                class="flex items-center p-4 rounded-lg border touch-manipulation transition-colors bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 border-primary-200 dark:border-primary-800"
+                data-testid="main-addUser-button">
+                <div class="p-2 rounded-full mr-3 flex-shrink-0 bg-primary-100 dark:bg-primary-900">
+                  <app-icon name="mdi:account-plus" size="sm" className="flex-shrink-0"></app-icon>
                 </div>
                 <div>
-                  <span class="block font-medium">{{ action.label }}</span>
-                  <span class="block text-xs text-neutral-500 dark:text-neutral-400">Manage {{ action.label.toLowerCase() }} settings</span>
+                  <span class="block font-medium">Add User</span>
+                  <span class="block text-xs text-neutral-500 dark:text-neutral-400">Create new user accounts</span>
+                </div>
+              </button>
+
+              <button
+                (click)="manageUsersAction.emit()"
+                class="flex items-center p-4 rounded-lg border touch-manipulation transition-colors bg-secondary-100 dark:bg-secondary-900/50 text-secondary-700 dark:text-secondary-300 border-secondary-200 dark:border-secondary-800"
+                data-testid="main-manageUsers-button">
+                <div class="p-2 rounded-full mr-3 flex-shrink-0 bg-secondary-100 dark:bg-secondary-900">
+                  <app-icon name="mdi:account-cog" size="sm" className="flex-shrink-0"></app-icon>
+                </div>
+                <div>
+                  <span class="block font-medium">Manage Users</span>
+                  <span class="block text-xs text-neutral-500 dark:text-neutral-400">Edit user accounts and permissions</span>
+                </div>
+              </button>
+
+              <button
+                (click)="systemSettingsAction.emit()"
+                class="flex items-center p-4 rounded-lg border touch-manipulation transition-colors bg-white dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 border-neutral-200 dark:border-neutral-700"
+                data-testid="main-systemSettings-button">
+                <div class="p-2 rounded-full mr-3 flex-shrink-0 bg-neutral-100 dark:bg-neutral-700">
+                  <app-icon name="mdi:cog" size="sm" className="flex-shrink-0"></app-icon>
+                </div>
+                <div>
+                  <span class="block font-medium">Settings</span>
+                  <span class="block text-xs text-neutral-500 dark:text-neutral-400">Configure system preferences</span>
+                </div>
+              </button>
+
+              <button
+                (click)="facilityManagementAction.emit()"
+                class="flex items-center p-4 rounded-lg border touch-manipulation transition-colors bg-white dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 border-neutral-200 dark:border-neutral-700"
+                data-testid="main-facilityManagement-button">
+                <div class="p-2 rounded-full mr-3 flex-shrink-0 bg-neutral-100 dark:bg-neutral-700">
+                  <app-icon name="mdi:office-building" size="sm" className="flex-shrink-0"></app-icon>
+                </div>
+                <div>
+                  <span class="block font-medium">Facilities</span>
+                  <span class="block text-xs text-neutral-500 dark:text-neutral-400">Manage building and location data</span>
                 </div>
               </button>
             </div>
           </div>
         </app-card>
-        
+
         <!-- System Health Metrics -->
         <app-card class="border border-neutral-200 dark:border-neutral-700">
           <div class="p-4">
@@ -476,7 +492,7 @@
                   <div class="bg-primary-600 dark:bg-primary-500 h-2 rounded-full" style="width: 42%"></div>
                 </div>
               </div>
-              
+
               <div>
                 <div class="flex justify-between mb-1">
                   <span class="text-sm font-medium">Memory Usage</span>
@@ -486,7 +502,7 @@
                   <div class="bg-secondary-600 dark:bg-secondary-500 h-2 rounded-full" style="width: 28%"></div>
                 </div>
               </div>
-              
+
               <div>
                 <div class="flex justify-between mb-1">
                   <span class="text-sm font-medium">Storage</span>
@@ -496,7 +512,7 @@
                   <div class="bg-amber-600 dark:bg-amber-500 h-2 rounded-full" style="width: 31%"></div>
                 </div>
               </div>
-              
+
               <div>
                 <div class="flex justify-between mb-1">
                   <span class="text-sm font-medium">Network Load</span>
@@ -510,7 +526,7 @@
           </div>
         </app-card>
       </div>
-      
+
       <!-- Right Column - Notifications and System Status (1/3 width on large screens) -->
       <div class="space-y-6">
         <!-- Recent Admin Activity -->
@@ -520,7 +536,7 @@
               <h2 class="text-lg font-bold">Recent Activity</h2>
               <app-button variant="ghost" size="sm">View All</app-button>
             </div>
-            
+
             <div class="space-y-3">
               <div class="flex items-start space-x-3">
                 <div class="mt-1 rounded-full p-1 flex-shrink-0 bg-primary-100 dark:bg-primary-900">
@@ -531,7 +547,7 @@
                   <p class="text-xs text-neutral-500 dark:text-neutral-400">5 minutes ago</p>
                 </div>
               </div>
-              
+
               <div class="flex items-start space-x-3">
                 <div class="mt-1 rounded-full p-1 flex-shrink-0 bg-secondary-100 dark:bg-secondary-900">
                   <app-icon name="mdi:cog" size="xs" className="text-secondary-600 dark:text-secondary-400"></app-icon>
@@ -541,7 +557,7 @@
                   <p class="text-xs text-neutral-500 dark:text-neutral-400">1 hour ago</p>
                 </div>
               </div>
-              
+
               <div class="flex items-start space-x-3">
                 <div class="mt-1 rounded-full p-1 flex-shrink-0 bg-green-100 dark:bg-green-900">
                   <app-icon name="mdi:check-circle" size="xs" className="text-green-600 dark:text-green-400"></app-icon>
@@ -551,7 +567,7 @@
                   <p class="text-xs text-neutral-500 dark:text-neutral-400">Yesterday at 10:30 PM</p>
                 </div>
               </div>
-              
+
               <div class="flex items-start space-x-3">
                 <div class="mt-1 rounded-full p-1 flex-shrink-0 bg-red-100 dark:bg-red-900">
                   <app-icon name="mdi:alert-triangle" size="xs" className="text-red-600 dark:text-red-400"></app-icon>
@@ -564,7 +580,7 @@
             </div>
           </div>
         </app-card>
-        
+
         <!-- Active Sessions -->
         <app-card class="border border-neutral-200 dark:border-neutral-700">
           <div class="p-4">

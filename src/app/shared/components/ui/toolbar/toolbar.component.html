@@ -1,4 +1,6 @@
-<header class="w-full bg-gradient-to-r from-white via-neutral-50 to-white dark:from-neutral-800 dark:via-neutral-850 dark:to-neutral-800 border-b border-neutral-200/70 dark:border-neutral-700/70 backdrop-blur-sm transition-all duration-300">
+<header 
+  class="w-full bg-gradient-to-r from-white via-neutral-50 to-white dark:from-neutral-800 dark:via-neutral-850 dark:to-neutral-800 border-b border-neutral-200/70 dark:border-neutral-700/70 transition-all duration-300"
+  [ngClass]="{'!bg-white/95 dark:!bg-neutral-800/95 shadow-sm': isScrolled}">
   <div class="h-16 md:h-[4.5rem] relative flex items-center justify-between px-3 sm:px-6 lg:px-8 max-w-full toolbar-container">
     <!-- Left Section with Logo and Mobile Toggle -->
     <div class="flex items-center justify-start space-x-3">

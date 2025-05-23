@@ -4,6 +4,8 @@ import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { DashboardComponent } from './dashboard.component';
 import { selectCurrentUser } from '../../store/selectors/auth.selectors';
+import { selectUserViewModel } from '../../store/selectors/user.selectors';
+import { UserActions } from '../../store/actions/user.actions';
 import { UI_COMPONENTS } from '../../shared/components/ui';
 
 // Define the component type interfaces
@@ -44,7 +46,6 @@ import {
       (reportIssueAction)="reportIssue()"
       (runReportsAction)="runReports()"
       (addUserAction)="addUser()"
-      (manageGroupsAction)="manageGroups()"
       (systemSettingsAction)="systemSettings()"
       (facilityManagementAction)="facilityManagement()"
       (viewTasksAction)="viewTasks()"
@@ -56,7 +57,8 @@ import {
       (assignTasksAction)="assignTasks()"
       (manageTaskStatusAction)="manageTaskStatus()"
       (scheduleTaskAction)="scheduleTask()"
-      (setTaskPriorityAction)="setTaskPriority()">
+      (setTaskPriorityAction)="setTaskPriority()"
+      (manageUsersAction)="manageUsers()">
     </app-dashboard>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -108,9 +110,9 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
       variant: 'primary'
     },
     {
-      iconName: 'mdi:account-group',
+      iconName: 'mdi:account-cog',
       label: 'Manage Users',
-      action: 'manageGroups',
+      action: 'manageUsers',
       variant: 'secondary'
     },
     {
@@ -256,8 +258,15 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.store.select(selectCurrentUser).subscribe(user => {
         this.user = user;
-        // In a real application, you would set the userRole based on the user data
-        // this.userRole = user?.role || 'user';
+      })
+    );
+
+    // Subscribe to user view model to access user state
+    this.subscriptions.add(
+      this.store.select(selectUserViewModel).subscribe(viewModel => {
+        if (viewModel.error) {
+          console.error('Error loading users:', viewModel.error);
+        }
       })
     );
   }
@@ -273,74 +282,78 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
 
   // Action methods - business logic handlers
   createTask(): void {
-    console.log('Create task action triggered');
+    // Implement task creation logic
   }
 
   scheduleEvent(): void {
-    console.log('Schedule event action triggered');
+    // Implement schedule event logic
   }
 
   reportIssue(): void {
-    console.log('Report issue action triggered');
+    // Implement report issue logic
   }
 
   viewTasks(): void {
-    console.log('View tasks action triggered');
+    // Implement view tasks logic
   }
 
   viewAlerts(): void {
-    console.log('View alerts action triggered');
+    // Implement view alerts logic
   }
 
   viewMessages(): void {
-    console.log('View messages action triggered');
+    // Implement view messages logic
   }
 
   setView(viewType: string): void {
-    console.log(`Set view to ${viewType}`);
+    // Implement set view logic
   }
 
   addUser(): void {
-    console.log('Add user action triggered');
-  }
-
-  manageGroups(): void {
-    console.log('Manage groups action triggered');
+    // Implement add user logic
   }
 
   manageRoles(): void {
-    console.log('Manage roles action triggered');
+    // Implement manage roles logic
   }
 
   runReports(): void {
-    console.log('Run reports action triggered');
+    // Implement run reports logic
   }
 
   systemSettings(): void {
-    console.log('System settings action triggered');
+    // Implement system settings logic
   }
 
   facilityManagement(): void {
-    console.log('Facility management action triggered');
+    // Implement facility management logic
   }
 
   budgetTracking(): void {
-    console.log('Budget tracking action triggered');
+    // Implement budget tracking logic
   }
 
   assignTasks(): void {
-    console.log('Assign tasks action triggered');
+    // Implement assign tasks logic
   }
 
   manageTaskStatus(): void {
-    console.log('Manage task status action triggered');
+    // Implement manage task status logic
   }
 
   scheduleTask(): void {
-    console.log('Schedule task action triggered');
+    // Implement schedule task logic
   }
 
   setTaskPriority(): void {
-    console.log('Set task priority action triggered');
+    // Implement set task priority logic
+  }
+
+  /**
+   * Manage users action handler
+   * Dispatches the loadUsers action to trigger API call via effects
+   */
+  manageUsers(): void {
+    this.store.dispatch(UserActions.loadUsers());
   }
 }

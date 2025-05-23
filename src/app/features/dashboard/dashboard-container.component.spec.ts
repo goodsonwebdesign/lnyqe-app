@@ -27,7 +27,7 @@ describe('DashboardContainerComponent', () => {
     await TestBed.configureTestingModule({
       imports: [DashboardContainerComponent, DashboardComponent],
       providers: [
-        provideMockStore({ 
+        provideMockStore({
           initialState,
           selectors: [
             { selector: selectCurrentUser, value: initialState.auth.user }
@@ -68,17 +68,17 @@ describe('DashboardContainerComponent', () => {
   it('should have setActiveSection method that can change activeSection', () => {
     // First confirm the initial state
     expect(component.activeSection).toBe('admin');
-    
+
     // Store original value and call the method
     const originalValue = component.activeSection;
-    
+
     // Create a new variable to store the new section value
     const newSection: any = 'tasks';
-    
+
     // Directly call the original implementation
     component.setActiveSection(newSection);
     fixture.detectChanges();
-    
+
     // Verify the method worked correctly
     expect(component.activeSection).toBe(newSection);
     expect(component.activeSection).not.toBe(originalValue);

@@ -1,0 +1,11 @@
+{
+  "/api": {
+    "target": "http://lynqe-api-prod-1529662606.us-east-2.elb.amazonaws.com",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/api": "/api"
+    }
+  }
+}
