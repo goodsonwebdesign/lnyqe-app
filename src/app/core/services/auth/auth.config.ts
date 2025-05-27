@@ -1,31 +1,35 @@
 import { AuthConfig } from '@auth0/auth0-angular';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 
 /**
- * Simple Auth0 configuration
- * 
- * This is a simplified configuration for development purposes.
+ * Auth0 Configuration
  */
 export const AUTH_CONFIG: AuthConfig = {
-  domain: 'dev-j6xaaxargtg5y78x.us.auth0.com',
-  clientId: 'jaxCqNsBtZmpnpbjXBsAzYkhygDKg4TM',
-  
+  domain: environment.auth.domain,
+  clientId: environment.auth.clientId,
+
   // Auth parameters
   authorizationParams: {
     redirect_uri: window.location.origin + '/callback',
-    scope: 'openid profile email'
+    scope: environment.auth.scope,
+    audience: environment.auth.audience
   },
-  
-  // Simplify configuration for development
-  skipRedirectCallback: false,
+
+  // Token configuration
+  useRefreshTokens: true,
   cacheLocation: 'memory',
-  useRefreshTokens: false, // Simpler token handling for development
-  
+
   // HTTP API protection
   httpInterceptor: {
     allowedList: [
       {
-        uri: `${environment.apiUrl}/*`
+        uri: `${environment.apiUrl}/*`,
+        tokenOptions: {
+          authorizationParams: {
+            audience: environment.auth.audience,
+            scope: environment.auth.scope
+          }
+        }
       }
     ]
   }

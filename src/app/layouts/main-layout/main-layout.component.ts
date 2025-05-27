@@ -68,6 +68,11 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
       label: 'Analytics',
       route: '/analytics',
       icon: 'mdi:chart-bar'
+    },
+    {
+      label: 'Auth Debug',
+      route: '/auth-debug',
+      icon: 'mdi:bug'
     }
   ];
 
@@ -88,6 +93,11 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
       label: 'Analytics',
       route: '/analytics',
       icon: 'mdi:chart-bar'
+    },
+    {
+      label: 'Auth Debug',
+      route: '/auth-debug',
+      icon: 'mdi:bug'
     }
   ];
 

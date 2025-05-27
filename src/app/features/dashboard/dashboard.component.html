@@ -271,6 +271,14 @@
                 <app-icon [name]="action.iconName || 'mdi:cog'" size="sm" className="flex-shrink-0"></app-icon>
                 <span class="truncate">{{ action.label }}</span>
               </button>
+
+              <!-- API Token Test Button -->
+              <button (click)="testApiToken()"
+                      data-testid="test-api-token-button"
+                      class="flex items-center gap-2 p-3 rounded-lg border bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 touch-manipulation transition-colors">
+                <app-icon name="mdi:api" size="sm" className="flex-shrink-0"></app-icon>
+                <span class="truncate">Test API Token</span>
+              </button>
             </div>
           </div>
         </app-card>
@@ -612,6 +620,15 @@
         </app-card>
       </div>
     </div>
+  </div>
+
+  <!-- Add a simple test component to verify API token generation -->
+  <div class="p-4">
+    <button
+      (click)="testApiToken()"
+      class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+      Test API Token
+    </button>
   </div>
 </div>
 

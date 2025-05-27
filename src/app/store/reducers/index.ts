@@ -1,7 +1,8 @@
 import { isDevMode } from '@angular/core';
 import { ActionReducerMap, MetaReducer } from '@ngrx/store';
-import { AuthState, authReducer } from './auth.reducer';
+import { authReducer } from './auth.reducer';
 import { AppState as GlobalAppState, appReducer } from './app.reducer';
+import { AuthState } from '../../core/models/auth.model';
 import { UserState } from './user.reducer';
 import { userFeature } from './user.reducer';
 
@@ -9,14 +10,14 @@ import { userFeature } from './user.reducer';
 export interface AppState {
   auth: AuthState;
   app: GlobalAppState;
-  users: UserState; // Changed from user to users to match feature name
+  users: UserState;
 }
 
 // Root reducer
 export const reducers: ActionReducerMap<AppState> = {
   auth: authReducer,
   app: appReducer,
-  users: userFeature.reducer, // Changed from user to users to match feature name
+  users: userFeature.reducer,
 };
 
 // Meta-reducers only run in development mode

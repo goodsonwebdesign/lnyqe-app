@@ -1,29 +1,56 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { map, take } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, take, catchError, switchMap, timeout } from 'rxjs/operators';
 import { selectIsAuthenticated } from '../../store/selectors/auth.selectors';
+import { AuthService } from '../services/auth/auth.service';
 
 /**
- * Simple Auth Guard
- * 
- * A simplified authentication guard for protected routes.
- * It only checks if the user is authenticated without complex redirect handling.
+ * Improved Auth Guard
+ *
+ * This guard has been enhanced to handle authentication transition states more gracefully.
+ * It now checks both the store state and the Auth0 service to determine authentication status,
+ * providing more resilient routing protection.
  */
 export const authGuard: CanActivateFn = (route, state) => {
   const store = inject(Store);
   const router = inject(Router);
+  const authService = inject(AuthService);
+  const targetRoute = state.url;
 
-  // Simple, direct auth check
+  console.log(`Auth guard checking authentication for route: ${targetRoute}`);
+
+  // First check the store state (fast)
   return store.select(selectIsAuthenticated).pipe(
     take(1),
-    map(isAuthenticated => {
-      if (isAuthenticated) {
-        return true;
+    switchMap(isStoreAuthenticated => {
+      if (isStoreAuthenticated) {
+        console.log('User authenticated via store state');
+        return of(true);
       }
-      
-      console.log('User not authenticated, redirecting to home');
-      return router.createUrlTree(['/']);
+
+      // If store says not authenticated, double-check with Auth0 service
+      console.log('Store reports not authenticated, checking Auth0 service...');
+
+      // Get auth status directly from Auth0 with a short timeout
+      return authService.auth0Service.isAuthenticated$.pipe(
+        timeout(1000), // Don't wait too long
+        take(1),
+        map(isAuth0Authenticated => {
+          if (isAuth0Authenticated) {
+            console.log('User IS authenticated via Auth0 service, allowing access');
+            return true;
+          }
+
+          console.log('User not authenticated, redirecting to home');
+          return router.createUrlTree(['/']);
+        }),
+        catchError(err => {
+          console.log('Auth check error or timeout, defaulting to not authenticated');
+          return of(router.createUrlTree(['/']));
+        })
+      );
     })
   );
 };

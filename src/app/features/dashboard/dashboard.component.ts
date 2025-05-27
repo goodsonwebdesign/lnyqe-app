@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, OnInit, NgZone } from '@angular/core';
-import { CommonModule, TitleCasePipe } from '@angular/common';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, OnInit, NgZone, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { UI_COMPONENTS } from '../../shared/components/ui';
+import { AuthService } from '../../core/services/auth/auth.service';
 import {
   ActionItem,
   StatCard,
@@ -16,14 +17,16 @@ import {
   standalone: true,
   imports: [
     CommonModule,
-    ...UI_COMPONENTS,
-    TitleCasePipe
+    ...UI_COMPONENTS
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent implements OnInit {
+  // Services
+  private authService = inject(AuthService);
+
   // Input properties
   @Input() user: any = null;
   @Input() userRole: string = 'admin';
@@ -77,6 +80,21 @@ export class DashboardComponent implements OnInit {
 
     // Optimize animation frames for better performance on mobile devices
     this.optimizeForMobile();
+  }
+
+  /**
+   * Method to test API token generation
+   * This will help diagnose if Auth0 is properly configured for your API audience
+   */
+  async testApiToken(): Promise<void> {
+    console.log('Testing API token generation...');
+    try {
+      // Use our test method to check if Auth0 can issue tokens with the correct audience
+      await this.authService.testApiTokenRequest();
+      console.log('API token test completed - check console for details');
+    } catch (error) {
+      console.error('API token test failed:', error);
+    }
   }
 
   // Methods to handle section changes

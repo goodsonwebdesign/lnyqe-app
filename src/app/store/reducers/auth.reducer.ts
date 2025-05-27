@@ -1,15 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
 import { AuthActions } from '../actions/auth.actions';
-
-export interface AuthState {
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  user: any | null;
-  error: any | null;
-  organizationId: string | null;
-  isEnterpriseSSOEnabled: boolean;
-  role: string | null; // Added role field
-}
+import { AuthState } from '../../core/models/auth.model';
 
 export const initialAuthState: AuthState = {
   isAuthenticated: false,
@@ -18,7 +9,8 @@ export const initialAuthState: AuthState = {
   error: null,
   organizationId: null,
   isEnterpriseSSOEnabled: false,
-  role: null // Initialize role as null
+  token: null,
+  role: null
 };
 
 export const authReducer = createReducer(
@@ -31,15 +23,14 @@ export const authReducer = createReducer(
     organizationId: organization || state.organizationId
   })),
 
-  on(AuthActions.loginSuccess, (state, { user }) => ({
+  on(AuthActions.loginSuccess, (state, { user, token }) => ({
     ...state,
     isAuthenticated: true,
     isLoading: false,
     user,
+    token,
     error: null,
-    // Extract organization ID from user metadata if available
-    organizationId: user?.org_id || state.organizationId,
-    // Extract role from user
+    organizationId: user?.organizationId || state.organizationId,
     role: user?.role || null
   })),
 
@@ -48,8 +39,19 @@ export const authReducer = createReducer(
     isAuthenticated: false,
     isLoading: false,
     user: null,
+    token: null,
     error,
     role: null
+  })),
+
+  on(AuthActions.refreshTokenSuccess, (state, { token }) => ({
+    ...state,
+    token
+  })),
+
+  on(AuthActions.refreshTokenFailure, (state, { error }) => ({
+    ...state,
+    error
   })),
 
   on(AuthActions.logout, () => ({
