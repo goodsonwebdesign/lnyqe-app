@@ -4,6 +4,23 @@ import { provideMockStore, MockStore } from '@ngrx/store/testing';
 import { DashboardContainerComponent } from './dashboard-container.component';
 import { DashboardComponent } from './dashboard.component';
 import { selectCurrentUser } from '../../store/selectors/auth.selectors';
+import { selectUserViewModel } from '../../store/selectors/user.selectors';
+import { AuthService } from '@auth0/auth0-angular';
+import { of } from 'rxjs';
+
+// Create a mock Auth0 service
+const mockAuth0Service = {
+  isAuthenticated$: of(true),
+  user$: of({ name: 'Test User', email: 'test@example.com' }),
+  loginWithRedirect: jasmine.createSpy('loginWithRedirect'),
+  logout: jasmine.createSpy('logout'),
+  getAccessTokenSilently: jasmine.createSpy('getAccessTokenSilently').and.returnValue(of('mock-token')),
+  idTokenClaims$: of({
+    __raw: 'mock-id-token',
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    scope: 'openid profile email'
+  })
+};
 
 describe('DashboardContainerComponent', () => {
   let component: DashboardContainerComponent;
@@ -20,6 +37,11 @@ describe('DashboardContainerComponent', () => {
         email: 'test@example.com',
         role: 'admin'
       }
+    },
+    user: {
+      users: [],
+      loading: false,
+      error: null
     }
   };
 
@@ -30,9 +52,11 @@ describe('DashboardContainerComponent', () => {
         provideMockStore({
           initialState,
           selectors: [
-            { selector: selectCurrentUser, value: initialState.auth.user }
+            { selector: selectCurrentUser, value: initialState.auth.user },
+            { selector: selectUserViewModel, value: { users: [], loading: false, error: null } }
           ]
-        })
+        }),
+        { provide: AuthService, useValue: mockAuth0Service }
       ]
     }).compileComponents();
 
@@ -102,10 +126,10 @@ describe('DashboardContainerComponent', () => {
     expect(console.log).toHaveBeenCalledWith('Add user action triggered');
   });
 
-  it('should handle manageGroups action', () => {
+  it('should handle manageRoles action', () => {
     spyOn(console, 'log');
-    component.manageGroups();
-    expect(console.log).toHaveBeenCalledWith('Manage groups action triggered');
+    component.manageRoles();
+    expect(console.log).toHaveBeenCalledWith('Manage roles action triggered');
   });
 
   it('should handle systemSettings action', () => {

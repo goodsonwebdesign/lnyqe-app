@@ -6,10 +6,49 @@ import { CardComponent } from '../../shared/components/ui/card/card.component';
 import { ButtonComponent } from '../../shared/components/ui/button/button.component';
 import { SectionType } from './dashboard.types';
 import { TitleCasePipe } from '@angular/common';
+import { AuthService } from '@auth0/auth0-angular';
+import { of } from 'rxjs';
+import { provideMockStore, MockStore } from '@ngrx/store/testing';
+import { Store } from '@ngrx/store';
+
+// Create a mock Auth0 service
+const mockAuth0Service = {
+  isAuthenticated$: of(true),
+  user$: of({ name: 'Test User', email: 'test@example.com' }),
+  loginWithRedirect: jasmine.createSpy('loginWithRedirect'),
+  logout: jasmine.createSpy('logout'),
+  getAccessTokenSilently: jasmine.createSpy('getAccessTokenSilently').and.returnValue(of('mock-token')),
+  idTokenClaims$: of({
+    __raw: 'mock-id-token',
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    scope: 'openid profile email'
+  })
+};
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
   let fixture: ComponentFixture<DashboardComponent>;
+  let store: MockStore;
+
+  const initialState = {
+    auth: {
+      user: {
+        id: '123',
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'test@example.com',
+        role: 'admin'
+      },
+      isAuthenticated: true,
+      token: {
+        accessToken: 'test-token',
+        expiresIn: 3600,
+        tokenType: 'Bearer',
+        scope: 'openid profile email',
+        idToken: 'test-id-token'
+      }
+    }
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -19,12 +58,15 @@ describe('DashboardComponent', () => {
         ButtonComponent,
         TitleCasePipe
       ],
-      // Enable change detection for testing
+      // Enable change detection for testing and provide mocks
       providers: [
-        { provide: ChangeDetectionStrategy, useValue: ChangeDetectionStrategy.Default }
+        { provide: ChangeDetectionStrategy, useValue: ChangeDetectionStrategy.Default },
+        { provide: AuthService, useValue: mockAuth0Service },
+        provideMockStore({ initialState })
       ]
     }).compileComponents();
 
+    store = TestBed.inject(MockStore);
     fixture = TestBed.createComponent(DashboardComponent);
     component = fixture.componentInstance;
 

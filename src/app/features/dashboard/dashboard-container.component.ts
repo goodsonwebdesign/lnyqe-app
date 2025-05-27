@@ -285,10 +285,12 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
   // Action methods - business logic handlers
   createTask(): void {
     // Implement task creation logic
+    console.log('Create task action triggered');
   }
 
   scheduleEvent(): void {
     // Implement schedule event logic
+    console.log('Schedule event action triggered');
   }
 
   reportIssue(): void {
@@ -313,10 +315,12 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
 
   addUser(): void {
     // Implement add user logic
+    console.log('Add user action triggered');
   }
 
   manageRoles(): void {
     // Implement manage roles logic
+    console.log('Manage roles action triggered');
   }
 
   runReports(): void {
@@ -325,6 +329,7 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
 
   systemSettings(): void {
     // Implement system settings logic
+    console.log('System settings action triggered');
   }
 
   facilityManagement(): void {
