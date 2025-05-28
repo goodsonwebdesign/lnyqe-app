@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 import { map, catchError, switchMap, tap } from 'rxjs/operators';
 import { UsersService } from '../../core/services/users/users.service';
 import { UserActions } from '../actions/user.actions';
-import { transformViewModelToUser } from '../../core/models/user.model';
+import { transformViewModelToUser, UserView } from '../../core/models/user.model';
 
 @Injectable()
 export class UserEffects {
@@ -24,7 +24,6 @@ export class UserEffects {
       switchMap(() =>
         this.usersService.getUsers().pipe(
           map(users => {
-            // Service already returns transformed UserView[]
             return UserActions.loadUsersSuccess({ users });
           }),
           catchError(error => {

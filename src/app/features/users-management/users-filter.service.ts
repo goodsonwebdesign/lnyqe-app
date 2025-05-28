@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { UserFilters, UserView } from './users-management.types';
+import { UserFilters } from './users-management.types';
+import { UserView } from '../../core/models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -17,12 +18,14 @@ export class UsersFilterService {
     // Apply search filter
     if (filters?.search) {
       const searchLower = filters.search.toLowerCase();
-      filteredUsers = filteredUsers.filter(user =>
-        (user?.name?.toLowerCase() || '').includes(searchLower) ||
-        (user?.email?.toLowerCase() || '').includes(searchLower) ||
-        (user?.department?.toLowerCase() || '').includes(searchLower) ||
-        (user?.jobTitle?.toLowerCase() || '').includes(searchLower)
-      );
+      filteredUsers = filteredUsers.filter(user => {
+        const fullName = `${user?.first_name || ''} ${user?.last_name || ''}`.toLowerCase();
+        return fullName.includes(searchLower) ||
+          (user?.email?.toLowerCase() || '').includes(searchLower) ||
+          (user?.department?.toLowerCase() || '').includes(searchLower) ||
+          (user?.jobTitle?.toLowerCase() || '').includes(searchLower) ||
+          (user?.location?.toLowerCase() || '').includes(searchLower);
+      });
     }
 
     // Apply role filter
@@ -40,7 +43,9 @@ export class UsersFilterService {
       return [...filteredUsers].sort((a, b) => {
         switch (filters.sortBy) {
           case 'name':
-            return (a?.name || '').localeCompare(b?.name || '');
+            const aName = `${a?.first_name || ''} ${a?.last_name || ''}`;
+            const bName = `${b?.first_name || ''} ${b?.last_name || ''}`;
+            return aName.localeCompare(bName);
           case 'email':
             return (a?.email || '').localeCompare(b?.email || '');
           case 'role':

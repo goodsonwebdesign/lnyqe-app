@@ -1,10 +1,10 @@
 import { createFeature, createReducer, on } from '@ngrx/store';
-import { UserView } from '../../features/users-management/users-management.types';
+import { UserView } from '../../core/models/user.model';
 import { UserActions } from '../actions/user.actions';
 
 export interface UserState {
   users: UserView[];
-  selectedUserId: string | null;
+  selectedUserId: number | null;
   loading: boolean;
   error: any | null;
 }

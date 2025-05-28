@@ -1,6 +1,5 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { User } from '../../core/models/user.model';
-import { UserView } from '../../features/users-management/users-management.types';
+import { User, UserView } from '../../core/models/user.model';
 
 export const UserActions = createActionGroup({
   source: 'User',
@@ -16,17 +15,17 @@ export const UserActions = createActionGroup({
     'Create User Failure': props<{ error: any }>(),
 
     // Update User
-    'Update User': props<{ id: string; user: Partial<UserView> }>(),
+    'Update User': props<{ id: number; user: Partial<UserView> }>(),
     'Update User Success': props<{ user: UserView }>(),
     'Update User Failure': props<{ error: any }>(),
 
     // Delete User
-    'Delete User': props<{ id: string }>(),
-    'Delete User Success': props<{ id: string }>(),
+    'Delete User': props<{ id: number }>(),
+    'Delete User Success': props<{ id: number }>(),
     'Delete User Failure': props<{ error: any }>(),
 
     // Select User
-    'Select User': props<{ id: string }>(),
+    'Select User': props<{ id: number }>(),
     'Clear Selected User': emptyProps()
   }
 });

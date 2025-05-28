@@ -7,8 +7,9 @@ import { takeUntil, debounceTime, distinctUntilChanged, map, startWith } from 'r
 import { selectUserViewModel } from '../../store/selectors/user.selectors';
 import { UI_COMPONENTS } from '../../shared/components/ui';
 import { UsersFilterService } from './users-filter.service';
-import { UserView, UserFilters, UsersManagementViewModel } from './users-management.types';
+import { UserFilters, UsersManagementViewModel } from './users-management.types';
 import { UserActions } from '../../store/actions/user.actions';
+import { UserView } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-users-management',
@@ -95,8 +96,8 @@ import { UserActions } from '../../store/actions/user.actions';
                   <td class="px-6 py-4">
                     <div class="flex items-center">
                       <div class="flex-shrink-0 h-10 w-10 relative">
-                        <img *ngIf="user.picture" [src]="user.picture" [alt]="user.name" class="h-10 w-10 rounded-full">
-                        <div *ngIf="!user.picture" class="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                        <img *ngIf="user.avatar" [src]="user.avatar" [alt]="getUserFullName(user)" class="h-10 w-10 rounded-full">
+                        <div *ngIf="!user.avatar" class="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
                           <span class="text-primary-600 dark:text-primary-400 text-sm font-medium">
                             {{ getUserInitials(user) }}
                           </span>
@@ -112,7 +113,7 @@ import { UserActions } from '../../store/actions/user.actions';
                       <div class="ml-4">
                         <div class="flex items-center">
                           <div class="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                            {{ user.name }}
+                            {{ getUserFullName(user) }}
                           </div>
                           <span [ngClass]="{
                             'ml-2 text-xs px-2 py-0.5 rounded-full': true,
@@ -127,6 +128,10 @@ import { UserActions } from '../../store/actions/user.actions';
                         </div>
                         <div *ngIf="user.department || user.jobTitle" class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                           {{ user.department }}{{ user.department && user.jobTitle ? ' • ' : '' }}{{ user.jobTitle }}
+                        </div>
+                        <div *ngIf="user.location" class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                          <app-icon name="mdi:map-marker" size="xs" className="mr-1"></app-icon>
+                          {{ user.location }}
                         </div>
                       </div>
                     </div>
@@ -242,13 +247,13 @@ export class UsersManagementComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  getUserFullName(user: UserView): string {
+    return `${user.first_name} ${user.last_name}`;
+  }
+
   getUserInitials(user: UserView): string {
-    if (!user.name) return 'U';
-    const parts = user.name.split(' ');
-    if (parts.length > 1) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return parts[0].substring(0, 2).toUpperCase();
+    if (!user.first_name && !user.last_name) return 'U';
+    return (user.first_name?.charAt(0) || '') + (user.last_name?.charAt(0) || '');
   }
 
   onAddUser(): void {
@@ -256,7 +261,8 @@ export class UsersManagementComponent implements OnInit, OnDestroy {
     console.log('Create user clicked');
     // For now, create a test user
     const newUser = {
-      name: 'New User',
+      first_name: 'New',
+      last_name: 'User',
       email: 'newuser@example.com',
       role: 'staff',
       status: 'pending' as const
@@ -269,7 +275,7 @@ export class UsersManagementComponent implements OnInit, OnDestroy {
     console.log('Edit user clicked', user);
     const updatedUser = {
       ...user,
-      name: `${user.name} (edited)` // For testing purposes
+      first_name: `${user.first_name} (edited)` // For testing purposes
     };
     this.store.dispatch(UserActions.updateUser({ id: user.id, user: updatedUser }));
   }

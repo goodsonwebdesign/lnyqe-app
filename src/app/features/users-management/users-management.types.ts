@@ -1,16 +1,4 @@
-import { User } from '../../core/models/user.model';
-
-export interface UserView {
-  id: string;
-  name: string;
-  email: string;
-  picture?: string;
-  role: string;
-  status: 'active' | 'inactive' | 'pending';
-  lastLogin?: Date;
-  department?: string;
-  jobTitle?: string;
-}
+import { User, UserView } from '../../core/models/user.model';
 
 export interface UserFilters {
   search: string;
