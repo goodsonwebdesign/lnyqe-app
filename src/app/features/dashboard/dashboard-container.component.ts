@@ -18,17 +18,13 @@ import {
   Notification,
   SystemStatus,
   SectionType,
-  DashboardViewModel
+  DashboardViewModel,
 } from './dashboard.types';
 
 @Component({
   selector: 'app-dashboard-container',
   standalone: true,
-  imports: [
-    CommonModule,
-    DashboardComponent,
-    ...UI_COMPONENTS
-  ],
+  imports: [CommonModule, DashboardComponent, ...UI_COMPONENTS],
   template: `
     <app-dashboard
       [user]="user"
@@ -59,10 +55,11 @@ import {
       (manageTaskStatusAction)="manageTaskStatus()"
       (scheduleTaskAction)="scheduleTask()"
       (setTaskPriorityAction)="setTaskPriority()"
-      (manageUsersAction)="manageUsers()">
+      (manageUsersAction)="manageUsers()"
+    >
     </app-dashboard>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardContainerComponent implements OnInit, OnDestroy {
   // Component state
@@ -81,26 +78,26 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
       iconName: 'mdi:plus',
       label: 'New Task',
       action: 'createTask',
-      variant: 'primary'
+      variant: 'primary',
     },
     {
       iconName: 'mdi:calendar',
       label: 'Schedule',
       action: 'scheduleEvent',
-      variant: 'secondary'
+      variant: 'secondary',
     },
     {
       iconName: 'mdi:information',
       label: 'Report Issue',
       action: 'reportIssue',
-      variant: 'neutral'
+      variant: 'neutral',
     },
     {
       iconName: 'mdi:file-chart',
       label: 'Reports',
       action: 'runReports',
-      variant: 'neutral'
-    }
+      variant: 'neutral',
+    },
   ];
 
   // Admin actions only shown to admins in the admin section
@@ -109,26 +106,26 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
       iconName: 'mdi:account-plus',
       label: 'Add User',
       action: 'addUser',
-      variant: 'primary'
+      variant: 'primary',
     },
     {
       iconName: 'mdi:account-cog',
       label: 'Manage Users',
       action: 'manageUsers',
-      variant: 'secondary'
+      variant: 'secondary',
     },
     {
       iconName: 'mdi:cog',
       label: 'Settings',
       action: 'systemSettings',
-      variant: 'neutral'
+      variant: 'neutral',
     },
     {
       iconName: 'mdi:office-building',
       label: 'Facilities',
       action: 'facilityManagement',
-      variant: 'neutral'
-    }
+      variant: 'neutral',
+    },
   ];
 
   // Stats cards for the overview section
@@ -141,8 +138,8 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
       iconColor: 'text-primary-600 dark:text-primary-400',
       change: {
         value: '+2 Today',
-        isPositive: true
-      }
+        isPositive: true,
+      },
     },
     {
       title: 'Scheduled Events',
@@ -150,7 +147,7 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
       iconName: 'mdi:calendar',
       iconBg: 'bg-secondary-100 dark:bg-secondary-900',
       iconColor: 'text-secondary-600 dark:text-secondary-400',
-      info: 'Next in 3 hours'
+      info: 'Next in 3 hours',
     },
     {
       title: 'Maintenance Requests',
@@ -160,8 +157,8 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
       iconColor: 'text-amber-600 dark:text-amber-400',
       change: {
         value: '2 Urgent',
-        isPositive: false
-      }
+        isPositive: false,
+      },
     },
     {
       title: 'Utilization Rate',
@@ -171,9 +168,9 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
       iconColor: 'text-green-600 dark:text-green-400',
       change: {
         value: '+5% from last month',
-        isPositive: true
-      }
-    }
+        isPositive: true,
+      },
+    },
   ];
 
   // Tasks data
@@ -184,7 +181,7 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
       status: 'in-progress',
       iconName: 'mdi:check-circle',
       iconBg: 'bg-primary-100 dark:bg-primary-900',
-      iconColor: 'text-primary-600 dark:text-primary-400'
+      iconColor: 'text-primary-600 dark:text-primary-400',
     },
     {
       title: 'Elevator Inspection - Tower 2',
@@ -192,7 +189,7 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
       status: 'pending',
       iconName: 'mdi:clock',
       iconBg: 'bg-amber-100 dark:bg-amber-900',
-      iconColor: 'text-amber-600 dark:text-amber-400'
+      iconColor: 'text-amber-600 dark:text-amber-400',
     },
     {
       title: 'Water Leak - Basement Level',
@@ -200,8 +197,8 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
       status: 'urgent',
       iconName: 'mdi:alert',
       iconBg: 'bg-red-100 dark:bg-red-900',
-      iconColor: 'text-red-600 dark:text-red-400'
-    }
+      iconColor: 'text-red-600 dark:text-red-400',
+    },
   ];
 
   // Schedule data
@@ -212,10 +209,20 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
       time: '9:00 AM',
       duration: '2 hrs',
       attendees: [
-        { initials: 'JD', color: 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300' },
-        { initials: 'TM', color: 'bg-secondary-100 dark:bg-secondary-900 text-secondary-700 dark:text-secondary-300' },
-        { initials: '+3', color: 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300' }
-      ]
+        {
+          initials: 'JD',
+          color: 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300',
+        },
+        {
+          initials: 'TM',
+          color:
+            'bg-secondary-100 dark:bg-secondary-900 text-secondary-700 dark:text-secondary-300',
+        },
+        {
+          initials: '+3',
+          color: 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300',
+        },
+      ],
     },
     {
       title: 'Vendor Meeting',
@@ -223,9 +230,12 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
       time: '1:30 PM',
       duration: '1 hr',
       attendees: [
-        { initials: 'JD', color: 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300' }
-      ]
-    }
+        {
+          initials: 'JD',
+          color: 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300',
+        },
+      ],
+    },
   ];
 
   // Notifications
@@ -233,18 +243,18 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
     {
       message: 'New comment on maintenance task',
       time: '2 hours ago',
-      type: 'message'
+      type: 'message',
     },
     {
       message: 'Task completed: Plumbing repair',
       time: 'Yesterday at 3:45 PM',
-      type: 'success'
+      type: 'success',
     },
     {
       message: 'Reminder: Monthly inspection due',
       time: 'Yesterday at 9:00 AM',
-      type: 'warning'
-    }
+      type: 'warning',
+    },
   ];
 
   // System status
@@ -252,24 +262,24 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
     { name: 'Security System', status: 'online' },
     { name: 'HVAC Controls', status: 'online' },
     { name: 'Water Management', status: 'maintenance' },
-    { name: 'Power Backup', status: 'online' }
+    { name: 'Power Backup', status: 'online' },
   ];
 
   ngOnInit(): void {
     // Get the current authenticated user from the store
     this.subscriptions.add(
-      this.store.select(selectCurrentUser).subscribe(user => {
+      this.store.select(selectCurrentUser).subscribe((user) => {
         this.user = user;
-      })
+      }),
     );
 
     // Subscribe to user view model to access user state
     this.subscriptions.add(
-      this.store.select(selectUserViewModel).subscribe(viewModel => {
+      this.store.select(selectUserViewModel).subscribe((viewModel) => {
         if (viewModel.error) {
           console.error('Error loading users:', viewModel.error);
         }
-      })
+      }),
     );
   }
 

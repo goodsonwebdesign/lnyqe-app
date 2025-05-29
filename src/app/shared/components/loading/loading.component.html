@@ -1,42 +1,47 @@
-<div class="fixed inset-0 flex items-center justify-center bg-white dark:bg-neutral-900 z-50">
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-white dark:bg-neutral-900">
   <div class="flex flex-col items-center">
     <!-- Logo section -->
     <div class="mb-8 animate-pulse">
-      <img 
-        *ngIf="!isDarkMode" 
-        src="assets/logo-light.svg" 
-        alt="LNYQE Logo" 
+      <img
+        *ngIf="!isDarkMode"
+        src="assets/logo-light.svg"
+        alt="LNYQE Logo"
         class="h-12 sm:h-16"
         onerror="this.onerror=null; this.src='https://img-lynqe.s3.us-east-2.amazonaws.com/logo-blk.png'"
-      >
-      <img 
-        *ngIf="isDarkMode" 
-        src="assets/logo-dark.svg" 
-        alt="LNYQE Logo" 
+      />
+      <img
+        *ngIf="isDarkMode"
+        src="assets/logo-dark.svg"
+        alt="LNYQE Logo"
         class="h-12 sm:h-16"
         onerror="this.onerror=null; this.src='https://img-lynqe.s3.us-east-2.amazonaws.com/logo-wht.png'"
-      >
+      />
     </div>
-    
+
     <!-- Loading spinner -->
-    <div class="relative">
+    <div class="relative" role="status" aria-label="Loading" data-testid="loading-spinner">
       <!-- Primary color orbit -->
-      <div class="w-16 h-16 rounded-full border-t-4 border-b-4 border-primary-500 animate-spin"></div>
-      
+      <div
+        class="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-primary-500"
+      ></div>
+
       <!-- Secondary color orbit at 45 degree offset -->
-      <div class="absolute top-0 left-0 w-16 h-16 rounded-full border-l-4 border-r-4 border-secondary-500 animate-spin" style="animation-duration: 1.5s; animation-direction: reverse;"></div>
-      
+      <div
+        class="absolute left-0 top-0 h-16 w-16 animate-spin rounded-full border-l-4 border-r-4 border-secondary-500"
+        style="animation-duration: 1.5s; animation-direction: reverse"
+      ></div>
+
       <!-- Inner dot -->
-      <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-primary-600 dark:bg-primary-400 rounded-full"></div>
+      <div
+        class="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-primary-600 dark:bg-primary-400"
+      ></div>
     </div>
-    
+
     <!-- Loading text -->
-    <div class="mt-6 text-neutral-800 dark:text-neutral-200 text-lg font-medium">
-      Loading...
-    </div>
-    
+    <div class="mt-6 text-lg font-medium text-neutral-800 dark:text-neutral-200">Loading...</div>
+
     <!-- Optional loading message -->
-    <div class="mt-2 text-neutral-500 dark:text-neutral-400 text-sm max-w-xs text-center">
+    <div class="mt-2 max-w-xs text-center text-sm text-neutral-500 dark:text-neutral-400">
       Preparing your dashboard with the latest information
     </div>
   </div>

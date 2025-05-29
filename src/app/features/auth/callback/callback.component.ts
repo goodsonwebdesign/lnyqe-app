@@ -14,7 +14,7 @@ import { AuthUser, AuthToken } from '../../../core/models/auth.model';
   selector: 'app-callback',
   standalone: true,
   imports: [CommonModule],
-  template: `<div></div>` // Empty template since we're using global loading
+  template: `<div></div>`, // Empty template since we're using global loading
 })
 export class CallbackComponent implements OnInit {
   private router = inject(Router);
@@ -25,9 +25,7 @@ export class CallbackComponent implements OnInit {
     console.log('Callback component initialized');
 
     // Check if the user is already authenticated first
-    this.auth0Service.isAuthenticated$.pipe(
-      take(1)
-    ).subscribe(isAuthenticated => {
+    this.auth0Service.isAuthenticated$.pipe(take(1)).subscribe((isAuthenticated) => {
       if (isAuthenticated) {
         console.log('User is already authenticated, proceeding to dashboard');
         this.router.navigate(['/dashboard']);
@@ -40,22 +38,23 @@ export class CallbackComponent implements OnInit {
   }
 
   private handleCallback(): void {
-    this.auth0Service.handleRedirectCallback()
+    this.auth0Service
+      .handleRedirectCallback()
       .pipe(
         take(1),
         switchMap(() => this.auth0Service.isAuthenticated$),
         take(1),
-        switchMap(isAuthenticated => {
+        switchMap((isAuthenticated) => {
           if (isAuthenticated) {
             return this.auth0Service.user$.pipe(
               take(1),
-              switchMap(user => {
+              switchMap((user) => {
                 if (!user) {
                   throw new Error('No user information available');
                 }
                 return this.auth0Service.idTokenClaims$.pipe(
                   take(1),
-                  switchMap(claims => {
+                  switchMap((claims) => {
                     if (!claims) {
                       throw new Error('No token claims available');
                     }
@@ -74,11 +73,13 @@ export class CallbackComponent implements OnInit {
                       employeeId: user['https://lnyqe.io/employee_id'] || '',
                       location: user['https://lnyqe.io/location'] || '',
                       organizationId: user['org_id'] || '',
-                      usesSSO: !!user['org_id']
+                      usesSSO: !!user['org_id'],
                     };
 
                     // Get token expiration from claims
-                    const tokenExpiry = claims.exp ? new Date(claims.exp * 1000).getTime() : Date.now() + 3600000;
+                    const tokenExpiry = claims.exp
+                      ? new Date(claims.exp * 1000).getTime()
+                      : Date.now() + 3600000;
                     const expiresIn = tokenExpiry - Date.now();
 
                     const token: AuthToken = {
@@ -86,20 +87,20 @@ export class CallbackComponent implements OnInit {
                       idToken: claims['__raw'],
                       expiresIn,
                       tokenType: 'Bearer',
-                      scope: 'openid profile email offline_access'
+                      scope: 'openid profile email offline_access',
                     };
 
                     return of({ user: processedUser, token });
-                  })
+                  }),
                 );
-              })
+              }),
             );
           }
           // If not authenticated after redirect, try alternative approach
           console.log('Not authenticated after redirect callback, checking user status directly');
           return this.checkUserStatus();
         }),
-        catchError(error => {
+        catchError((error) => {
           console.error('Error handling callback:', error);
 
           // For Invalid State errors, try to recover by checking if user is authenticated anyway
@@ -112,9 +113,9 @@ export class CallbackComponent implements OnInit {
           this.store.dispatch(AuthActions.loginFailure({ error }));
           this.router.navigate(['/']);
           return of(null);
-        })
+        }),
       )
-      .subscribe(result => {
+      .subscribe((result) => {
         if (result) {
           console.log('Successfully processed authentication for:', result.user.email);
           this.store.dispatch(AuthActions.loginSuccess({ user: result.user, token: result.token }));
@@ -127,24 +128,24 @@ export class CallbackComponent implements OnInit {
   private checkUserStatus() {
     return this.auth0Service.isAuthenticated$.pipe(
       take(1),
-      switchMap(isAuthenticated => {
+      switchMap((isAuthenticated) => {
         if (!isAuthenticated) {
           throw new Error('User is not authenticated');
         }
 
         return this.auth0Service.user$.pipe(
           take(1),
-          switchMap(user => {
+          switchMap((user) => {
             if (!user) {
               throw new Error('No user information available');
             }
 
             return this.auth0Service.getAccessTokenSilently().pipe(
               take(1),
-              switchMap(accessToken => {
+              switchMap((accessToken) => {
                 return this.auth0Service.idTokenClaims$.pipe(
                   take(1),
-                  switchMap(claims => {
+                  switchMap((claims) => {
                     if (!claims) {
                       throw new Error('No token claims available');
                     }
@@ -164,10 +165,12 @@ export class CallbackComponent implements OnInit {
                       employeeId: user['https://lnyqe.io/employee_id'] || '',
                       location: user['https://lnyqe.io/location'] || '',
                       organizationId: user['org_id'] || '',
-                      usesSSO: !!user['org_id']
+                      usesSSO: !!user['org_id'],
                     };
 
-                    const tokenExpiry = claims.exp ? new Date(claims.exp * 1000).getTime() : Date.now() + 3600000;
+                    const tokenExpiry = claims.exp
+                      ? new Date(claims.exp * 1000).getTime()
+                      : Date.now() + 3600000;
                     const expiresIn = tokenExpiry - Date.now();
 
                     const token: AuthToken = {
@@ -175,17 +178,17 @@ export class CallbackComponent implements OnInit {
                       idToken: claims['__raw'],
                       expiresIn,
                       tokenType: 'Bearer',
-                      scope: 'openid profile email offline_access'
+                      scope: 'openid profile email offline_access',
                     };
 
                     return of({ user: processedUser, token });
-                  })
+                  }),
                 );
-              })
+              }),
             );
-          })
+          }),
         );
-      })
+      }),
     );
   }
 }

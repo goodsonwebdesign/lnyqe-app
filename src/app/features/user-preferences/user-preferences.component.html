@@ -1,18 +1,25 @@
 <div class="container mx-auto px-4 py-8">
-  <div class="max-w-4xl mx-auto">
-    <h1 class="text-2xl font-bold mb-6 text-neutral-800 dark:text-neutral-200">User Preferences</h1>
+  <div class="mx-auto max-w-4xl">
+    <h1 class="mb-6 text-2xl font-bold text-neutral-800 dark:text-neutral-200">User Preferences</h1>
 
     <!-- User Profile Section -->
-    <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
-      <h2 class="text-xl font-semibold mb-4 text-neutral-700 dark:text-neutral-300">Profile Information</h2>
+    <div class="mb-6 rounded-lg bg-white p-6 shadow dark:bg-neutral-800">
+      <h2 class="mb-4 text-xl font-semibold text-neutral-700 dark:text-neutral-300">
+        Profile Information
+      </h2>
 
       <div class="flex items-start space-x-4">
         <!-- User Avatar -->
         <div class="flex-shrink-0">
-          <div *ngIf="user?.picture" class="h-20 w-20 rounded-full overflow-hidden">
-            <img [src]="user?.picture" [alt]="user?.name" class="h-full w-full object-cover">
+          <div *ngIf="user?.picture" class="h-20 w-20 overflow-hidden rounded-full">
+            <img [src]="user?.picture" [alt]="user?.name + ' avatar'" class="h-full w-full object-cover" data-testid="user-avatar-img" />
           </div>
-          <div *ngIf="!user?.picture" class="h-20 w-20 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-700 dark:text-primary-300 text-2xl font-bold">
+          <div
+            *ngIf="!user?.picture"
+            class="flex h-20 w-20 items-center justify-center rounded-full bg-primary-100 text-2xl font-bold text-primary-700 dark:bg-primary-900 dark:text-primary-300"
+            [attr.aria-label]="user?.name ? user?.name + ' avatar' : 'User avatar'"
+            data-testid="user-avatar-initials"
+          >
             {{ user?.name ? user?.name.charAt(0).toUpperCase() : 'U' }}
           </div>
         </div>
@@ -21,8 +28,8 @@
         <div>
           <h3 class="text-lg font-medium text-neutral-900 dark:text-white">{{ user?.name }}</h3>
           <p class="text-neutral-500 dark:text-neutral-400">{{ user?.email }}</p>
-          <p *ngIf="user?.email_verified" class="text-sm text-green-600 dark:text-green-400 mt-1">
-            <app-icon name="mdi:check" size="xs" className="inline mr-1"></app-icon>
+          <p *ngIf="user?.email_verified" class="mt-1 text-sm text-green-600 dark:text-green-400">
+            <app-icon name="mdi:check" size="xs" className="inline mr-1" aria-label="Email verified icon"></app-icon>
             Email verified
           </p>
         </div>
@@ -30,23 +37,32 @@
     </div>
 
     <!-- App Settings Section -->
-    <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6 mb-6">
-      <h2 class="text-xl font-semibold mb-4 text-neutral-700 dark:text-neutral-300">Application Settings</h2>
+    <div class="mb-6 rounded-lg bg-white p-6 shadow dark:bg-neutral-800">
+      <h2 class="mb-4 text-xl font-semibold text-neutral-700 dark:text-neutral-300">
+        Application Settings
+      </h2>
 
       <!-- Theme Dropdown -->
-      <div class="flex items-center justify-between py-3 border-b border-neutral-200 dark:border-neutral-700">
+      <div
+        class="flex items-center justify-between border-b border-neutral-200 py-3 dark:border-neutral-700"
+      >
         <div>
           <h3 class="font-medium text-neutral-900 dark:text-white">Theme Preference</h3>
-          <p class="text-sm text-neutral-500 dark:text-neutral-400">Choose between light, dark, or system theme</p>
+          <p class="text-sm text-neutral-500 dark:text-neutral-400">
+            Choose between light, dark, or system theme
+          </p>
         </div>
         <div class="flex items-center">
           <select
             [ngModel]="currentTheme"
             (change)="changeTheme($event)"
-            class="block w-48 rounded-md border-0 py-1.5 pl-3 pr-10 text-neutral-900 dark:text-white bg-white dark:bg-neutral-700 shadow-sm ring-1 ring-inset ring-neutral-300 dark:ring-neutral-600 focus:ring-2 focus:ring-inset focus:ring-primary-500 sm:text-sm"
+            class="block w-48 rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-neutral-900 shadow-sm ring-1 ring-inset ring-neutral-300 focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-neutral-700 dark:text-white dark:ring-neutral-600 sm:text-sm focus:outline-none"
             aria-label="Select theme preference"
+            data-testid="theme-select"
           >
-            <option *ngFor="let option of themeOptions" [value]="option.value">{{ option.label }}</option>
+            <option *ngFor="let option of themeOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
           </select>
         </div>
       </div>
@@ -55,9 +71,13 @@
     </div>
 
     <!-- Notification Preferences (Placeholder for future implementation) -->
-    <div class="bg-white dark:bg-neutral-800 rounded-lg shadow p-6">
-      <h2 class="text-xl font-semibold mb-4 text-neutral-700 dark:text-neutral-300">Notification Preferences</h2>
-      <p class="text-neutral-500 dark:text-neutral-400">Notification preferences will be available in a future update.</p>
+    <div class="rounded-lg bg-white p-6 shadow dark:bg-neutral-800">
+      <h2 class="mb-4 text-xl font-semibold text-neutral-700 dark:text-neutral-300">
+        Notification Preferences
+      </h2>
+      <p class="text-neutral-500 dark:text-neutral-400">
+        Notification preferences will be available in a future update.
+      </p>
     </div>
   </div>
 </div>

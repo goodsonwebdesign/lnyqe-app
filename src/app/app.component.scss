@@ -7,10 +7,11 @@
 
 /* Fix for 100vh issue on mobile browsers */
 @supports (-webkit-touch-callout: none) {
-  body, html {
+  body,
+  html {
     height: -webkit-fill-available;
   }
-  
+
   .min-h-screen {
     min-height: -webkit-fill-available;
   }

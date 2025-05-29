@@ -1,6 +1,11 @@
 import { Component, Input, forwardRef, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 
 @Component({
   selector: 'app-input',
@@ -12,15 +17,16 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule, ReactiveFormsModu
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => InputComponent),
-      multi: true
-    }
-  ]
+      multi: true,
+    },
+  ],
 })
 export class InputComponent implements ControlValueAccessor {
   @Input() id = `input-${Math.random().toString(36).substring(2, 11)}`;
   @Input() label?: string;
   @Input() placeholder = '';
-  @Input() type: 'text' | 'password' | 'email' | 'number' | 'tel' | 'url' | 'search' | 'date' = 'text';
+  @Input() type: 'text' | 'password' | 'email' | 'number' | 'tel' | 'url' | 'search' | 'date' =
+    'text';
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
   @Input() required = false;
   @Input() disabled = false;
@@ -28,6 +34,8 @@ export class InputComponent implements ControlValueAccessor {
   @Input() error?: string;
   @Input() helperText?: string;
   @Input() icon = false;
+  @Input() ariaLabel?: string;
+  @Input() dataTestId?: string;
 
   @HostBinding('class.w-full') isFullWidth = true;
 
@@ -44,7 +52,7 @@ export class InputComponent implements ControlValueAccessor {
     const sizes = {
       sm: 'px-2 py-1 text-sm',
       md: 'px-3 py-2',
-      lg: 'px-4 py-3 text-lg'
+      lg: 'px-4 py-3 text-lg',
     };
 
     return sizes[this.size];

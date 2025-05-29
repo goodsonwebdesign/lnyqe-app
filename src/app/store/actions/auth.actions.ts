@@ -1,5 +1,5 @@
+import { AuthToken, AuthUser } from '../../core/models/auth.model';
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import { AuthUser, AuthToken } from '../../core/models/auth.model';
 
 // Auth actions group
 export const AuthActions = createActionGroup({
@@ -8,7 +8,7 @@ export const AuthActions = createActionGroup({
     'Login Request': props<{ organization?: string }>(),
     'Login Success': props<{ user: AuthUser; token: AuthToken }>(),
     'Login Failure': props<{ error: any }>(),
-    'Logout': emptyProps(),
+    Logout: emptyProps(),
     'Check Auth': emptyProps(),
     'Set Organization': props<{ organizationId: string }>(),
     'Set Enterprise SSO Enabled': props<{ enabled: boolean }>(),
@@ -16,7 +16,7 @@ export const AuthActions = createActionGroup({
     'Refresh Token': emptyProps(),
     'Refresh Token Success': props<{ token: AuthToken }>(),
     'Refresh Token Failure': props<{ error: any }>(),
-  }
+  },
 });
 
 // For backward compatibility during migration

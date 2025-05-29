@@ -9,18 +9,18 @@ export interface FlyoutState {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class FlyoutService {
   private initialState: FlyoutState = {
     isOpen: false,
     position: 'right',
-    type: ''
+    type: '',
   };
 
   private flyoutState = new BehaviorSubject<FlyoutState>(this.initialState);
 
-  constructor() { }
+  constructor() {}
 
   getState(): Observable<FlyoutState> {
     return this.flyoutState.asObservable();
@@ -42,7 +42,7 @@ export class FlyoutService {
       isOpen: true,
       position,
       type,
-      data
+      data,
     });
   }
 
@@ -52,7 +52,7 @@ export class FlyoutService {
   closeFlyout(): void {
     this.flyoutState.next({
       ...this.flyoutState.value,
-      isOpen: false
+      isOpen: false,
     });
   }
 
@@ -63,7 +63,7 @@ export class FlyoutService {
   updateFlyoutData(data: any): void {
     this.flyoutState.next({
       ...this.flyoutState.value,
-      data
+      data,
     });
   }
 }

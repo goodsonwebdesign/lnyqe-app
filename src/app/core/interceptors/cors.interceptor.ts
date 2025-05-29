@@ -32,7 +32,7 @@ export class CorsInterceptor implements HttpInterceptor {
 
       // Get a token with the correct audience specifically for API calls
       return from(this.authService.getApiAccessToken(this.apiIdentifier)).pipe(
-        tap(token => {
+        tap((token) => {
           // For debugging - decode and log token audience (without showing the full token)
           if (token) {
             try {
@@ -44,12 +44,16 @@ export class CorsInterceptor implements HttpInterceptor {
                 // Verify the token has the correct audience
                 if (Array.isArray(payload.aud)) {
                   if (!payload.aud.includes(this.apiIdentifier)) {
-                    console.warn(`Token has incorrect audience: ${payload.aud.join(', ')}. Expected: ${this.apiIdentifier}`);
+                    console.warn(
+                      `Token has incorrect audience: ${payload.aud.join(', ')}. Expected: ${this.apiIdentifier}`,
+                    );
                   } else {
                     console.log('Token has correct audience');
                   }
                 } else if (payload.aud !== this.apiIdentifier) {
-                  console.warn(`Token has incorrect audience: ${payload.aud}. Expected: ${this.apiIdentifier}`);
+                  console.warn(
+                    `Token has incorrect audience: ${payload.aud}. Expected: ${this.apiIdentifier}`,
+                  );
                 } else {
                   console.log('Token has correct audience');
                 }
@@ -59,9 +63,9 @@ export class CorsInterceptor implements HttpInterceptor {
             }
           }
         }),
-        switchMap(apiToken => {
+        switchMap((apiToken) => {
           const headers: { [key: string]: string } = {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           };
 
           // Add Authorization header with the API-specific token
@@ -74,11 +78,11 @@ export class CorsInterceptor implements HttpInterceptor {
 
           // Clone the request with the headers
           const modifiedRequest = request.clone({
-            setHeaders: headers
+            setHeaders: headers,
           });
 
           return next.handle(modifiedRequest);
-        })
+        }),
       );
     }
 

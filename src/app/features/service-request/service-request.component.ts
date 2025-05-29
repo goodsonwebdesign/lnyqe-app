@@ -1,4 +1,10 @@
-import { Component, inject, ChangeDetectionStrategy, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  ChangeDetectionStrategy,
+  OnDestroy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FlyoutService } from '../../core/services/flyout/flyout.service';
@@ -16,7 +22,7 @@ interface SelectOption {
   imports: [CommonModule, ReactiveFormsModule, ...UI_COMPONENTS],
   templateUrl: './service-request.component.html',
   styleUrls: ['./service-request.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServiceRequestComponent implements OnDestroy {
   private fb = inject(FormBuilder);
@@ -36,14 +42,14 @@ export class ServiceRequestComponent implements OnDestroy {
     { label: 'IT Support', value: 'it-support' },
     { label: 'Facilities', value: 'facilities' },
     { label: 'Security', value: 'security' },
-    { label: 'Other', value: 'other' }
+    { label: 'Other', value: 'other' },
   ];
 
   priorities: SelectOption[] = [
     { label: 'Low', value: 'low' },
     { label: 'Medium', value: 'medium' },
     { label: 'High', value: 'high' },
-    { label: 'Urgent', value: 'urgent' }
+    { label: 'Urgent', value: 'urgent' },
   ];
 
   departments: SelectOption[] = [
@@ -53,7 +59,7 @@ export class ServiceRequestComponent implements OnDestroy {
     { label: 'Finance', value: 'finance' },
     { label: 'Operations', value: 'operations' },
     { label: 'Sales', value: 'sales' },
-    { label: 'Marketing', value: 'marketing' }
+    { label: 'Marketing', value: 'marketing' },
   ];
 
   constructor() {
@@ -62,18 +68,19 @@ export class ServiceRequestComponent implements OnDestroy {
       title: ['', Validators.required],
       priority: ['medium', Validators.required],
       department: ['', Validators.required],
-      description: ['', [Validators.required, Validators.minLength(10)]]
+      description: ['', [Validators.required, Validators.minLength(10)]],
     });
 
-    this.flyoutService.getState()
+    this.flyoutService
+      .getState()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(state => {
+      .subscribe((state) => {
         if (state.type === 'service-request') {
           this.isOpen = state.isOpen;
 
           if (state.isOpen) {
             this.requestForm.reset({
-              priority: 'medium'
+              priority: 'medium',
             });
             this.files = [];
             this.editing = state.data?.editing || false;
@@ -85,7 +92,7 @@ export class ServiceRequestComponent implements OnDestroy {
                 title: request.title,
                 priority: request.priority,
                 department: request.department,
-                description: request.description
+                description: request.description,
               });
 
               if (request.files) {
@@ -121,7 +128,7 @@ export class ServiceRequestComponent implements OnDestroy {
       setTimeout(() => {
         const formData = {
           ...this.requestForm.value,
-          files: this.files
+          files: this.files,
         };
 
         console.log('Submitting request:', formData);
@@ -130,7 +137,7 @@ export class ServiceRequestComponent implements OnDestroy {
         this.close();
       }, 1000);
     } else {
-      Object.keys(this.requestForm.controls).forEach(key => {
+      Object.keys(this.requestForm.controls).forEach((key) => {
         const control = this.requestForm.get(key);
         control?.markAsTouched();
       });
@@ -168,7 +175,7 @@ export class ServiceRequestComponent implements OnDestroy {
   }
 
   private handleFiles(fileList: FileList): void {
-    const newFiles = Array.from(fileList).filter(file => {
+    const newFiles = Array.from(fileList).filter((file) => {
       const maxSize = 10 * 1024 * 1024;
       return file.size <= maxSize;
     });

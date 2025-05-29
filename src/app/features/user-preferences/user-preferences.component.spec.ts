@@ -1,7 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { UserPreferencesComponent } from './user-preferences.component';
-import { provideMockStore } from '@ngrx/store/testing';
 import { ThemeService } from '../../core/services/theme.service';
+import { UserPreferencesComponent } from './user-preferences.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideMockStore } from '@ngrx/store/testing';
 
 describe('UserPreferencesComponent', () => {
   let component: UserPreferencesComponent;
@@ -18,14 +18,13 @@ describe('UserPreferencesComponent', () => {
         provideMockStore({
           initialState: {
             auth: {
-              currentUser: null
-            }
-          }
+              currentUser: null,
+            },
+          },
         }),
-        { provide: ThemeService, useValue: mockThemeService }
-      ]
-    })
-    .compileComponents();
+        { provide: ThemeService, useValue: mockThemeService },
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(UserPreferencesComponent);
     component = fixture.componentInstance;

@@ -10,7 +10,7 @@ export const environment = {
     useSimpleUrlParsing: true,
 
     // Disable automatic query parameter parsing
-    disableQueryParsing: true
+    disableQueryParsing: true,
   },
 
   // API configuration
@@ -19,6 +19,6 @@ export const environment = {
   // Default resource paths with no special characters
   resourcePaths: {
     images: 'assets/images',
-    data: 'assets/data'
-  }
+    data: 'assets/data',
+  },
 };

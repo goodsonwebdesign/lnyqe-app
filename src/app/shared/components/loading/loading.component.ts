@@ -7,7 +7,7 @@ import { ThemeService } from '../../../core/services/theme.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './loading.component.html',
-  styleUrls: ['./loading.component.scss']
+  styleUrls: ['./loading.component.scss'],
 })
 export class LoadingComponent implements OnInit {
   private themeService = inject(ThemeService);

@@ -13,7 +13,7 @@ interface PaginatedResponse<T> {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UsersService {
   private apiUrl = `${environment.apiUrl}/v1/users`;
@@ -29,7 +29,7 @@ export class UsersService {
   getUsers(): Observable<UserView[]> {
     console.log('Fetching users from:', this.apiUrl);
     return this.http.get<PaginatedResponse<User>>(this.apiUrl).pipe(
-      tap(response => {
+      tap((response) => {
         console.log('Raw API response:', response);
         if (!response?.data || !Array.isArray(response.data)) {
           console.warn('Invalid API response:', response);
@@ -37,11 +37,11 @@ export class UsersService {
           console.log(`Fetched ${response.data.length} users out of ${response.total} total`);
         }
       }),
-      map(response => {
+      map((response) => {
         if (!response?.data || !Array.isArray(response.data)) return [];
         return response.data.map(transformUserToViewModel);
       }),
-      catchError(this.handleError)
+      catchError(this.handleError),
     );
   }
 
@@ -51,10 +51,9 @@ export class UsersService {
    * @returns Observable of single user
    */
   getUser(id: number): Observable<UserView> {
-    return this.http.get<User>(`${this.apiUrl}/${id}`).pipe(
-      map(transformUserToViewModel),
-      catchError(this.handleError)
-    );
+    return this.http
+      .get<User>(`${this.apiUrl}/${id}`)
+      .pipe(map(transformUserToViewModel), catchError(this.handleError));
   }
 
   /**
@@ -63,10 +62,9 @@ export class UsersService {
    * @returns Observable of created user
    */
   createUser(user: Partial<User>): Observable<UserView> {
-    return this.http.post<User>(this.apiUrl, user).pipe(
-      map(transformUserToViewModel),
-      catchError(this.handleError)
-    );
+    return this.http
+      .post<User>(this.apiUrl, user)
+      .pipe(map(transformUserToViewModel), catchError(this.handleError));
   }
 
   /**
@@ -76,10 +74,9 @@ export class UsersService {
    * @returns Observable of updated user
    */
   updateUser(id: number, user: Partial<User>): Observable<UserView> {
-    return this.http.put<User>(`${this.apiUrl}/${id}`, user).pipe(
-      map(transformUserToViewModel),
-      catchError(this.handleError)
-    );
+    return this.http
+      .put<User>(`${this.apiUrl}/${id}`, user)
+      .pipe(map(transformUserToViewModel), catchError(this.handleError));
   }
 
   /**
@@ -88,9 +85,7 @@ export class UsersService {
    * @returns Observable of void
    */
   deleteUser(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
-      catchError(this.handleError)
-    );
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(catchError(this.handleError));
   }
 
   /**

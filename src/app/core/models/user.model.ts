@@ -3,7 +3,7 @@ export enum UserRole {
   ADMIN = 'admin',
   FACILITY_MANAGER = 'facility_manager',
   STAFF = 'staff',
-  GUEST = 'guest'
+  GUEST = 'guest',
 }
 
 export interface User {
@@ -56,7 +56,7 @@ export function transformUserToViewModel(user: User): UserView {
     jobTitle: user.jobTitle,
     location: user.location,
     created_at: user.created_at,
-    updatedAt: user.updatedAt
+    updatedAt: user.updatedAt,
   };
 }
 
@@ -75,8 +75,6 @@ export function transformViewModelToUser(view: Partial<UserView>): Partial<User>
     jobTitle: view.jobTitle,
     location: view.location,
     created_at: view.created_at,
-    updatedAt: view.updatedAt
+    updatedAt: view.updatedAt,
   };
 }
-
-

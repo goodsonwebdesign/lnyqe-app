@@ -1,4 +1,6 @@
-<div class="min-h-screen flex flex-col bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 w-full overflow-hidden min-content-width">
+<div
+  class="min-content-width flex min-h-screen w-full flex-col overflow-hidden bg-neutral-50 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100"
+>
   <!-- Main Header - Using our toolbar component -->
   <app-toolbar
     [isLoggedIn]="isLoggedIn"
@@ -9,63 +11,79 @@
     [greeting]="getGreeting()"
     (toggleSidenav)="toggleSidenav()"
     (openServiceRequest)="openServiceRequestFlyout($event)"
-    (login)="login()">
+    (login)="login()"
+  >
   </app-toolbar>
 
   <!-- Add Service Request Component directly to the layout -->
   <app-service-request></app-service-request>
 
   <!-- Main Content Area - Added padding to account for fixed toolbar height -->
-  <div class="flex-1 relative main-content pt-16 md:pt-[4.5rem]">
+  <div class="main-content relative flex-1 pt-16 md:pt-[4.5rem]">
     <!-- Sidenav Overlay - Improved transition -->
     <div
       *ngIf="isLoggedIn && isSidenavOpen"
-      class="fixed inset-0 bg-black/50 dark:bg-black/70 z-30 transition-opacity duration-300 backdrop-blur-[2px]"
+      class="fixed inset-0 z-30 bg-black/50 backdrop-blur-[2px] transition-opacity duration-300 dark:bg-black/70"
       [class.opacity-100]="isSidenavOpen"
       [class.opacity-0]="!isSidenavOpen"
       [class.pointer-events-auto]="isSidenavOpen"
       [class.pointer-events-none]="!isSidenavOpen"
       (click)="closeSidenav()"
-      aria-hidden="true">
-    </div>
+      aria-hidden="true"
+    ></div>
 
     <!-- Mobile Sidebar - Adjusted for fixed header -->
     <aside
       *ngIf="isLoggedIn"
-      class="fixed h-[calc(100vh-4rem)] md:h-[calc(100vh-4.5rem)] top-16 md:top-[4.5rem] left-0 w-[80vw] xs:w-[75vw] sm:w-80 transform transition-all duration-300 ease-in-out backdrop-blur-xl z-40 overflow-hidden safe-area-inset-left"
+      class="xs:w-[75vw] safe-area-inset-left fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-[80vw] transform overflow-hidden backdrop-blur-xl transition-all duration-300 ease-in-out sm:w-80 md:top-[4.5rem] md:h-[calc(100vh-4.5rem)]"
       [class.translate-x-0]="isSidenavOpen"
       [class.-translate-x-full]="!isSidenavOpen"
-      [attr.aria-hidden]="!isSidenavOpen">
-
+      [attr.aria-hidden]="!isSidenavOpen"
+    >
       <!-- Sidebar inner container -->
-      <div class="h-full bg-white/95 dark:bg-neutral-800/95 border-r border-neutral-200/70 dark:border-neutral-700/70 flex flex-col">
+      <div
+        class="flex h-full flex-col border-r border-neutral-200/70 bg-white/95 dark:border-neutral-700/70 dark:bg-neutral-800/95"
+      >
         <!-- User profile card - Better spacing for mobile -->
-        <div class="relative p-4 sm:p-5 border-b border-neutral-200/70 dark:border-neutral-700/70">
+        <div class="relative border-b border-neutral-200/70 p-4 dark:border-neutral-700/70 sm:p-5">
           <!-- Decorative background element -->
-          <div class="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 dark:bg-primary-500/10 rounded-full -mr-16 -mt-16"></div>
+          <div
+            class="absolute right-0 top-0 -mr-16 -mt-16 h-32 w-32 rounded-full bg-primary-500/5 dark:bg-primary-500/10"
+          ></div>
 
           <div class="relative flex items-center space-x-3">
             <!-- User avatar with status indicator -->
             <div class="relative">
-              <div *ngIf="user?.picture" class="h-12 w-12 rounded-xl overflow-hidden border-2 border-white dark:border-neutral-700 shadow-sm">
-                <img [src]="user.picture" alt="Profile" class="h-full w-full object-cover">
+              <div
+                *ngIf="user?.picture"
+                class="h-12 w-12 overflow-hidden rounded-xl border-2 border-white shadow-sm dark:border-neutral-700"
+              >
+                <img [src]="user.picture" alt="Profile" class="h-full w-full object-cover" />
               </div>
               <div
                 *ngIf="!user?.picture"
-                class="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 dark:from-primary-600 dark:to-primary-800 flex items-center justify-center text-white text-lg font-semibold shadow-sm"
+                class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-lg font-semibold text-white shadow-sm dark:from-primary-600 dark:to-primary-800"
               >
                 {{ getUserInitials() }}
               </div>
-              <div class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white dark:border-neutral-800"></div>
+              <div
+                class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-neutral-800"
+              ></div>
             </div>
 
             <!-- User info -->
-            <div class="flex-1 min-w-0">
-              <h3 class="text-base font-medium text-neutral-900 dark:text-white flex items-center truncate-text">
+            <div class="min-w-0 flex-1">
+              <h3
+                class="truncate-text flex items-center text-base font-medium text-neutral-900 dark:text-white"
+              >
                 {{ user?.name || 'User' }}
-                <app-icon name="mdi:check-decagram" size="xs" className="ml-1 text-primary-500 flex-shrink-0"></app-icon>
+                <app-icon
+                  name="mdi:check-decagram"
+                  size="xs"
+                  className="ml-1 text-primary-500 flex-shrink-0"
+                ></app-icon>
               </h3>
-              <p class="text-sm text-neutral-500 dark:text-neutral-400 truncate-text">
+              <p class="truncate-text text-sm text-neutral-500 dark:text-neutral-400">
                 {{ user?.email || 'user@example.com' }}
               </p>
             </div>
@@ -73,9 +91,13 @@
         </div>
 
         <!-- Main Navigation - Improved touch targets -->
-        <nav class="flex-1 py-2 sm:py-4 overflow-y-auto overflow-x-hidden hide-scrollbar overscroll-contain">
+        <nav
+          class="hide-scrollbar flex-1 overflow-y-auto overflow-x-hidden overscroll-contain py-2 sm:py-4"
+        >
           <div class="px-3 sm:px-4">
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2 px-1">
+            <h3
+              class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400"
+            >
               Main Navigation
             </h3>
             <ul class="space-y-1">
@@ -83,26 +105,29 @@
                 <a
                   [routerLink]="item.route"
                   routerLinkActive="bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500"
-                  [routerLinkActiveOptions]="{exact: false}"
-                  class="flex items-center px-3 py-3.5 sm:py-3 text-sm rounded-lg border-l-2 border-transparent transition-all duration-200 group touch-manipulation"
+                  [routerLinkActiveOptions]="{ exact: false }"
+                  class="group flex touch-manipulation items-center rounded-lg border-l-2 border-transparent px-3 py-3.5 text-sm transition-all duration-200 sm:py-3"
                   [ngClass]="{
-                    'hover:bg-neutral-100 dark:hover:bg-neutral-700/50': !isActiveRoute(item.route)
+                    'hover:bg-neutral-100 dark:hover:bg-neutral-700/50': !isActiveRoute(item.route),
                   }"
-                  (click)="closeSidenav()">
+                  (click)="closeSidenav()"
+                >
                   <!-- Icon container with subtle animation -->
-                  <span class="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md transition-all duration-200 group-hover:bg-white dark:group-hover:bg-neutral-800">
-                    <app-icon 
-                      [name]="item.icon" 
-                      size="sm" 
+                  <span
+                    class="mr-3 inline-flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200 group-hover:bg-white dark:group-hover:bg-neutral-800"
+                  >
+                    <app-icon
+                      [name]="item.icon"
+                      size="sm"
                       className="text-neutral-500 dark:text-neutral-400 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-200"
                     ></app-icon>
                   </span>
                   <span>{{ item.label }}</span>
 
                   <!-- Right arrow indicator -->
-                  <app-icon 
-                    name="mdi:chevron-right" 
-                    size="xs" 
+                  <app-icon
+                    name="mdi:chevron-right"
+                    size="xs"
                     className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                   ></app-icon>
                 </a>
@@ -111,8 +136,10 @@
           </div>
 
           <!-- Personal section -->
-          <div class="px-3 sm:px-4 mt-6 sm:mt-8">
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2 px-1">
+          <div class="mt-6 px-3 sm:mt-8 sm:px-4">
+            <h3
+              class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400"
+            >
               Personal
             </h3>
             <ul class="space-y-1">
@@ -120,15 +147,19 @@
                 <a
                   routerLink="/preferences"
                   routerLinkActive="bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500"
-                  class="flex items-center px-3 py-3.5 sm:py-3 text-sm rounded-lg border-l-2 border-transparent transition-all duration-200 group touch-manipulation"
+                  class="group flex touch-manipulation items-center rounded-lg border-l-2 border-transparent px-3 py-3.5 text-sm transition-all duration-200 sm:py-3"
                   [ngClass]="{
-                    'hover:bg-neutral-100 dark:hover:bg-neutral-700/50': !isActiveRoute('/preferences')
+                    'hover:bg-neutral-100 dark:hover:bg-neutral-700/50':
+                      !isActiveRoute('/preferences'),
                   }"
-                  (click)="closeSidenav()">
-                  <span class="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md transition-all duration-200 group-hover:bg-white dark:group-hover:bg-neutral-800">
-                    <app-icon 
-                      name="mdi:cog" 
-                      size="sm" 
+                  (click)="closeSidenav()"
+                >
+                  <span
+                    class="mr-3 inline-flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200 group-hover:bg-white dark:group-hover:bg-neutral-800"
+                  >
+                    <app-icon
+                      name="mdi:cog"
+                      size="sm"
                       className="text-neutral-500 dark:text-neutral-400 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-200"
                     ></app-icon>
                   </span>
@@ -138,11 +169,14 @@
               <li>
                 <button
                   (click)="logout()"
-                  class="w-full flex items-center px-3 py-3.5 sm:py-3 text-sm rounded-lg border-l-2 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-all duration-200 group text-left touch-manipulation">
-                  <span class="inline-flex items-center justify-center w-8 h-8 mr-3 rounded-md transition-all duration-200 group-hover:bg-white dark:group-hover:bg-neutral-800">
-                    <app-icon 
-                      name="mdi:logout" 
-                      size="sm" 
+                  class="group flex w-full touch-manipulation items-center rounded-lg border-l-2 border-transparent px-3 py-3.5 text-left text-sm transition-all duration-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 sm:py-3"
+                >
+                  <span
+                    class="mr-3 inline-flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200 group-hover:bg-white dark:group-hover:bg-neutral-800"
+                  >
+                    <app-icon
+                      name="mdi:logout"
+                      size="sm"
                       className="text-neutral-500 dark:text-neutral-400 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors duration-200"
                     ></app-icon>
                   </span>
@@ -154,8 +188,12 @@
         </nav>
 
         <!-- App info footer -->
-        <div class="p-3 sm:p-4 border-t border-neutral-200/70 dark:border-neutral-700/70 bg-neutral-50/80 dark:bg-neutral-800/80">
-          <div class="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-500">
+        <div
+          class="border-t border-neutral-200/70 bg-neutral-50/80 p-3 dark:border-neutral-700/70 dark:bg-neutral-800/80 sm:p-4"
+        >
+          <div
+            class="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-500"
+          >
             <span>LNYQE v2.5.0</span>
             <span>{{ currentYear }}</span>
           </div>
@@ -166,28 +204,34 @@
     <!-- Desktop-only side nav - Improved with better spacing -->
     <aside
       *ngIf="isLoggedIn"
-      class="fixed hidden lg:block h-[calc(100vh-4rem)] lg:h-[calc(100vh-4.5rem)] top-16 lg:top-[4.5rem] left-0 w-16 bg-white/95 dark:bg-neutral-800/95 border-r border-neutral-200/70 dark:border-neutral-700/70 backdrop-blur-sm z-40 safe-area-inset-left">
+      class="safe-area-inset-left fixed left-0 top-16 z-40 hidden h-[calc(100vh-4rem)] w-16 border-r border-neutral-200/70 bg-white/95 backdrop-blur-sm dark:border-neutral-700/70 dark:bg-neutral-800/95 lg:top-[4.5rem] lg:block lg:h-[calc(100vh-4.5rem)]"
+    >
       <!-- Vertical icon-only navigation -->
-      <div class="flex flex-col items-center pt-6 h-full">
+      <div class="flex h-full flex-col items-center pt-6">
         <nav class="flex flex-col items-center space-y-4">
           <ng-container *ngFor="let item of navItems">
             <a
               [routerLink]="item.route"
               routerLinkActive="text-primary-600 dark:text-primary-500 bg-primary-50 dark:bg-primary-900/30"
-              [routerLinkActiveOptions]="{exact: false}"
-              class="w-10 h-10 flex items-center justify-center rounded-lg text-neutral-500 dark:text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-all duration-200 group relative touch-manipulation"
-              [attr.aria-label]="item.label">
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="group relative flex h-10 w-10 touch-manipulation items-center justify-center rounded-lg text-neutral-500 transition-all duration-200 hover:bg-neutral-100 hover:text-primary-600 dark:text-neutral-400 dark:hover:bg-neutral-700/50 dark:hover:text-primary-400"
+              [attr.aria-label]="item.label"
+            >
               <!-- Icon -->
-              <app-icon 
-                [name]="item.icon" 
-                size="sm" 
+              <app-icon
+                [name]="item.icon"
+                size="sm"
                 className="text-neutral-500 dark:text-neutral-400 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-200"
               ></app-icon>
 
               <!-- Tooltip - Positioned with extra care for all viewports -->
-              <div class="absolute left-full ml-2 px-2 py-1 text-xs font-medium text-white bg-neutral-800/90 dark:bg-neutral-700/90 rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-10 pointer-events-none">
+              <div
+                class="pointer-events-none invisible absolute left-full z-10 ml-2 whitespace-nowrap rounded bg-neutral-800/90 px-2 py-1 text-xs font-medium text-white opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:bg-neutral-700/90"
+              >
                 {{ item.label }}
-                <div class="absolute w-2 h-2 transform rotate-45 bg-neutral-800/90 dark:bg-neutral-700/90 -left-1 top-1/2 -translate-y-1/2"></div>
+                <div
+                  class="absolute -left-1 top-1/2 h-2 w-2 -translate-y-1/2 rotate-45 transform bg-neutral-800/90 dark:bg-neutral-700/90"
+                ></div>
               </div>
             </a>
           </ng-container>
@@ -196,73 +240,93 @@
     </aside>
 
     <!-- Mobile Tab Bar for quick navigation (new) -->
-    <nav 
-      *ngIf="isLoggedIn" 
-      class="fixed bottom-0 inset-x-0 bg-white/95 dark:bg-neutral-800/95 border-t border-neutral-200/70 dark:border-neutral-700/70 flex justify-around items-center z-40 h-[4.5rem] safe-area-inset-bottom lg:hidden backdrop-blur-sm shadow-lg">
+    <nav
+      *ngIf="isLoggedIn"
+      class="safe-area-inset-bottom fixed inset-x-0 bottom-0 z-40 flex h-[4.5rem] items-center justify-around border-t border-neutral-200/70 bg-white/95 shadow-lg backdrop-blur-sm dark:border-neutral-700/70 dark:bg-neutral-800/95 lg:hidden"
+    >
       <ng-container *ngFor="let item of primaryNavItems">
-        <a 
-          [routerLink]="item.route" 
+        <a
+          [routerLink]="item.route"
           routerLinkActive="text-primary-600 dark:text-primary-500"
-          [routerLinkActiveOptions]="{exact: false}" 
-          class="flex flex-col items-center justify-center p-2 rounded-lg w-1/5 text-neutral-500 dark:text-neutral-400 touch-manipulation"
-          [attr.aria-label]="item.label">
-          <div class="flex items-center justify-center h-8 w-8 rounded-md transition-all duration-200">
-            <app-icon 
-              [name]="item.icon" 
-              size="sm" 
+          [routerLinkActiveOptions]="{ exact: false }"
+          class="flex w-1/5 touch-manipulation flex-col items-center justify-center rounded-lg p-2 text-neutral-500 dark:text-neutral-400"
+          [attr.aria-label]="item.label"
+        >
+          <div
+            class="flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200"
+          >
+            <app-icon
+              [name]="item.icon"
+              size="sm"
               className="text-neutral-500 dark:text-neutral-400 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-200"
             ></app-icon>
           </div>
-          <span class="text-xs font-medium mt-1">{{ item.label }}</span>
+          <span class="mt-1 text-xs font-medium">{{ item.label }}</span>
         </a>
       </ng-container>
     </nav>
 
     <!-- Main Content Container -->
-    <div class="transition-all duration-300 min-w-0"
-         [class.lg:ml-16]="isLoggedIn"
-         [class.pb-[4.5rem]="isLoggedIn && !isDesktopView()"
-         [class.pb-0]="!isLoggedIn || isDesktopView()">
+    <div
+      class="min-w-0 transition-all duration-300"
+      [class.lg:ml-16]="isLoggedIn"
+      [class.pb-[4.5rem]="isLoggedIn && !isDesktopView()"
+      [class.pb-0]="!isLoggedIn || isDesktopView()"
+    >
       <!-- Main Content with adjusted spacing for mobile tab bar -->
-      <main class="flex-1 flex flex-col min-h-[calc(100vh-4rem-var(--footer-height,9rem)-var(--tabbar-height,0rem))] md:min-h-[calc(100vh-4.5rem-var(--footer-height,8rem)-var(--tabbar-height,0rem))]">
+      <main
+        class="flex min-h-[calc(100vh-4rem-var(--footer-height,9rem)-var(--tabbar-height,0rem))] flex-1 flex-col md:min-h-[calc(100vh-4.5rem-var(--footer-height,8rem)-var(--tabbar-height,0rem))]"
+      >
         <!-- Use a straightforward container for unauthenticated users -->
         <ng-container *ngIf="!isLoggedIn">
-          <div class="py-4 sm:py-6 px-4 sm:px-6 md:px-8 flex-grow">
+          <div class="flex-grow px-4 py-4 sm:px-6 sm:py-6 md:px-8">
             <router-outlet></router-outlet>
           </div>
         </ng-container>
-        
+
         <!-- Use the styled container for authenticated users -->
         <ng-container *ngIf="isLoggedIn">
-          <app-container [padding]="4" class="py-4 sm:py-6 flex-grow">
+          <app-container [padding]="4" class="flex-grow py-4 sm:py-6">
             <router-outlet></router-outlet>
           </app-container>
         </ng-container>
       </main>
 
       <!-- Redesigned Footer -->
-      <footer class="relative bg-gradient-to-r from-white via-neutral-50 to-white dark:from-neutral-800 dark:via-neutral-850 dark:to-neutral-800 border-t border-neutral-200/70 dark:border-neutral-700/70 py-4 sm:py-6 overflow-hidden safe-area-inset-bottom" [class.lg:block]="isLoggedIn" [class.hidden]="isLoggedIn && !isDesktopView()">
+      <footer
+        class="dark:via-neutral-850 safe-area-inset-bottom relative overflow-hidden border-t border-neutral-200/70 bg-gradient-to-r from-white via-neutral-50 to-white py-4 dark:border-neutral-700/70 dark:from-neutral-800 dark:to-neutral-800 sm:py-6"
+        [class.lg:block]="isLoggedIn"
+        [class.hidden]="isLoggedIn && !isDesktopView()"
+      >
         <!-- Decorative elements -->
-        <div class="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 rounded-full -mr-32 -mt-32 hidden md:block"></div>
-        <div class="absolute bottom-0 left-0 w-64 h-64 bg-primary-500/5 rounded-full -ml-32 -mb-32 hidden md:block"></div>
+        <div
+          class="absolute right-0 top-0 -mr-32 -mt-32 hidden h-64 w-64 rounded-full bg-primary-500/5 md:block"
+        ></div>
+        <div
+          class="absolute bottom-0 left-0 -mb-32 -ml-32 hidden h-64 w-64 rounded-full bg-primary-500/5 md:block"
+        ></div>
 
         <app-container>
-          <div class="relative flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+          <div
+            class="relative flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0"
+          >
             <!-- Left: Logo and copyright -->
-            <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <div
+              class="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0"
+            >
               <a routerLink="/" class="flex items-center">
                 <img
                   *ngIf="!themeService.isDarkMode()"
                   [src]="lightModeLogo"
                   alt="LNYQE Logo"
                   class="h-6"
-                >
+                />
                 <img
                   *ngIf="themeService.isDarkMode()"
                   [src]="darkModeLogo"
                   alt="LNYQE Logo"
                   class="h-6"
-                >
+                />
               </a>
               <p class="text-sm text-neutral-500 dark:text-neutral-400">
                 &copy; {{ currentYear }} LNYQE. All rights reserved.
@@ -270,23 +334,47 @@
             </div>
 
             <!-- Right: Links and social -->
-            <div class="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0">
+            <div class="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-y-0">
               <!-- Footer links -->
-              <div class="flex gap-4 sm:mr-6 text-sm overflow-x-auto hide-scrollbar pb-1 -mb-1">
-                <a href="#" class="text-neutral-500 dark:text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 whitespace-nowrap touch-manipulation">Privacy</a>
-                <a href="#" class="text-neutral-500 dark:text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 whitespace-nowrap touch-manipulation">Terms</a>
-                <a href="#" class="text-neutral-500 dark:text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200 whitespace-nowrap touch-manipulation">Help</a>
+              <div class="hide-scrollbar -mb-1 flex gap-4 overflow-x-auto pb-1 text-sm sm:mr-6">
+                <a
+                  href="#"
+                  class="touch-manipulation whitespace-nowrap text-neutral-500 transition-colors duration-200 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400"
+                  >Privacy</a
+                >
+                <a
+                  href="#"
+                  class="touch-manipulation whitespace-nowrap text-neutral-500 transition-colors duration-200 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400"
+                  >Terms</a
+                >
+                <a
+                  href="#"
+                  class="touch-manipulation whitespace-nowrap text-neutral-500 transition-colors duration-200 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400"
+                  >Help</a
+                >
               </div>
 
               <!-- Social icons -->
               <div class="flex gap-2">
-                <a href="#" class="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200 shadow-sm touch-manipulation" aria-label="Twitter">
+                <a
+                  href="#"
+                  class="flex h-8 w-8 touch-manipulation items-center justify-center rounded-full bg-white text-neutral-600 shadow-sm transition-all duration-200 hover:bg-primary-50 hover:text-primary-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-900/30 dark:hover:text-primary-400"
+                  aria-label="Twitter"
+                >
                   <app-icon name="mdi:twitter" size="sm"></app-icon>
                 </a>
-                <a href="#" class="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200 shadow-sm touch-manipulation" aria-label="LinkedIn">
+                <a
+                  href="#"
+                  class="flex h-8 w-8 touch-manipulation items-center justify-center rounded-full bg-white text-neutral-600 shadow-sm transition-all duration-200 hover:bg-primary-50 hover:text-primary-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-900/30 dark:hover:text-primary-400"
+                  aria-label="LinkedIn"
+                >
                   <app-icon name="mdi:linkedin" size="sm"></app-icon>
                 </a>
-                <a href="#" class="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200 shadow-sm touch-manipulation" aria-label="Instagram">
+                <a
+                  href="#"
+                  class="flex h-8 w-8 touch-manipulation items-center justify-center rounded-full bg-white text-neutral-600 shadow-sm transition-all duration-200 hover:bg-primary-50 hover:text-primary-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-primary-900/30 dark:hover:text-primary-400"
+                  aria-label="Instagram"
+                >
                   <app-icon name="mdi:instagram" size="sm"></app-icon>
                 </a>
               </div>
@@ -300,22 +388,22 @@
 
 <script>
   // Dynamically calculate footer height and tab bar height for proper content spacing
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     const footer = document.querySelector('footer');
     const tabBar = document.querySelector('nav.fixed.bottom-0');
-    
+
     const updateHeights = () => {
       if (footer && footer.offsetHeight > 0) {
         document.documentElement.style.setProperty('--footer-height', footer.offsetHeight + 'px');
       }
-      
+
       if (tabBar && tabBar.offsetHeight > 0) {
         document.documentElement.style.setProperty('--tabbar-height', tabBar.offsetHeight + 'px');
       } else {
         document.documentElement.style.setProperty('--tabbar-height', '0px');
       }
     };
-    
+
     updateHeights();
     window.addEventListener('resize', updateHeights);
   });

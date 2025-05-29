@@ -1,10 +1,20 @@
-import { Injectable, signal, computed, effect, afterNextRender, inject, runInInjectionContext, DestroyRef, Injector } from '@angular/core';
+import {
+  Injectable,
+  signal,
+  computed,
+  effect,
+  afterNextRender,
+  inject,
+  runInInjectionContext,
+  DestroyRef,
+  Injector,
+} from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 
 export type Theme = 'light' | 'dark' | 'system';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ThemeService {
   private document = inject(DOCUMENT);

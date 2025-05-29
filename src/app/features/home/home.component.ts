@@ -21,14 +21,10 @@ interface Testimonial {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    ...UI_COMPONENTS
-  ],
+  imports: [CommonModule, ReactiveFormsModule, ...UI_COMPONENTS],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {
   @Input() title = '';
@@ -47,7 +43,7 @@ export class HomeComponent {
     this.form = this.fb.group({
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required]
+      password: ['', Validators.required],
     });
   }
 

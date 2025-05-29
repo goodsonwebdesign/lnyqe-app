@@ -12,7 +12,7 @@ import { UI_COMPONENTS } from '../../shared/components/ui';
   standalone: true,
   imports: [CommonModule, FormsModule, ...UI_COMPONENTS],
   templateUrl: './user-preferences.component.html',
-  styleUrl: './user-preferences.component.scss'
+  styleUrl: './user-preferences.component.scss',
 })
 export class UserPreferencesComponent implements OnInit, OnDestroy {
   user: any = null;
@@ -21,18 +21,18 @@ export class UserPreferencesComponent implements OnInit, OnDestroy {
   private subscriptions = new Subscription();
 
   currentTheme: Theme = 'system';
-  themeOptions: { value: Theme, label: string }[] = [
+  themeOptions: { value: Theme; label: string }[] = [
     { value: 'light', label: 'Light' },
     { value: 'dark', label: 'Dark' },
-    { value: 'system', label: 'System Default' }
+    { value: 'system', label: 'System Default' },
   ];
 
   ngOnInit(): void {
     // Subscribe to user data from the store
     this.subscriptions.add(
-      this.store.select(selectCurrentUser).subscribe(user => {
+      this.store.select(selectCurrentUser).subscribe((user) => {
         this.user = user;
-      })
+      }),
     );
 
     // Get current theme setting

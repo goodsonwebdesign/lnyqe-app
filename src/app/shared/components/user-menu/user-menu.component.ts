@@ -13,7 +13,7 @@ import { IconComponent } from '../ui/icon/icon.component';
   standalone: true,
   imports: [CommonModule, ClickOutsideDirective, RouterModule, IconComponent],
   templateUrl: './user-menu.component.html',
-  styleUrls: ['./user-menu.component.scss']
+  styleUrls: ['./user-menu.component.scss'],
 })
 export class UserMenuComponent implements OnInit, OnDestroy {
   @Input() userName: string = '';
@@ -29,17 +29,17 @@ export class UserMenuComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Subscribe to authentication state from the store
     this.subscriptions.add(
-      this.store.select(selectIsAuthenticated).subscribe(isAuthenticated => {
+      this.store.select(selectIsAuthenticated).subscribe((isAuthenticated) => {
         this.isLoggedIn = isAuthenticated;
-      })
+      }),
     );
 
     // Subscribe to user data from the store if we don't have it from input
     if (!this.userName) {
       this.subscriptions.add(
-        this.store.select(selectCurrentUser).subscribe(user => {
+        this.store.select(selectCurrentUser).subscribe((user) => {
           this.user = user;
-        })
+        }),
       );
     }
   }

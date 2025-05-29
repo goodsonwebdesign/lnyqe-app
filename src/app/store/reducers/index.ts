@@ -1,10 +1,9 @@
+import { AuthState } from '../../core/models/auth.model';
+import { appReducer, AppState as GlobalAppState } from './app.reducer';
+import { authReducer } from './auth.reducer';
+import { userFeature, UserState } from './user.reducer';
 import { isDevMode } from '@angular/core';
 import { ActionReducerMap, MetaReducer } from '@ngrx/store';
-import { authReducer } from './auth.reducer';
-import { AppState as GlobalAppState, appReducer } from './app.reducer';
-import { AuthState } from '../../core/models/auth.model';
-import { UserState } from './user.reducer';
-import { userFeature } from './user.reducer';
 
 // Root state interface
 export interface AppState {

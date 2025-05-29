@@ -1,7 +1,14 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { NgClass, CommonModule } from '@angular/common';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'neutral' | 'danger' | 'success' | 'warning' | 'ghost';
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'neutral'
+  | 'danger'
+  | 'success'
+  | 'warning'
+  | 'ghost';
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 @Component({
@@ -9,7 +16,7 @@ export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   standalone: true,
   imports: [NgClass, CommonModule],
   templateUrl: './button.component.html',
-  styleUrls: ['./button.component.scss']
+  styleUrls: ['./button.component.scss'],
 })
 export class ButtonComponent {
   @Input() variant: ButtonVariant = 'primary';
@@ -19,6 +26,8 @@ export class ButtonComponent {
   @Input() loading = false;
   @Input() type: 'button' | 'submit' | 'reset' = 'button';
   @Input() fullWidth = false;
+  @Input() ariaLabel?: string;
+  @Input() dataTestId?: string;
 
   @Output() buttonClick = new EventEmitter<MouseEvent>();
 
@@ -32,7 +41,7 @@ export class ButtonComponent {
       sm: 'text-sm px-3 py-1.5',
       md: 'text-sm px-4 py-2',
       lg: 'text-base px-5 py-2.5',
-      xl: 'text-lg px-6 py-3'
+      xl: 'text-lg px-6 py-3',
     };
 
     return sizes[this.size];
@@ -42,11 +51,13 @@ export class ButtonComponent {
     const variants = {
       primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
       secondary: 'bg-secondary-600 text-white hover:bg-secondary-700 focus:ring-secondary-500',
-      neutral: 'bg-neutral-200 text-neutral-800 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600 focus:ring-neutral-500',
+      neutral:
+        'bg-neutral-200 text-neutral-800 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600 focus:ring-neutral-500',
       danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
       success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500',
       warning: 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500',
-      ghost: 'bg-transparent text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800 focus:ring-neutral-500'
+      ghost:
+        'bg-transparent text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800 focus:ring-neutral-500',
     };
 
     return variants[this.variant];
@@ -58,7 +69,7 @@ export class ButtonComponent {
       sm: 'rounded-sm',
       md: 'rounded-md',
       lg: 'rounded-lg',
-      full: 'rounded-full'
+      full: 'rounded-full',
     };
 
     return roundedValues[this.rounded];
@@ -76,7 +87,7 @@ export class ButtonComponent {
       danger: 'border-white',
       success: 'border-white',
       warning: 'border-white',
-      ghost: 'border-neutral-700 dark:border-neutral-300'
+      ghost: 'border-neutral-700 dark:border-neutral-300',
     };
 
     return loadingColors[this.variant];

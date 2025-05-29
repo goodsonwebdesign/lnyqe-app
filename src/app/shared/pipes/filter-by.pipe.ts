@@ -2,7 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'filterBy',
-  standalone: true
+  standalone: true,
 })
 export class FilterByPipe implements PipeTransform {
   transform<T>(items: T[], property: keyof T, value: any): T[] {
@@ -10,6 +10,6 @@ export class FilterByPipe implements PipeTransform {
       return items;
     }
 
-    return items.filter(item => item[property] === value);
+    return items.filter((item) => item[property] === value);
   }
 }

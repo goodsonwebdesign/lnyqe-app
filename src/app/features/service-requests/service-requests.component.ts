@@ -1,6 +1,17 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+  HostListener,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ServiceRequest, ServiceRequestStatus, ServiceRequestPriority } from './service-requests.types';
+import {
+  ServiceRequest,
+  ServiceRequestStatus,
+  ServiceRequestPriority,
+} from './service-requests.types';
 import { UI_COMPONENTS } from '../../shared/components/ui';
 
 @Component({
@@ -9,10 +20,7 @@ import { UI_COMPONENTS } from '../../shared/components/ui';
   styleUrls: ['./service-requests.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [
-    CommonModule,
-    ...UI_COMPONENTS
-  ]
+  imports: [CommonModule, ...UI_COMPONENTS],
 })
 export class ServiceRequestsComponent {
   @Input() serviceRequests: ServiceRequest[] = [];
@@ -33,7 +41,7 @@ export class ServiceRequestsComponent {
 
     const currentIndex = this.focusedRequestIndex;
 
-    switch(event.key) {
+    switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
         this.focusedRequestIndex = Math.min(currentIndex + 1, this.serviceRequests.length - 1);
@@ -120,6 +128,8 @@ export class ServiceRequestsComponent {
 
   // Helper method to get error message safely
   getErrorMessage(): string {
-    return this.error && this.error.message ? this.error.message : 'An unknown error occurred. Please try again later.';
+    return this.error && this.error.message
+      ? this.error.message
+      : 'An unknown error occurred. Please try again later.';
   }
 }

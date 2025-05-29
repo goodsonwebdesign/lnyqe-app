@@ -1,5 +1,5 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HomeComponent } from './home.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideMockStore } from '@ngrx/store/testing';
 
@@ -10,7 +10,7 @@ describe('HomeComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HomeComponent, ReactiveFormsModule],
-      providers: [provideMockStore({})]
+      providers: [provideMockStore({})],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomeComponent);

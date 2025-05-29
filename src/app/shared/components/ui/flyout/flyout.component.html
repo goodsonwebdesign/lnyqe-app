@@ -3,7 +3,7 @@
   <div
     *ngIf="showBackdrop"
     [@backdrop]="animationState"
-    class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 z-40"
+    class="fixed inset-0 z-40 bg-black bg-opacity-50 dark:bg-opacity-70"
     (click)="onClickOutside()"
     role="presentation"
   ></div>
@@ -17,15 +17,19 @@
     role="dialog"
     aria-modal="true"
     [attr.aria-label]="title || 'Flyout panel'"
+    data-testid="flyout-panel"
   >
-    <div class="flex justify-between items-center p-4 border-b border-neutral-200 dark:border-neutral-700">
+    <div
+      class="flex items-center justify-between border-b border-neutral-200 p-4 dark:border-neutral-700"
+    >
       <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">
-        {{title}}
+        {{ title }}
       </h2>
       <button
         (click)="close()"
-        class="p-1 rounded-md text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        class="rounded-md p-1 text-neutral-500 hover:text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:text-neutral-400 dark:hover:text-neutral-200"
         aria-label="Close panel"
+        data-testid="flyout-close-btn"
       >
         <app-icon name="mdi:close" size="md"></app-icon>
       </button>
@@ -35,7 +39,7 @@
       <ng-content></ng-content>
     </div>
 
-    <div class="p-4 border-t border-neutral-200 dark:border-neutral-700">
+    <div class="border-t border-neutral-200 p-4 dark:border-neutral-700">
       <ng-content select="[flyout-footer]"></ng-content>
     </div>
   </div>
@@ -49,15 +53,19 @@
     role="dialog"
     aria-modal="true"
     [attr.aria-label]="title || 'Flyout panel'"
+    data-testid="flyout-panel"
   >
-    <div class="flex justify-between items-center p-4 border-b border-neutral-200 dark:border-neutral-700">
+    <div
+      class="flex items-center justify-between border-b border-neutral-200 p-4 dark:border-neutral-700"
+    >
       <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">
-        {{title}}
+        {{ title }}
       </h2>
       <button
         (click)="close()"
-        class="p-1 rounded-md text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        class="rounded-md p-1 text-neutral-500 hover:text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:text-neutral-400 dark:hover:text-neutral-200"
         aria-label="Close panel"
+        data-testid="flyout-close-btn"
       >
         <app-icon name="mdi:close" size="md"></app-icon>
       </button>
@@ -67,7 +75,7 @@
       <ng-content></ng-content>
     </div>
 
-    <div class="p-4 border-t border-neutral-200 dark:border-neutral-700">
+    <div class="border-t border-neutral-200 p-4 dark:border-neutral-700">
       <ng-content select="[flyout-footer]"></ng-content>
     </div>
   </div>
@@ -81,15 +89,19 @@
     role="dialog"
     aria-modal="true"
     [attr.aria-label]="title || 'Flyout panel'"
+    data-testid="flyout-panel"
   >
-    <div class="flex justify-between items-center p-4 border-b border-neutral-200 dark:border-neutral-700">
+    <div
+      class="flex items-center justify-between border-b border-neutral-200 p-4 dark:border-neutral-700"
+    >
       <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">
-        {{title}}
+        {{ title }}
       </h2>
       <button
         (click)="close()"
-        class="p-1 rounded-md text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        class="rounded-md p-1 text-neutral-500 hover:text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:text-neutral-400 dark:hover:text-neutral-200"
         aria-label="Close panel"
+        data-testid="flyout-close-btn"
       >
         <app-icon name="mdi:close" size="md"></app-icon>
       </button>
@@ -99,7 +111,7 @@
       <ng-content></ng-content>
     </div>
 
-    <div class="p-4 border-t border-neutral-200 dark:border-neutral-700">
+    <div class="border-t border-neutral-200 p-4 dark:border-neutral-700">
       <ng-content select="[flyout-footer]"></ng-content>
     </div>
   </div>

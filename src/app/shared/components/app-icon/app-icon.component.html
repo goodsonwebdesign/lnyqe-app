@@ -1,1 +1,11 @@
-<p>app-icon works!</p>
+<span
+  [ngClass]="iconClass"
+  [attr.aria-label]="ariaLabel ? ariaLabel : null"
+  [attr.aria-hidden]="!ariaLabel"
+  [attr.data-testid]="dataTestId"
+  role="img"
+>
+  <!-- Render SVG or font icon here, e.g. -->
+  <svg *ngIf="svgIcon" [attr.viewBox]="svgViewBox" [innerHTML]="svgIcon" focusable="false"></svg>
+  <i *ngIf="fontIcon" [ngClass]="fontIcon"></i>
+</span>

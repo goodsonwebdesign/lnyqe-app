@@ -5,7 +5,11 @@ import { Store } from '@ngrx/store';
 import { Observable, from, firstValueFrom, of } from 'rxjs';
 import { filter, take, distinctUntilChanged, map, switchMap, catchError } from 'rxjs/operators';
 import * as AuthActions from '../../../store/actions/auth.actions';
-import { selectIsAuthenticated, selectCurrentUser, selectAuthToken } from '../../../store/selectors/auth.selectors';
+import {
+  selectIsAuthenticated,
+  selectCurrentUser,
+  selectAuthToken,
+} from '../../../store/selectors/auth.selectors';
 import { AuthUser, AuthToken } from '../../models/auth.model';
 import { environment } from '../../../../environments/environment';
 
@@ -13,7 +17,7 @@ import { environment } from '../../../../environments/environment';
  * Auth Service - handles authentication with Auth0 and JWT token management
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   // Expose Auth0Service publicly to enable direct access in auth guard
@@ -27,46 +31,50 @@ export class AuthService {
     console.log('Auth Service initialized');
 
     // Monitor Auth0 authentication state
-    this.auth0Service.isAuthenticated$.pipe(
-      filter(isAuthenticated => isAuthenticated !== undefined),
-      distinctUntilChanged()
-    ).subscribe(isAuthenticated => {
-      console.log('Auth state changed:', isAuthenticated);
+    this.auth0Service.isAuthenticated$
+      .pipe(
+        filter((isAuthenticated) => isAuthenticated !== undefined),
+        distinctUntilChanged(),
+      )
+      .subscribe((isAuthenticated) => {
+        console.log('Auth state changed:', isAuthenticated);
 
-      if (isAuthenticated) {
-        // Get both user info and token
-        this.auth0Service.user$.pipe(
-          filter(user => !!user),
-          take(1),
-          switchMap(user =>
-            from(this.getTokenSilently()).pipe(
-              map(token => ({ user: this.processUserProfile(user), token }))
+        if (isAuthenticated) {
+          // Get both user info and token
+          this.auth0Service.user$
+            .pipe(
+              filter((user) => !!user),
+              take(1),
+              switchMap((user) =>
+                from(this.getTokenSilently()).pipe(
+                  map((token) => ({ user: this.processUserProfile(user), token })),
+                ),
+              ),
             )
-          )
-        ).subscribe({
-          next: ({ user, token }) => {
-            console.log('User authenticated:', user.email);
-            this.store.dispatch(AuthActions.loginSuccess({ user, token }));
-          },
-          error: (error) => {
-            console.error('Error processing auth:', error);
-            this.store.dispatch(AuthActions.loginFailure({ error }));
-          }
-        });
+            .subscribe({
+              next: ({ user, token }) => {
+                console.log('User authenticated:', user.email);
+                this.store.dispatch(AuthActions.loginSuccess({ user, token }));
+              },
+              error: (error) => {
+                console.error('Error processing auth:', error);
+                this.store.dispatch(AuthActions.loginFailure({ error }));
+              },
+            });
 
-        this.isInitialAuthCheck = false;
-      } else {
-        // Handle unauthenticated state
-        if (!this.isInitialAuthCheck) {
-          console.log('User logged out or token expired');
-          this.store.dispatch(AuthActions.logout());
-        } else {
-          console.log('Initial auth check: not authenticated');
-          this.store.dispatch(AuthActions.setAuthState({ isAuthenticated: false }));
           this.isInitialAuthCheck = false;
+        } else {
+          // Handle unauthenticated state
+          if (!this.isInitialAuthCheck) {
+            console.log('User logged out or token expired');
+            this.store.dispatch(AuthActions.logout());
+          } else {
+            console.log('Initial auth check: not authenticated');
+            this.store.dispatch(AuthActions.setAuthState({ isAuthenticated: false }));
+            this.isInitialAuthCheck = false;
+          }
         }
-      }
-    });
+      });
 
     // Set up token refresh interval
     this.setupTokenRefresh();
@@ -81,7 +89,7 @@ export class AuthService {
     this.ngZone.run(() => {
       this.auth0Service.loginWithRedirect({
         appState: { target: '/dashboard' },
-        authorizationParams: organization ? { organization } : undefined
+        authorizationParams: organization ? { organization } : undefined,
       });
     });
   }
@@ -95,8 +103,8 @@ export class AuthService {
     this.auth0Service.logout({
       logoutParams: {
         returnTo: window.location.origin,
-        clientId: 'jaxCqNsBtZmpnpbjXBsAzYkhygDKg4TM'
-      }
+        clientId: 'jaxCqNsBtZmpnpbjXBsAzYkhygDKg4TM',
+      },
     });
   }
 
@@ -126,9 +134,7 @@ export class AuthService {
    * This returns the token that should be sent in the Authorization header
    */
   getApiToken(): Observable<string | null> {
-    return this.store.select(selectAuthToken).pipe(
-      map(token => token?.accessToken || null)
-    );
+    return this.store.select(selectAuthToken).pipe(map((token) => token?.accessToken || null));
   }
 
   /**
@@ -149,7 +155,7 @@ export class AuthService {
       // Log the token type to verify it's suitable for API calls (but don't log the actual token)
       console.debug('Token received for API authorization', {
         tokenLength: accessToken.length,
-        tokenType: 'Bearer'
+        tokenType: 'Bearer',
       });
 
       return {
@@ -157,7 +163,7 @@ export class AuthService {
         expiresIn: claims?.exp ? claims.exp * 1000 - Date.now() : 3600 * 1000,
         tokenType: 'Bearer',
         scope: claims?.['scope'] || 'openid profile email',
-        idToken: claims?.__raw // Store the ID token separately
+        idToken: claims?.__raw, // Store the ID token separately
       };
     } catch (error) {
       console.error('Failed to get token silently:', error);
@@ -177,9 +183,9 @@ export class AuthService {
       const token = await firstValueFrom(
         this.auth0Service.getAccessTokenSilently({
           authorizationParams: {
-            audience: apiIdentifier
-          }
-        })
+            audience: apiIdentifier,
+          },
+        }),
       );
 
       if (!token) {
@@ -194,9 +200,9 @@ export class AuthService {
           console.log('API Token details:', {
             audience: payload.aud,
             expiration: new Date(payload.exp * 1000).toISOString(),
-            issuer: payload.iss
+            issuer: payload.iss,
           });
-          
+
           // Check if audience is still an array and warn if it is
           if (Array.isArray(payload.aud)) {
             console.warn('Warning: Token still has multiple audiences:', payload.aud);
@@ -208,7 +214,7 @@ export class AuthService {
 
       console.log('API token received for authorization', {
         tokenLength: token.length,
-        audience: apiIdentifier
+        audience: apiIdentifier,
       });
 
       return token;
@@ -267,11 +273,14 @@ export class AuthService {
   private setupTokenRefresh(): void {
     // Check token expiration every minute
     setInterval(() => {
-      this.getToken().pipe(take(1)).subscribe(token => {
-        if (token && token.expiresIn < 300000) { // Refresh if less than 5 minutes until expiry
-          this.refreshToken();
-        }
-      });
+      this.getToken()
+        .pipe(take(1))
+        .subscribe((token) => {
+          if (token && token.expiresIn < 300000) {
+            // Refresh if less than 5 minutes until expiry
+            this.refreshToken();
+          }
+        });
     }, 60000);
   }
 
@@ -279,12 +288,12 @@ export class AuthService {
    * Refresh the auth token
    */
   private refreshToken(): void {
-    from(this.getTokenSilently()).pipe(
-      take(1)
-    ).subscribe({
-      next: (token) => this.store.dispatch(AuthActions.refreshTokenSuccess({ token })),
-      error: (error) => this.store.dispatch(AuthActions.refreshTokenFailure({ error }))
-    });
+    from(this.getTokenSilently())
+      .pipe(take(1))
+      .subscribe({
+        next: (token) => this.store.dispatch(AuthActions.refreshTokenSuccess({ token })),
+        error: (error) => this.store.dispatch(AuthActions.refreshTokenFailure({ error })),
+      });
   }
 
   /**
@@ -310,7 +319,7 @@ export class AuthService {
       employeeId: auth0User?.['https://lnyqe.io/employee_id'] || '',
       location: auth0User?.['https://lnyqe.io/location'] || '',
       organizationId: auth0User?.org_id || '',
-      usesSSO: !!auth0User?.org_id
+      usesSSO: !!auth0User?.org_id,
     };
   }
 

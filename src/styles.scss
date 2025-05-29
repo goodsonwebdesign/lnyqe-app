@@ -9,16 +9,18 @@
 
 /* Add base styles */
 @layer base {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
   }
 
   html {
-    @apply text-neutral-900 bg-white;
+    @apply bg-white text-neutral-900;
   }
 
   .dark {
-    @apply text-neutral-100 bg-neutral-900;
+    @apply bg-neutral-900 text-neutral-100;
   }
 
   body {
@@ -27,7 +29,12 @@
     padding: 0;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-heading font-semibold;
   }
 }

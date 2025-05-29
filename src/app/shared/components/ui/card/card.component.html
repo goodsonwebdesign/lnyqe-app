@@ -5,16 +5,16 @@
     shadow ? 'shadow-' + shadow : '',
     'rounded-' + rounded,
     border ? 'border border-neutral-200 dark:border-neutral-700' : '',
-    padding ? 'p-' + padding : ''
+    padding ? 'p-' + padding : '',
   ]"
 >
-  <div *ngIf="!!header" class="px-4 py-3 border-b border-neutral-200 dark:border-neutral-700">
+  <div *ngIf="!!header" class="border-b border-neutral-200 px-4 py-3 dark:border-neutral-700">
     <div class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">{{ header }}</div>
   </div>
-  <div [ngClass]="{'px-4 py-3': !padding && !header}">
+  <div [ngClass]="{ 'px-4 py-3': !padding && !header }">
     <ng-content></ng-content>
   </div>
-  <div *ngIf="!!footer" class="px-4 py-3 border-t border-neutral-200 dark:border-neutral-700">
+  <div *ngIf="!!footer" class="border-t border-neutral-200 px-4 py-3 dark:border-neutral-700">
     <ng-content select="[card-footer]"></ng-content>
   </div>
 </div>

@@ -1,6 +1,5 @@
-import { TestBed } from '@angular/core/testing';
-
 import { FlyoutService } from './flyout.service';
+import { TestBed } from '@angular/core/testing';
 
 describe('FlyoutService', () => {
   let service: FlyoutService;

@@ -1,5 +1,5 @@
-import { createSelector } from '@ngrx/store';
 import * as fromServiceRequests from '../reducers/service-request.reducer';
+import { createSelector } from '@ngrx/store';
 
 // Import the feature selectors
 export const {
@@ -8,7 +8,7 @@ export const {
   selectEntities,
   selectLoading: selectServiceRequestsLoading,
   selectError: selectServiceRequestsError,
-  selectSelectedRequestId
+  selectSelectedRequestId,
 } = fromServiceRequests.serviceRequestFeature;
 
 // Use the exported adapter selectors
@@ -19,7 +19,7 @@ export const selectServiceRequestsTotal = fromServiceRequests.selectTotal;
 export const selectSelectedServiceRequest = createSelector(
   selectEntities,
   selectSelectedRequestId,
-  (entities, selectedId) => selectedId ? entities[selectedId] : null
+  (entities, selectedId) => (selectedId ? entities[selectedId] : null),
 );
 
 // Create a view model for the service requests list
@@ -30,6 +30,6 @@ export const selectServiceRequestsViewModel = createSelector(
   (serviceRequests, isLoading, error) => ({
     serviceRequests,
     isLoading,
-    error
-  })
+    error,
+  }),
 );

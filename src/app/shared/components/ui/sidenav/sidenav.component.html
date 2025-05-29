@@ -1,13 +1,13 @@
-<div class="sidenav" [class.open]="isOpen">
+<div class="sidenav" [class.open]="isOpen" role="navigation" aria-label="Main navigation">
   <div class="sidenav-header">
     <h3>LNYQE App</h3>
   </div>
   <div class="sidenav-content">
     <ul class="nav-links">
-      <li><a routerLink="/home" routerLinkActive="active">Home</a></li>
-      <li><a routerLink="/counter" routerLinkActive="active">Counter</a></li>
-      <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
-      <li><a routerLink="/settings" routerLinkActive="active">Settings</a></li>
+      <li><a routerLink="/home" routerLinkActive="active" data-testid="nav-home-link" class="focus:outline-none focus:ring-2 focus:ring-primary-500">Home</a></li>
+      <li><a routerLink="/counter" routerLinkActive="active" data-testid="nav-counter-link" class="focus:outline-none focus:ring-2 focus:ring-primary-500">Counter</a></li>
+      <li><a routerLink="/dashboard" routerLinkActive="active" data-testid="nav-dashboard-link" class="focus:outline-none focus:ring-2 focus:ring-primary-500">Dashboard</a></li>
+      <li><a routerLink="/settings" routerLinkActive="active" data-testid="nav-settings-link" class="focus:outline-none focus:ring-2 focus:ring-primary-500">Settings</a></li>
     </ul>
   </div>
   <div class="sidenav-footer">

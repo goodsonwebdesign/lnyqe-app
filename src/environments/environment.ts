@@ -7,9 +7,9 @@ export const environment = {
   auth: {
     domain: 'dev-j6xaaxargtg5y78x.us.auth0.com',
     clientId: 'jaxCqNsBtZmpnpbjXBsAzYkhygDKg4TM',
-    audience: 'https://api.lynqe.com',  // Changed to use only the API audience
-    apiAudience: 'https://api.lynqe.com', 
-    scope: 'openid profile email offline_access'
+    audience: 'https://api.lynqe.com', // Changed to use only the API audience
+    apiAudience: 'https://api.lynqe.com',
+    scope: 'openid profile email offline_access',
   },
 
   // API configuration
@@ -24,6 +24,6 @@ export const environment = {
     useSimpleUrlParsing: true,
 
     // Disable automatic query parameter parsing
-    disableQueryParsing: true
-  }
+    disableQueryParsing: true,
+  },
 };

@@ -6,7 +6,7 @@ import { NgClass, CommonModule } from '@angular/common';
   standalone: true,
   imports: [NgClass, CommonModule],
   templateUrl: './card.component.html',
-  styleUrls: ['./card.component.scss']
+  styleUrls: ['./card.component.scss'],
 })
 export class CardComponent {
   @Input() header?: string;

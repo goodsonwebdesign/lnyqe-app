@@ -1,52 +1,65 @@
-<header 
-  class="w-full bg-gradient-to-r from-white via-neutral-50 to-white dark:from-neutral-800 dark:via-neutral-850 dark:to-neutral-800 border-b border-neutral-200/70 dark:border-neutral-700/70 transition-all duration-300"
-  [ngClass]="{'!bg-white/95 dark:!bg-neutral-800/95 shadow-sm': isScrolled}">
-  <div class="h-16 md:h-[4.5rem] relative flex items-center justify-between px-3 sm:px-6 lg:px-8 max-w-full toolbar-container">
+<header
+  class="dark:via-neutral-850 w-full border-b border-neutral-200/70 bg-gradient-to-r from-white via-neutral-50 to-white transition-all duration-300 dark:border-neutral-700/70 dark:from-neutral-800 dark:to-neutral-800"
+  [ngClass]="{ '!bg-white/95 shadow-sm dark:!bg-neutral-800/95': isScrolled }"
+>
+  <div
+    class="toolbar-container relative flex h-16 max-w-full items-center justify-between px-3 sm:px-6 md:h-[4.5rem] lg:px-8"
+  >
     <!-- Left Section with Logo and Mobile Toggle -->
     <div class="flex items-center justify-start space-x-3">
       <!-- Mobile Toggle Button - Always visible when logged in -->
       <button
         *ngIf="isLoggedIn"
         (click)="toggleSidenav.emit()"
-        class="relative flex items-center justify-center p-3 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-sm hover:shadow-md transition-all duration-200 touch-manipulation"
+        class="relative flex touch-manipulation items-center justify-center rounded-lg border border-neutral-200 bg-white p-3 shadow-sm transition-all duration-200 hover:shadow-md dark:border-neutral-700 dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary-500"
         [ngClass]="{
           'bg-primary-50 dark:bg-primary-900/30': isSidenavOpen,
-          'bg-white dark:bg-neutral-800': !isSidenavOpen
+          'bg-white dark:bg-neutral-800': !isSidenavOpen,
         }"
         aria-label="Toggle navigation menu"
-        [attr.aria-expanded]="isSidenavOpen">
+        [attr.aria-expanded]="isSidenavOpen"
+        data-testid="toolbar-toggle-sidenav-btn"
+      >
         <!-- Animated hamburger icon -->
-        <div class="w-5 h-5 flex flex-col justify-center items-center">
-          <span class="block w-5 h-0.5 bg-neutral-600 dark:bg-neutral-300 transition-all duration-200"
-                [ngClass]="{
-                  'rotate-45 translate-y-1': isSidenavOpen
-                }"></span>
-          <span class="block w-5 h-0.5 bg-neutral-600 dark:bg-neutral-300 my-1 transition-all duration-200"
-                [ngClass]="{
-                  'opacity-0': isSidenavOpen
-                }"></span>
-          <span class="block w-5 h-0.5 bg-neutral-600 dark:bg-neutral-300 transition-all duration-200"
-                [ngClass]="{
-                  '-rotate-45 -translate-y-1': isSidenavOpen
-                }"></span>
+        <div class="flex h-5 w-5 flex-col items-center justify-center">
+          <span
+            class="block h-0.5 w-5 bg-neutral-600 transition-all duration-200 dark:bg-neutral-300"
+            [ngClass]="{
+              'translate-y-1 rotate-45': isSidenavOpen,
+            }"
+          ></span>
+          <span
+            class="my-1 block h-0.5 w-5 bg-neutral-600 transition-all duration-200 dark:bg-neutral-300"
+            [ngClass]="{
+              'opacity-0': isSidenavOpen,
+            }"
+          ></span>
+          <span
+            class="block h-0.5 w-5 bg-neutral-600 transition-all duration-200 dark:bg-neutral-300"
+            [ngClass]="{
+              '-translate-y-1 -rotate-45': isSidenavOpen,
+            }"
+          ></span>
         </div>
       </button>
-      
+
       <!-- Logo - Always visible and prominent -->
-      <a routerLink="/" class="flex items-center group logo-container">
-        <div class="relative overflow-hidden rounded-xl bg-white/80 dark:bg-neutral-900/80 p-1.5 shadow-sm transition-all duration-300 group-hover:shadow-md">
+      <a routerLink="/" class="logo-container group flex items-center focus:outline-none focus:ring-2 focus:ring-primary-500" data-testid="toolbar-logo-link">
+        <div
+          class="relative overflow-hidden rounded-xl bg-white/80 p-1.5 shadow-sm transition-all duration-300 group-hover:shadow-md dark:bg-neutral-900/80"
+        >
           <img
             *ngIf="!themeService.isDarkMode()"
             [src]="lightModeLogo"
             alt="LNYQE Logo"
-            class="h-7 sm:h-8 transform transition-transform duration-300 group-hover:scale-105"
-          >
+            class="h-7 transform transition-transform duration-300 group-hover:scale-105 sm:h-8"
+          />
           <img
             *ngIf="themeService.isDarkMode()"
             [src]="darkModeLogo"
             alt="LNYQE Logo"
-            class="h-7 sm:h-8 transform transition-transform duration-300 group-hover:scale-105"
-          >
+            class="h-7 transform transition-transform duration-300 group-hover:scale-105 sm:h-8"
+          />
         </div>
       </a>
     </div>
@@ -54,7 +67,10 @@
     <!-- Right Section - Actions -->
     <div class="flex items-center justify-end space-x-2 sm:space-x-3">
       <!-- User greeting only visible on small mobile -->
-      <div *ngIf="isLoggedIn" class="sm:hidden text-xs bg-white/90 dark:bg-neutral-800/90 py-1.5 px-2.5 rounded-full backdrop-blur-sm text-neutral-600 dark:text-neutral-300 border border-neutral-200/50 dark:border-neutral-700/50 truncate max-w-[100px] user-name">
+      <div
+        *ngIf="isLoggedIn"
+        class="user-name max-w-[100px] truncate rounded-full border border-neutral-200/50 bg-white/90 px-2.5 py-1.5 text-xs text-neutral-600 backdrop-blur-sm dark:border-neutral-700/50 dark:bg-neutral-800/90 dark:text-neutral-300 sm:hidden"
+      >
         {{ userName }}
       </div>
 
@@ -62,23 +78,24 @@
       <button
         *ngIf="isLoggedIn"
         (click)="onOpenServiceRequest('right')"
-        class="relative flex items-center justify-center rounded-full sm:rounded-lg p-3 sm:py-2 sm:px-3.5 bg-primary-600 text-white shadow-sm hover:bg-primary-700 hover:shadow-md transition-all duration-200 group touch-manipulation"
-        aria-label="Create service request">
+        class="group relative flex touch-manipulation items-center justify-center rounded-full bg-primary-600 p-3 text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md sm:rounded-lg sm:px-3.5 sm:py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+        aria-label="Create service request"
+        data-testid="toolbar-service-request-btn"
+      >
         <!-- Background glow effect for emphasis -->
-        <div class="absolute -inset-0.5 bg-primary-400 rounded-full sm:rounded-lg opacity-0 group-hover:opacity-30 blur-md transition-opacity duration-200"></div>
-                
+        <div
+          class="absolute -inset-0.5 rounded-full bg-primary-400 opacity-0 blur-md transition-opacity duration-200 group-hover:opacity-30 sm:rounded-lg"
+        ></div>
+
         <app-icon name="mdi:plus" size="sm" className="sm:mr-1.5 relative"></app-icon>
-        <span class="hidden sm:inline text-sm font-medium">Request</span>
+        <span class="hidden text-sm font-medium sm:inline">Request</span>
       </button>
-      
+
       <!-- Theme Toggle Component -->
       <app-theme-toggle></app-theme-toggle>
-      
+
       <!-- User Menu Component - Handles login/logout through dropdown -->
-      <app-user-menu 
-        [userName]="userName" 
-        [isLoggedIn]="isLoggedIn"
-        (loginClick)="login.emit()">
+      <app-user-menu [userName]="userName" [isLoggedIn]="isLoggedIn" (loginClick)="login.emit()">
       </app-user-menu>
     </div>
   </div>

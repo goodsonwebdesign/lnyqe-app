@@ -10,14 +10,14 @@ import { environment } from '../../../../environments/environment';
  * Implements the Repository pattern for data access
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ServiceRequestRepository {
   private apiUrl = `${environment.apiUrl}/service-requests`;
 
   constructor(
     private http: HttpClient,
-    private adapter: ServiceRequestAdapter
+    private adapter: ServiceRequestAdapter,
   ) {}
 
   /**
@@ -26,11 +26,11 @@ export class ServiceRequestRepository {
    */
   getAll(): Observable<ServiceRequest[]> {
     return this.http.get<any[]>(`${this.apiUrl}`).pipe(
-      map(response => this.adapter.adaptFromApi(response)),
-      catchError(error => {
+      map((response) => this.adapter.adaptFromApi(response)),
+      catchError((error) => {
         console.error('Error fetching service requests', error);
         return of([]);
-      })
+      }),
     );
   }
 
@@ -41,11 +41,11 @@ export class ServiceRequestRepository {
    */
   getById(id: string): Observable<ServiceRequest | null> {
     return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
-      map(response => this.adapter.adaptSingleItem(response)),
-      catchError(error => {
+      map((response) => this.adapter.adaptSingleItem(response)),
+      catchError((error) => {
         console.error(`Error fetching service request with ID ${id}`, error);
         return of(null);
-      })
+      }),
     );
   }
 
@@ -57,11 +57,11 @@ export class ServiceRequestRepository {
   create(request: ServiceRequest): Observable<ServiceRequest> {
     const apiRequest = this.adapter.adaptToApi(request);
     return this.http.post<any>(`${this.apiUrl}`, apiRequest).pipe(
-      map(response => this.adapter.adaptSingleItem(response)),
-      catchError(error => {
+      map((response) => this.adapter.adaptSingleItem(response)),
+      catchError((error) => {
         console.error('Error creating service request', error);
         throw error;
-      })
+      }),
     );
   }
 
@@ -73,11 +73,11 @@ export class ServiceRequestRepository {
   update(request: ServiceRequest): Observable<ServiceRequest> {
     const apiRequest = this.adapter.adaptToApi(request);
     return this.http.put<any>(`${this.apiUrl}/${request.id}`, apiRequest).pipe(
-      map(response => this.adapter.adaptSingleItem(response)),
-      catchError(error => {
+      map((response) => this.adapter.adaptSingleItem(response)),
+      catchError((error) => {
         console.error(`Error updating service request with ID ${request.id}`, error);
         throw error;
-      })
+      }),
     );
   }
 
@@ -89,10 +89,10 @@ export class ServiceRequestRepository {
   delete(id: string): Observable<boolean> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(
       map(() => true),
-      catchError(error => {
+      catchError((error) => {
         console.error(`Error deleting service request with ID ${id}`, error);
         return of(false);
-      })
+      }),
     );
   }
 }

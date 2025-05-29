@@ -7,13 +7,13 @@
  * - Import the UI_COMPONENTS array when you need many components
  */
 
-import { IconComponent } from '../icon/icon.component';
 import { ButtonComponent } from '../button/button.component';
 import { CardComponent } from '../card/card.component';
-import { InputComponent } from '../input/input.component';
-import { FlyoutComponent } from '../flyout/flyout.component';
-import { SidenavComponent } from '../sidenav/sidenav.component';
 import { ContainerComponent } from '../container/container.component';
+import { FlyoutComponent } from '../flyout/flyout.component';
+import { IconComponent } from '../icon/icon.component';
+import { InputComponent } from '../input/input.component';
+import { SidenavComponent } from '../sidenav/sidenav.component';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
 
 // Export individual components (better for tree-shaking)
@@ -35,5 +35,5 @@ export const UI_COMPONENTS = [
   FlyoutComponent,
   SidenavComponent,
   ContainerComponent,
-  ToolbarComponent
+  ToolbarComponent,
 ];

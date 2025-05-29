@@ -26,8 +26,8 @@ export const UserActions = createActionGroup({
 
     // Select User
     'Select User': props<{ id: number }>(),
-    'Clear Selected User': emptyProps()
-  }
+    'Clear Selected User': emptyProps(),
+  },
 });
 
 // For backward compatibility during migration

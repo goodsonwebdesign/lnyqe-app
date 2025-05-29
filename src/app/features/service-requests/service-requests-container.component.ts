@@ -19,26 +19,21 @@ import { ServiceRequestAdapter } from './adapters/service-request.adapter';
       [error]="(viewModel$ | async)?.error"
       (openNewRequest)="onOpenNewRequest()"
       (viewRequestDetails)="onViewRequestDetails($event)"
-      (retryLoad)="loadServiceRequests()">
+      (retryLoad)="loadServiceRequests()"
+    >
     </app-service-requests>
   `,
   styles: [],
   standalone: true,
-  imports: [
-    CommonModule,
-    ServiceRequestsComponent
-  ],
-  providers: [
-    ServiceRequestRepository,
-    ServiceRequestAdapter
-  ]
+  imports: [CommonModule, ServiceRequestsComponent],
+  providers: [ServiceRequestRepository, ServiceRequestAdapter],
 })
 export class ServiceRequestsContainerComponent implements OnInit {
   viewModel$: Observable<ServiceRequestViewModel>;
 
   constructor(
     private store: Store,
-    private router: Router
+    private router: Router,
   ) {
     this.viewModel$ = this.store.select(selectServiceRequestsViewModel);
   }
@@ -54,7 +49,7 @@ export class ServiceRequestsContainerComponent implements OnInit {
   onOpenNewRequest(): void {
     this.router.navigate(['/features/service-request']);
   }
-  
+
   onViewRequestDetails(request: ServiceRequest): void {
     this.router.navigate(['/features/service-request', request.id]);
   }

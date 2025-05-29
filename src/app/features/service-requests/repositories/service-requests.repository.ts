@@ -7,16 +7,16 @@ import { environment } from '../../../../environments/environment';
 
 /**
  * Repository for Service Requests
- * 
+ *
  * This repository provides data access operations for service requests
  * and abstracts away the details of the API calls.
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ServiceRequestsRepository {
   private apiUrl = `${environment.apiUrl}/service-requests`;
-  
+
   // Sample data for demonstration purposes - would be removed in production
   private mockData: ServiceRequest[] = [
     {
@@ -27,7 +27,7 @@ export class ServiceRequestsRepository {
       priority: 'medium',
       dateCreated: new Date('2025-04-29'),
       requestedBy: 'Jane Smith',
-      assignedTo: 'Tech Team Alpha'
+      assignedTo: 'Tech Team Alpha',
     },
     {
       id: 'SR-002',
@@ -36,7 +36,7 @@ export class ServiceRequestsRepository {
       status: 'new',
       priority: 'high',
       dateCreated: new Date('2025-05-02'),
-      requestedBy: 'John Doe'
+      requestedBy: 'John Doe',
     },
     {
       id: 'SR-003',
@@ -45,7 +45,7 @@ export class ServiceRequestsRepository {
       status: 'new',
       priority: 'low',
       dateCreated: new Date('2025-05-01'),
-      requestedBy: 'Mark Johnson'
+      requestedBy: 'Mark Johnson',
     },
     {
       id: 'SR-004',
@@ -55,7 +55,7 @@ export class ServiceRequestsRepository {
       priority: 'urgent',
       dateCreated: new Date('2025-05-03'),
       requestedBy: 'Sarah Williams',
-      assignedTo: 'Plumbing Team'
+      assignedTo: 'Plumbing Team',
     },
     {
       id: 'SR-005',
@@ -65,8 +65,8 @@ export class ServiceRequestsRepository {
       priority: 'high',
       dateCreated: new Date('2025-04-25'),
       requestedBy: 'David Chen',
-      assignedTo: 'IT Support'
-    }
+      assignedTo: 'IT Support',
+    },
   ];
 
   constructor(private http: HttpClient) {}
@@ -81,11 +81,11 @@ export class ServiceRequestsRepository {
     //   .pipe(
     //     catchError(this.handleError)
     //   );
-    
+
     // For demo, using mock data with artificial delay
     return of(this.mockData).pipe(
       delay(1000), // Simulate network latency
-      catchError(this.handleError)
+      catchError(this.handleError),
     );
   }
 
@@ -100,10 +100,10 @@ export class ServiceRequestsRepository {
     //   .pipe(
     //     catchError(this.handleError)
     //   );
-    
+
     // For demo:
-    const request = this.mockData.find(req => req.id === id);
-    return request 
+    const request = this.mockData.find((req) => req.id === id);
+    return request
       ? of(request).pipe(delay(800))
       : throwError(() => new Error(`Service request with ID ${id} not found`));
   }
@@ -119,14 +119,16 @@ export class ServiceRequestsRepository {
     //   .pipe(
     //     catchError(this.handleError)
     //   );
-    
+
     // For demo:
     const newRequest: ServiceRequest = {
       ...request,
-      id: `SR-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-      dateCreated: new Date()
+      id: `SR-${Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, '0')}`,
+      dateCreated: new Date(),
     };
-    
+
     return of(newRequest).pipe(delay(1200));
   }
 
@@ -142,18 +144,18 @@ export class ServiceRequestsRepository {
     //   .pipe(
     //     catchError(this.handleError)
     //   );
-    
+
     // For demo:
-    const index = this.mockData.findIndex(req => req.id === id);
+    const index = this.mockData.findIndex((req) => req.id === id);
     if (index === -1) {
       return throwError(() => new Error(`Service request with ID ${id} not found`));
     }
-    
+
     const updatedRequest = {
       ...this.mockData[index],
-      ...request
+      ...request,
     };
-    
+
     return of(updatedRequest).pipe(delay(1000));
   }
 
@@ -168,13 +170,13 @@ export class ServiceRequestsRepository {
     //   .pipe(
     //     catchError(this.handleError)
     //   );
-    
+
     // For demo:
-    const index = this.mockData.findIndex(req => req.id === id);
+    const index = this.mockData.findIndex((req) => req.id === id);
     if (index === -1) {
       return throwError(() => new Error(`Service request with ID ${id} not found`));
     }
-    
+
     return of(undefined).pipe(delay(1000));
   }
 

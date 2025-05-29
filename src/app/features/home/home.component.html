@@ -1,70 +1,86 @@
-<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-10 space-y-12 sm:space-y-16 md:space-y-20">
+<div
+  class="container mx-auto space-y-12 px-4 py-6 sm:space-y-16 sm:px-6 sm:py-8 md:space-y-20 md:py-10 lg:px-8"
+>
   <!-- Hero Section: Mobile-first with clear CTA -->
-  <section class="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-lg">
+  <section
+    class="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-lg sm:rounded-2xl"
+  >
     <div class="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
     <div class="relative z-10 px-4 py-8 sm:px-8 sm:py-10 md:py-12">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+      <div class="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
         <!-- Left side: Headline and CTA -->
         <div class="text-center md:text-left">
-          <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-4">
+          <h1 class="mb-4 text-3xl font-bold leading-tight sm:text-4xl md:text-5xl">
             {{ title }}
           </h1>
-          <p class="text-base sm:text-lg opacity-90 mb-6 max-w-lg mx-auto md:mx-0">
+          <p class="mx-auto mb-6 max-w-lg text-base opacity-90 sm:text-lg md:mx-0">
             {{ subtitle }}
           </p>
-          <div class="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
-            <button class="bg-white text-primary-700 font-medium py-3 px-6 rounded-lg hover:bg-white/90 focus:ring-2 focus:ring-white/50 transition-all shadow-md touch-manipulation">
+          <div class="flex flex-col justify-center gap-3 sm:flex-row md:justify-start">
+            <button
+              class="touch-manipulation rounded-lg bg-white px-6 py-3 font-medium text-primary-700 shadow-md transition-all hover:bg-white/90 focus:ring-2 focus:ring-white/50 focus:outline-none"
+              data-testid="get-started-btn"
+              aria-label="Get Started Free"
+            >
               Get Started Free
             </button>
-            <button class="bg-transparent border border-white text-white font-medium py-3 px-6 rounded-lg hover:bg-white/10 focus:ring-2 focus:ring-white/50 transition-all touch-manipulation">
+            <button
+              class="touch-manipulation rounded-lg border border-white bg-transparent px-6 py-3 font-medium text-white transition-all hover:bg-white/10 focus:ring-2 focus:ring-white/50 focus:outline-none"
+              data-testid="schedule-demo-btn"
+              aria-label="Schedule Demo"
+            >
               Schedule Demo
             </button>
           </div>
         </div>
 
         <!-- Right side: Sign-up form -->
-        <div class="bg-white/10 backdrop-blur-md p-6 rounded-lg shadow-xl">
+        <div class="rounded-lg bg-white/10 p-6 shadow-xl backdrop-blur-md">
           <form [formGroup]="form" class="space-y-4">
-            <h2 class="text-xl font-bold mb-4 text-center">Create Your Account</h2>
+            <h2 class="mb-4 text-center text-xl font-bold">Create Your Account</h2>
             <div>
               <input
                 formControlName="username"
                 type="text"
                 placeholder="Username"
-                class="w-full px-4 py-3 rounded-md bg-white/20 border border-white/30 placeholder-white/70 text-white focus:outline-none focus:ring-2 focus:ring-white/50"
+                class="w-full rounded-md border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
                 aria-label="Username"
-              >
+              />
             </div>
             <div>
               <input
                 formControlName="email"
                 type="email"
                 placeholder="Email"
-                class="w-full px-4 py-3 rounded-md bg-white/20 border border-white/30 placeholder-white/70 text-white focus:outline-none focus:ring-2 focus:ring-white/50"
+                class="w-full rounded-md border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
                 aria-label="Email"
-              >
+              />
             </div>
             <div>
               <input
                 formControlName="password"
                 type="password"
                 placeholder="Password"
-                class="w-full px-4 py-3 rounded-md bg-white/20 border border-white/30 placeholder-white/70 text-white focus:outline-none focus:ring-2 focus:ring-white/50"
+                class="w-full rounded-md border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
                 aria-label="Password"
-              >
+              />
             </div>
-            <button type="submit" class="w-full bg-primary-500 text-white font-medium py-3 rounded-md hover:bg-primary-600 transition-colors touch-manipulation">
+            <button
+              type="submit"
+              class="w-full touch-manipulation rounded-md bg-primary-500 py-3 font-medium text-white transition-colors hover:bg-primary-600"
+            >
               Sign Up
             </button>
-            <div class="flex items-center my-2">
+            <div class="my-2 flex items-center">
               <div class="flex-grow border-t border-white/30"></div>
-              <span class="px-3 text-white/70 text-sm">OR</span>
+              <span class="px-3 text-sm text-white/70">OR</span>
               <div class="flex-grow border-t border-white/30"></div>
             </div>
             <button
               (click)="onEnterpriseLogin()"
               type="button"
-              class="w-full bg-transparent border border-white/30 text-white font-medium py-3 rounded-md hover:bg-white/10 transition-colors touch-manipulation">
+              class="w-full touch-manipulation rounded-md border border-white/30 bg-transparent py-3 font-medium text-white transition-colors hover:bg-white/10"
+            >
               Continue with Enterprise SSO
             </button>
           </form>
@@ -75,26 +91,41 @@
 
   <!-- Key Benefits Section: Simple, clean cards with icons -->
   <section>
-    <div class="text-center mb-10">
-      <div class="inline-block bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 px-3 py-1 rounded-full text-sm font-medium mb-4">
+    <div class="mb-10 text-center">
+      <div
+        class="mb-4 inline-block rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-800 dark:bg-primary-900 dark:text-primary-200"
+      >
         AI-POWERED SOLUTION
       </div>
-      <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-neutral-900 dark:text-white">
+      <h2 class="mb-4 text-2xl font-bold text-neutral-900 dark:text-white sm:text-3xl">
         Streamlined Facilities Management
       </h2>
-      <p class="text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto">
-        Minimize repetitive tasks and maximize operational efficiency with our comprehensive solution.
+      <p class="mx-auto max-w-2xl text-neutral-600 dark:text-neutral-300">
+        Minimize repetitive tasks and maximize operational efficiency with our comprehensive
+        solution.
       </p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
       <!-- Each card has the same structure and fixed height -->
-      <div *ngFor="let feature of features" class="card-benefit h-full bg-white dark:bg-neutral-800 rounded-xl shadow-sm hover:shadow-md transition-shadow p-6 flex flex-col items-center text-center">
-        <div class="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center mb-5 flex-shrink-0">
-          <app-icon [name]="feature.iconName || 'mdi:chart-line'" size="lg" className="text-primary-600 dark:text-primary-400"></app-icon>
+      <div
+        *ngFor="let feature of features"
+        class="card-benefit flex h-full flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm transition-shadow hover:shadow-md dark:bg-neutral-800"
+      >
+        <div
+          class="mb-5 flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/50"
+        >
+          <app-icon
+            [name]="feature.iconName || 'mdi:chart-line'"
+            size="lg"
+            className="text-primary-600 dark:text-primary-400"
+            [attr.aria-label]="feature.title + ' icon'"
+          ></app-icon>
         </div>
-        <h3 class="text-xl font-semibold mb-3 text-neutral-900 dark:text-white">{{ feature.title }}</h3>
-        <p class="text-neutral-600 dark:text-neutral-400 flex-grow">
+        <h3 class="mb-3 text-xl font-semibold text-neutral-900 dark:text-white">
+          {{ feature.title }}
+        </h3>
+        <p class="flex-grow text-neutral-600 dark:text-neutral-400">
           {{ feature.description }}
         </p>
       </div>
@@ -103,42 +134,52 @@
 
   <!-- Feature Showcase: Left-right alternating sections -->
   <section class="space-y-16">
-    <div class="text-center mb-6">
-      <div class="inline-block bg-secondary-100 dark:bg-secondary-900 text-secondary-800 dark:text-secondary-200 px-3 py-1 rounded-full text-sm font-medium mb-4">
+    <div class="mb-6 text-center">
+      <div
+        class="mb-4 inline-block rounded-full bg-secondary-100 px-3 py-1 text-sm font-medium text-secondary-800 dark:bg-secondary-900 dark:text-secondary-200"
+      >
         COMPREHENSIVE SOLUTION
       </div>
-      <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-neutral-900 dark:text-white">
+      <h2 class="mb-4 text-2xl font-bold text-neutral-900 dark:text-white sm:text-3xl">
         Everything You Need In One Platform
       </h2>
-      <p class="text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto">
+      <p class="mx-auto max-w-2xl text-neutral-600 dark:text-neutral-300">
         From key management to space optimization, LNYQE centralizes your facility operations.
       </p>
     </div>
 
     <!-- Feature Row 1 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-      <div class="order-2 md:order-1 box-border">
-        <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 box-border">
+    <div class="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
+      <div class="order-2 box-border md:order-1">
+        <div class="box-border rounded-xl bg-white p-6 shadow-sm dark:bg-neutral-800">
           <div class="flex items-start gap-4">
-            <div class="bg-primary-100 dark:bg-primary-900/50 p-3 rounded-full flex-shrink-0">
-              <app-icon name="mdi:key-variant" size="sm" className="text-primary-600 dark:text-primary-400"></app-icon>
+            <div class="flex-shrink-0 rounded-full bg-primary-100 p-3 dark:bg-primary-900/50">
+              <app-icon
+                name="mdi:key-variant"
+                size="sm"
+                className="text-primary-600 dark:text-primary-400"
+                aria-label="Digital Key Management icon"
+              ></app-icon>
             </div>
             <div>
-              <h3 class="text-xl font-semibold mb-2 text-neutral-900 dark:text-white">Digital Key Management</h3>
+              <h3 class="mb-2 text-xl font-semibold text-neutral-900 dark:text-white">
+                Digital Key Management
+              </h3>
               <p class="text-neutral-600 dark:text-neutral-400">
-                Securely distribute and monitor digital keys with complete audit trails and temporary access provisioning.
+                Securely distribute and monitor digital keys with complete audit trails and
+                temporary access provisioning.
               </p>
               <ul class="mt-4 space-y-2">
                 <li class="flex items-center text-neutral-600 dark:text-neutral-400">
-                  <app-icon name="mdi:check" size="sm" className="mr-2 text-green-500"></app-icon>
+                  <app-icon name="mdi:check" size="sm" className="mr-2 text-green-500" aria-label="Check icon"></app-icon>
                   Real-time access monitoring
                 </li>
                 <li class="flex items-center text-neutral-600 dark:text-neutral-400">
-                  <app-icon name="mdi:check" size="sm" className="mr-2 text-green-500"></app-icon>
+                  <app-icon name="mdi:check" size="sm" className="mr-2 text-green-500" aria-label="Check icon"></app-icon>
                   Time-limited permissions
                 </li>
                 <li class="flex items-center text-neutral-600 dark:text-neutral-400">
-                  <app-icon name="mdi:check" size="sm" className="mr-2 text-green-500"></app-icon>
+                  <app-icon name="mdi:check" size="sm" className="mr-2 text-green-500" aria-label="Check icon"></app-icon>
                   Complete audit history
                 </li>
               </ul>
@@ -146,42 +187,64 @@
           </div>
         </div>
       </div>
-      <div class="order-1 md:order-2 box-border">
-        <div class="bg-blue-100 dark:bg-blue-900/30 p-12 rounded-xl shadow-md flex items-center justify-center box-border">
-          <app-icon name="mdi:key-wireless" size="xl" className="text-blue-600 dark:text-blue-400 h-48 w-48"></app-icon>
+      <div class="order-1 box-border md:order-2">
+        <div
+          class="box-border flex items-center justify-center rounded-xl bg-blue-100 p-12 shadow-md dark:bg-blue-900/30"
+        >
+          <app-icon
+            name="mdi:key-wireless"
+            size="xl"
+            className="text-blue-600 dark:text-blue-400 h-48 w-48"
+            aria-label="Wireless Key Management icon"
+          ></app-icon>
         </div>
       </div>
     </div>
 
     <!-- Feature Row 2 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+    <div class="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
       <div class="box-border">
-        <div class="bg-cyan-100 dark:bg-cyan-900/30 p-12 rounded-xl shadow-md flex items-center justify-center box-border">
-          <app-icon name="mdi:chart-areaspline" size="xl" className="text-cyan-600 dark:text-cyan-400 h-48 w-48"></app-icon>
+        <div
+          class="box-border flex items-center justify-center rounded-xl bg-cyan-100 p-12 shadow-md dark:bg-cyan-900/30"
+        >
+          <app-icon
+            name="mdi:chart-areaspline"
+            size="xl"
+            className="text-cyan-600 dark:text-cyan-400 h-48 w-48"
+            aria-label="Space Utilization Analytics icon"
+          ></app-icon>
         </div>
       </div>
       <div class="box-border">
-        <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 box-border">
+        <div class="box-border rounded-xl bg-white p-6 shadow-sm dark:bg-neutral-800">
           <div class="flex items-start gap-4">
-            <div class="bg-secondary-100 dark:bg-secondary-900/50 p-3 rounded-full flex-shrink-0">
-              <app-icon name="mdi:chart-bar" size="sm" className="text-secondary-600 dark:text-secondary-400"></app-icon>
+            <div class="flex-shrink-0 rounded-full bg-secondary-100 p-3 dark:bg-secondary-900/50">
+              <app-icon
+                name="mdi:chart-bar"
+                size="sm"
+                className="text-secondary-600 dark:text-secondary-400"
+                aria-label="Analytics Reporting icon"
+              ></app-icon>
             </div>
             <div>
-              <h3 class="text-xl font-semibold mb-2 text-neutral-900 dark:text-white">Space Utilization Analytics</h3>
+              <h3 class="mb-2 text-xl font-semibold text-neutral-900 dark:text-white">
+                Space Utilization Analytics
+              </h3>
               <p class="text-neutral-600 dark:text-neutral-400">
-                Visualize usage patterns and receive AI-driven recommendations to optimize your workspace layout.
+                Visualize usage patterns and receive AI-driven recommendations to optimize your
+                workspace layout.
               </p>
               <ul class="mt-4 space-y-2">
                 <li class="flex items-center text-neutral-600 dark:text-neutral-400">
-                  <app-icon name="mdi:check" size="sm" className="mr-2 text-green-500"></app-icon>
+                  <app-icon name="mdi:check" size="sm" className="mr-2 text-green-500" aria-label="Check icon"></app-icon>
                   Heat maps of space usage
                 </li>
                 <li class="flex items-center text-neutral-600 dark:text-neutral-400">
-                  <app-icon name="mdi:check" size="sm" className="mr-2 text-green-500"></app-icon>
+                  <app-icon name="mdi:check" size="sm" className="mr-2 text-green-500" aria-label="Check icon"></app-icon>
                   Predictive occupancy modeling
                 </li>
                 <li class="flex items-center text-neutral-600 dark:text-neutral-400">
-                  <app-icon name="mdi:check" size="sm" className="mr-2 text-green-500"></app-icon>
+                  <app-icon name="mdi:check" size="sm" className="mr-2 text-green-500" aria-label="Check icon"></app-icon>
                   Resource optimization suggestions
                 </li>
               </ul>
@@ -194,32 +257,47 @@
 
   <!-- Latest Updates Section -->
   <section>
-    <div class="text-center mb-10">
-      <div class="inline-block bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 px-3 py-1 rounded-full text-sm font-medium mb-4">
+    <div class="mb-10 text-center">
+      <div
+        class="mb-4 inline-block rounded-full bg-primary-100 px-3 py-1 text-sm font-medium text-primary-800 dark:bg-primary-900 dark:text-primary-200"
+      >
         LATEST DEVELOPMENTS
       </div>
-      <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-neutral-900 dark:text-white">
+      <h2 class="mb-4 text-2xl font-bold text-neutral-900 dark:text-white sm:text-3xl">
         Platform Updates
       </h2>
-      <p class="text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto">
+      <p class="mx-auto max-w-2xl text-neutral-600 dark:text-neutral-300">
         We're constantly enhancing our platform to deliver more value to facility managers.
       </p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div *ngFor="let update of latestUpdates" class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden h-full flex flex-col">
-        <div class="p-6 flex flex-col h-full">
-          <div class="flex flex-wrap items-center gap-2 mb-3">
-            <span class="bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 px-3 py-1 rounded-full text-xs font-medium">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        *ngFor="let update of latestUpdates"
+        class="flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-neutral-800"
+      >
+        <div class="flex h-full flex-col p-6">
+          <div class="mb-3 flex flex-wrap items-center gap-2">
+            <span
+              class="rounded-full bg-primary-100 px-3 py-1 text-xs font-medium text-primary-800 dark:bg-primary-900 dark:text-primary-200"
+            >
               {{ update.category }}
             </span>
             <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ update.date }}</span>
           </div>
-          <h3 class="text-xl font-semibold mb-3 text-neutral-900 dark:text-white">{{ update.title }}</h3>
-          <p class="text-neutral-600 dark:text-neutral-400 mb-5 line-clamp-3 flex-grow">{{ update.summary }}</p>
-          <button class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium inline-flex items-center transition-colors mt-auto touch-manipulation">
+          <h3 class="mb-3 text-xl font-semibold text-neutral-900 dark:text-white">
+            {{ update.title }}
+          </h3>
+          <p class="mb-5 line-clamp-3 flex-grow text-neutral-600 dark:text-neutral-400">
+            {{ update.summary }}
+          </p>
+          <button
+            class="mt-auto inline-flex touch-manipulation items-center font-medium text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            data-testid="learn-more-btn"
+            aria-label="Learn More"
+          >
             Learn More
-            <app-icon name="mdi:arrow-right" size="sm" className="ml-1"></app-icon>
+            <app-icon name="mdi:arrow-right" size="sm" className="ml-1" aria-label="Arrow right icon"></app-icon>
           </button>
         </div>
       </div>
@@ -227,29 +305,39 @@
   </section>
 
   <!-- Testimonials Section -->
-  <section class="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-8 sm:p-10 shadow-sm">
-    <div class="text-center mb-10">
-      <div class="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm font-medium mb-4">
+  <section class="rounded-xl bg-neutral-50 p-8 shadow-sm dark:bg-neutral-800 sm:p-10">
+    <div class="mb-10 text-center">
+      <div
+        class="mb-4 inline-block rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800 dark:bg-green-900 dark:text-green-200"
+      >
         SUCCESS STORIES
       </div>
-      <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-neutral-900 dark:text-white">
+      <h2 class="mb-4 text-2xl font-bold text-neutral-900 dark:text-white sm:text-3xl">
         What Facility Managers Are Saying
       </h2>
-      <p class="text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
+      <p class="mx-auto max-w-2xl text-neutral-600 dark:text-neutral-400">
         Hear from professionals who have transformed their operations with our platform.
       </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div *ngFor="let testimonial of testimonials" class="bg-white dark:bg-neutral-900 rounded-xl shadow-sm hover:shadow-md transition-shadow p-6 h-full flex flex-col">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div
+        *ngFor="let testimonial of testimonials"
+        class="flex h-full flex-col rounded-xl bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:bg-neutral-900"
+      >
         <div class="flex-grow">
-          <div class="flex text-amber-400 mb-4">
-            <app-icon *ngFor="let star of [1,2,3,4,5]" name="mdi:star" size="sm"></app-icon>
+          <div class="mb-4 flex text-amber-400">
+            <app-icon *ngFor="let star of [1, 2, 3, 4, 5]" name="mdi:star" size="sm"></app-icon>
           </div>
-          <p class="italic text-neutral-700 dark:text-neutral-300 mb-6 text-base sm:text-lg">"{{ testimonial.quote }}"</p>
+          <p class="mb-6 text-base italic text-neutral-700 dark:text-neutral-300 sm:text-lg">
+            "{{ testimonial.quote }}"
+          </p>
         </div>
-        <div class="flex items-center pt-4 border-t border-neutral-200 dark:border-neutral-700">
-          <div class="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-800 dark:text-primary-200 font-bold text-lg mr-4">
+        <div class="flex items-center border-t border-neutral-200 pt-4 dark:border-neutral-700">
+          <div
+            class="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-lg font-bold text-primary-800 dark:bg-primary-900 dark:text-primary-200"
+            [attr.aria-label]="testimonial.name + ' avatar'"
+          >
             {{ testimonial.initials }}
           </div>
           <div>
@@ -262,31 +350,43 @@
   </section>
 
   <!-- ROI Stats Section -->
-  <section class="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white p-8 sm:p-10 shadow-lg">
-    <div class="absolute inset-0 bg-pattern opacity-10"></div>
+  <section
+    class="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 p-8 text-white shadow-lg sm:p-10"
+  >
+    <div class="bg-pattern absolute inset-0 opacity-10"></div>
     <div class="relative z-10">
-      <div class="text-center mb-10">
-        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Measurable Results for Facility Managers</h2>
-        <p class="text-lg opacity-90 max-w-2xl mx-auto">
+      <div class="mb-10 text-center">
+        <h2 class="mb-4 text-2xl font-bold sm:text-3xl md:text-4xl">
+          Measurable Results for Facility Managers
+        </h2>
+        <p class="mx-auto max-w-2xl text-lg opacity-90">
           Our customers report significant improvements in efficiency and cost savings.
         </p>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 text-center transform transition-transform hover:scale-105 duration-300">
-          <div class="text-4xl sm:text-5xl font-bold mb-2">70%</div>
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div
+          class="transform rounded-lg bg-white/10 p-6 text-center backdrop-blur-sm transition-transform duration-300 hover:scale-105"
+        >
+          <div class="mb-2 text-4xl font-bold sm:text-5xl">70%</div>
           <p>Reduction in administrative tasks</p>
         </div>
-        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 text-center transform transition-transform hover:scale-105 duration-300">
-          <div class="text-4xl sm:text-5xl font-bold mb-2">45%</div>
+        <div
+          class="transform rounded-lg bg-white/10 p-6 text-center backdrop-blur-sm transition-transform duration-300 hover:scale-105"
+        >
+          <div class="mb-2 text-4xl font-bold sm:text-5xl">45%</div>
           <p>Faster maintenance response time</p>
         </div>
-        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 text-center transform transition-transform hover:scale-105 duration-300">
-          <div class="text-4xl sm:text-5xl font-bold mb-2">30%</div>
+        <div
+          class="transform rounded-lg bg-white/10 p-6 text-center backdrop-blur-sm transition-transform duration-300 hover:scale-105"
+        >
+          <div class="mb-2 text-4xl font-bold sm:text-5xl">30%</div>
           <p>Increase in space utilization</p>
         </div>
-        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 text-center transform transition-transform hover:scale-105 duration-300">
-          <div class="text-4xl sm:text-5xl font-bold mb-2">8.5x</div>
+        <div
+          class="transform rounded-lg bg-white/10 p-6 text-center backdrop-blur-sm transition-transform duration-300 hover:scale-105"
+        >
+          <div class="mb-2 text-4xl font-bold sm:text-5xl">8.5x</div>
           <p>Return on investment within first year</p>
         </div>
       </div>
@@ -294,17 +394,30 @@
   </section>
 
   <!-- Call to Action Section -->
-  <section class="bg-white dark:bg-neutral-800 rounded-xl p-8 sm:p-10 text-center shadow-xl border border-neutral-200 dark:border-neutral-700">
-    <div class="max-w-3xl mx-auto">
-      <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-neutral-900 dark:text-white">Ready to Transform Your Facility Management?</h2>
-      <p class="text-lg text-neutral-600 dark:text-neutral-300 mb-8">
-        Join forward-thinking facility managers who are already saving time and resources with LNYQE.
+  <section
+    class="rounded-xl border border-neutral-200 bg-white p-8 text-center shadow-xl dark:border-neutral-700 dark:bg-neutral-800 sm:p-10"
+  >
+    <div class="mx-auto max-w-3xl">
+      <h2 class="mb-4 text-2xl font-bold text-neutral-900 dark:text-white sm:text-3xl md:text-4xl">
+        Ready to Transform Your Facility Management?
+      </h2>
+      <p class="mb-8 text-lg text-neutral-600 dark:text-neutral-300">
+        Join forward-thinking facility managers who are already saving time and resources with
+        LNYQE.
       </p>
-      <div class="flex flex-col sm:flex-row justify-center gap-4">
-        <button class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-8 rounded-lg transition-colors shadow-md touch-manipulation">
+      <div class="flex flex-col justify-center gap-4 sm:flex-row">
+        <button
+          class="touch-manipulation rounded-lg bg-primary-600 px-8 py-3 font-medium text-white shadow-md transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          data-testid="start-trial-btn"
+          aria-label="Start Your Free 30-Day Trial"
+        >
           Start Your Free 30-Day Trial
         </button>
-        <button class="bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 text-neutral-800 dark:text-white font-medium py-3 px-8 rounded-lg transition-colors touch-manipulation">
+        <button
+          class="touch-manipulation rounded-lg bg-neutral-200 px-8 py-3 font-medium text-neutral-800 transition-colors hover:bg-neutral-300 dark:bg-neutral-700 dark:text-white dark:hover:bg-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-500"
+          data-testid="request-demo-btn"
+          aria-label="Request Live Demo"
+        >
           Request Live Demo
         </button>
       </div>
@@ -312,7 +425,7 @@
   </section>
 
   <!-- Current Time Display -->
-  <div class="text-center text-neutral-500 dark:text-neutral-400 mt-8">
+  <div class="mt-8 text-center text-neutral-500 dark:text-neutral-400">
     <p>Current Time: {{ currentTime }}</p>
   </div>
 </div>
@@ -320,7 +433,7 @@
 <style>
   /* Background pattern for ROI section */
   .bg-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM36 0V4h-2V0h-4v2h4v4h2V2h4V0h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
 
   /* Card benefit styles */

@@ -5,7 +5,7 @@ import { FlyoutService } from '../../core/services/flyout/flyout.service';
  * Service for managing the service request popup/flyout
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ServiceRequestService {
   private flyoutService = inject(FlyoutService);

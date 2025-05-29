@@ -1,11 +1,11 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { provideMockStore, MockStore } from '@ngrx/store/testing';
-import { DashboardContainerComponent } from './dashboard-container.component';
-import { DashboardComponent } from './dashboard.component';
 import { selectCurrentUser } from '../../store/selectors/auth.selectors';
 import { selectUserViewModel } from '../../store/selectors/user.selectors';
+import { DashboardContainerComponent } from './dashboard-container.component';
+import { DashboardComponent } from './dashboard.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { AuthService } from '@auth0/auth0-angular';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { of } from 'rxjs';
 
 // Create a mock Auth0 service
@@ -14,12 +14,14 @@ const mockAuth0Service = {
   user$: of({ name: 'Test User', email: 'test@example.com' }),
   loginWithRedirect: jasmine.createSpy('loginWithRedirect'),
   logout: jasmine.createSpy('logout'),
-  getAccessTokenSilently: jasmine.createSpy('getAccessTokenSilently').and.returnValue(of('mock-token')),
+  getAccessTokenSilently: jasmine
+    .createSpy('getAccessTokenSilently')
+    .and.returnValue(of('mock-token')),
   idTokenClaims$: of({
     __raw: 'mock-id-token',
     exp: Math.floor(Date.now() / 1000) + 3600,
-    scope: 'openid profile email'
-  })
+    scope: 'openid profile email',
+  }),
 };
 
 describe('DashboardContainerComponent', () => {
@@ -35,14 +37,14 @@ describe('DashboardContainerComponent', () => {
         firstName: 'Test',
         lastName: 'User',
         email: 'test@example.com',
-        role: 'admin'
-      }
+        role: 'admin',
+      },
     },
     user: {
       users: [],
       loading: false,
-      error: null
-    }
+      error: null,
+    },
   };
 
   beforeEach(async () => {
@@ -53,11 +55,11 @@ describe('DashboardContainerComponent', () => {
           initialState,
           selectors: [
             { selector: selectCurrentUser, value: initialState.auth.user },
-            { selector: selectUserViewModel, value: { users: [], loading: false, error: null } }
-          ]
+            { selector: selectUserViewModel, value: { users: [], loading: false, error: null } },
+          ],
         }),
-        { provide: AuthService, useValue: mockAuth0Service }
-      ]
+        { provide: AuthService, useValue: mockAuth0Service },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardContainerComponent);

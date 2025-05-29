@@ -1,5 +1,5 @@
-import { AuthConfig } from '@auth0/auth0-angular';
 import { environment } from '../../../../environments/environment';
+import { AuthConfig } from '@auth0/auth0-angular';
 
 /**
  * Auth0 Configuration
@@ -12,7 +12,7 @@ export const AUTH_CONFIG: AuthConfig = {
   authorizationParams: {
     redirect_uri: window.location.origin + '/callback',
     scope: environment.auth.scope,
-    audience: environment.auth.audience
+    audience: environment.auth.audience,
   },
 
   // Token configuration
@@ -27,10 +27,10 @@ export const AUTH_CONFIG: AuthConfig = {
         tokenOptions: {
           authorizationParams: {
             audience: environment.auth.audience,
-            scope: environment.auth.scope
-          }
-        }
-      }
-    ]
-  }
+            scope: environment.auth.scope,
+          },
+        },
+      },
+    ],
+  },
 };

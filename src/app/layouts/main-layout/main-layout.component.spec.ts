@@ -11,21 +11,21 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 @Component({
   selector: 'app-container',
   template: '<div><ng-content></ng-content></div>',
-  standalone: true
+  standalone: true,
 })
 class MockContainerComponent {}
 
 @Component({
   selector: 'app-theme-toggle',
   template: '<div></div>',
-  standalone: true
+  standalone: true,
 })
 class MockThemeToggleComponent {}
 
 @Component({
   selector: 'app-user-menu',
   template: '<div></div>',
-  standalone: true
+  standalone: true,
 })
 class MockUserMenuComponent {}
 
@@ -36,8 +36,12 @@ class MockAuthService {
 
   login() {}
   logout() {}
-  getUser() { return of(null); }
-  isAuthenticated() { return of(false); }
+  getUser() {
+    return of(null);
+  }
+  isAuthenticated() {
+    return of(false);
+  }
 }
 
 describe('MainLayoutComponent', () => {
@@ -52,12 +56,12 @@ describe('MainLayoutComponent', () => {
         MockContainerComponent,
         MockThemeToggleComponent,
         MockUserMenuComponent,
-        HttpClientTestingModule
+        HttpClientTestingModule,
       ],
       providers: [
         provideMockStore({ initialState: {} }),
-        { provide: AuthService, useClass: MockAuthService }
-      ]
+        { provide: AuthService, useClass: MockAuthService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(MainLayoutComponent);

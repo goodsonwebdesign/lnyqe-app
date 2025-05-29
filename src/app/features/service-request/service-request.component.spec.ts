@@ -1,6 +1,5 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { ServiceRequestComponent } from './service-request.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 describe('ServiceRequestComponent', () => {
   let component: ServiceRequestComponent;
@@ -8,9 +7,8 @@ describe('ServiceRequestComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ServiceRequestComponent]
-    })
-    .compileComponents();
+      imports: [ServiceRequestComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ServiceRequestComponent);
     component = fixture.componentInstance;

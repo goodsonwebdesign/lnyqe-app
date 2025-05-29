@@ -9,7 +9,8 @@
 }
 
 // Add any specific styles that can't be achieved with Tailwind classes
-.loading-enter, .loading-leave {
+.loading-enter,
+.loading-leave {
   transition: opacity 0.5s ease;
 }
 

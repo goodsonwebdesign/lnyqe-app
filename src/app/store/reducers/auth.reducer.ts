@@ -1,6 +1,6 @@
-import { createReducer, on } from '@ngrx/store';
-import { AuthActions } from '../actions/auth.actions';
 import { AuthState } from '../../core/models/auth.model';
+import { AuthActions } from '../actions/auth.actions';
+import { createReducer, on } from '@ngrx/store';
 
 export const initialAuthState: AuthState = {
   isAuthenticated: false,
@@ -10,7 +10,7 @@ export const initialAuthState: AuthState = {
   organizationId: null,
   isEnterpriseSSOEnabled: false,
   token: null,
-  role: null
+  role: null,
 };
 
 export const authReducer = createReducer(
@@ -20,7 +20,7 @@ export const authReducer = createReducer(
     ...state,
     isLoading: true,
     error: null,
-    organizationId: organization || state.organizationId
+    organizationId: organization || state.organizationId,
   })),
 
   on(AuthActions.loginSuccess, (state, { user, token }) => ({
@@ -31,7 +31,7 @@ export const authReducer = createReducer(
     token,
     error: null,
     organizationId: user?.organizationId || state.organizationId,
-    role: user?.role || null
+    role: user?.role || null,
   })),
 
   on(AuthActions.loginFailure, (state, { error }) => ({
@@ -41,35 +41,35 @@ export const authReducer = createReducer(
     user: null,
     token: null,
     error,
-    role: null
+    role: null,
   })),
 
   on(AuthActions.refreshTokenSuccess, (state, { token }) => ({
     ...state,
-    token
+    token,
   })),
 
   on(AuthActions.refreshTokenFailure, (state, { error }) => ({
     ...state,
-    error
+    error,
   })),
 
   on(AuthActions.logout, () => ({
-    ...initialAuthState
+    ...initialAuthState,
   })),
 
   on(AuthActions.setOrganization, (state, { organizationId }) => ({
     ...state,
-    organizationId
+    organizationId,
   })),
 
   on(AuthActions.setEnterpriseSSOEnabled, (state, { enabled }) => ({
     ...state,
-    isEnterpriseSSOEnabled: enabled
+    isEnterpriseSSOEnabled: enabled,
   })),
 
   on(AuthActions.setAuthState, (state, { isAuthenticated }) => ({
     ...state,
-    isAuthenticated
-  }))
+    isAuthenticated,
+  })),
 );

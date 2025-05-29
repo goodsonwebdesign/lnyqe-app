@@ -1,6 +1,5 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { AppIconComponent } from './app-icon.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 describe('AppIconComponent', () => {
   let component: AppIconComponent;
@@ -8,9 +7,8 @@ describe('AppIconComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppIconComponent]
-    })
-    .compileComponents();
+      imports: [AppIconComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(AppIconComponent);
     component = fixture.componentInstance;

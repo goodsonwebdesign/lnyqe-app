@@ -1,14 +1,15 @@
 <div class="relative">
   <button
     type="button"
-    class="p-2 rounded-md text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+    class="rounded-md p-2 text-neutral-700 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:text-neutral-300 dark:hover:bg-neutral-700"
     (click)="toggleMenu()"
     aria-label="Toggle theme"
     aria-haspopup="true"
     [attr.aria-expanded]="isMenuOpen()"
+    data-testid="theme-toggle-btn"
   >
     <!-- Sun icon for light mode -->
-    <app-icon 
+    <app-icon
       *ngIf="themeService.currentTheme() === 'light'"
       name="mdi:weather-sunny"
       size="sm"
@@ -16,7 +17,7 @@
     ></app-icon>
 
     <!-- Moon icon for dark mode -->
-    <app-icon 
+    <app-icon
       *ngIf="themeService.currentTheme() === 'dark'"
       name="mdi:weather-night"
       size="sm"
@@ -24,7 +25,7 @@
     ></app-icon>
 
     <!-- Computer icon for system preference -->
-    <app-icon 
+    <app-icon
       *ngIf="themeService.currentTheme() === 'system'"
       name="mdi:desktop-mac"
       size="sm"
@@ -35,39 +36,57 @@
   <!-- Dropdown menu -->
   <div
     *ngIf="isMenuOpen()"
-    class="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-neutral-800 ring-1 ring-black ring-opacity-5 z-50"
+    class="absolute right-0 z-50 mt-2 w-48 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-neutral-800"
     role="menu"
     aria-orientation="vertical"
     aria-labelledby="theme-menu-button"
   >
     <button
-      class="w-full text-left px-4 py-2 text-sm flex items-center gap-2"
-      [ngClass]="{'text-primary-600 dark:text-primary-400 bg-neutral-100 dark:bg-neutral-700': themeService.currentTheme() === 'light', 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700': themeService.currentTheme() !== 'light'}"
+      class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+      [ngClass]="{
+        'bg-neutral-100 text-primary-600 dark:bg-neutral-700 dark:text-primary-400':
+          themeService.currentTheme() === 'light',
+        'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700':
+          themeService.currentTheme() !== 'light',
+      }"
       (click)="setTheme('light')"
       role="menuitem"
       tabindex="-1"
+      data-testid="theme-light-btn"
     >
       <app-icon name="mdi:weather-sunny" size="xs"></app-icon>
       Light
     </button>
 
     <button
-      class="w-full text-left px-4 py-2 text-sm flex items-center gap-2"
-      [ngClass]="{'text-primary-600 dark:text-primary-400 bg-neutral-100 dark:bg-neutral-700': themeService.currentTheme() === 'dark', 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700': themeService.currentTheme() !== 'dark'}"
+      class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+      [ngClass]="{
+        'bg-neutral-100 text-primary-600 dark:bg-neutral-700 dark:text-primary-400':
+          themeService.currentTheme() === 'dark',
+        'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700':
+          themeService.currentTheme() !== 'dark',
+      }"
       (click)="setTheme('dark')"
       role="menuitem"
       tabindex="-1"
+      data-testid="theme-dark-btn"
     >
       <app-icon name="mdi:weather-night" size="xs"></app-icon>
       Dark
     </button>
 
     <button
-      class="w-full text-left px-4 py-2 text-sm flex items-center gap-2"
-      [ngClass]="{'text-primary-600 dark:text-primary-400 bg-neutral-100 dark:bg-neutral-700': themeService.currentTheme() === 'system', 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700': themeService.currentTheme() !== 'system'}"
+      class="flex w-full items-center gap-2 px-4 py-2 text-left text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+      [ngClass]="{
+        'bg-neutral-100 text-primary-600 dark:bg-neutral-700 dark:text-primary-400':
+          themeService.currentTheme() === 'system',
+        'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700':
+          themeService.currentTheme() !== 'system',
+      }"
       (click)="setTheme('system')"
       role="menuitem"
       tabindex="-1"
+      data-testid="theme-system-btn"
     >
       <app-icon name="mdi:desktop-mac" size="xs"></app-icon>
       System

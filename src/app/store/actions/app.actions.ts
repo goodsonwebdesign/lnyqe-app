@@ -5,8 +5,8 @@ export const AppActions = createActionGroup({
   source: 'App',
   events: {
     'Loading Started': emptyProps(),
-    'Loading Completed': emptyProps()
-  }
+    'Loading Completed': emptyProps(),
+  },
 });
 
 // For backward compatibility during migration

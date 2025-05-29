@@ -1,15 +1,15 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { ChangeDetectionStrategy } from '@angular/core';
-import { DashboardComponent } from './dashboard.component';
-import { CardComponent } from '../../shared/components/ui/card/card.component';
 import { ButtonComponent } from '../../shared/components/ui/button/button.component';
+import { CardComponent } from '../../shared/components/ui/card/card.component';
+import { DashboardComponent } from './dashboard.component';
 import { SectionType } from './dashboard.types';
 import { TitleCasePipe } from '@angular/common';
+import { ChangeDetectionStrategy } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { AuthService } from '@auth0/auth0-angular';
-import { of } from 'rxjs';
-import { provideMockStore, MockStore } from '@ngrx/store/testing';
 import { Store } from '@ngrx/store';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { of } from 'rxjs';
 
 // Create a mock Auth0 service
 const mockAuth0Service = {
@@ -17,12 +17,14 @@ const mockAuth0Service = {
   user$: of({ name: 'Test User', email: 'test@example.com' }),
   loginWithRedirect: jasmine.createSpy('loginWithRedirect'),
   logout: jasmine.createSpy('logout'),
-  getAccessTokenSilently: jasmine.createSpy('getAccessTokenSilently').and.returnValue(of('mock-token')),
+  getAccessTokenSilently: jasmine
+    .createSpy('getAccessTokenSilently')
+    .and.returnValue(of('mock-token')),
   idTokenClaims$: of({
     __raw: 'mock-id-token',
     exp: Math.floor(Date.now() / 1000) + 3600,
-    scope: 'openid profile email'
-  })
+    scope: 'openid profile email',
+  }),
 };
 
 describe('DashboardComponent', () => {
@@ -37,7 +39,7 @@ describe('DashboardComponent', () => {
         firstName: 'Test',
         lastName: 'User',
         email: 'test@example.com',
-        role: 'admin'
+        role: 'admin',
       },
       isAuthenticated: true,
       token: {
@@ -45,25 +47,20 @@ describe('DashboardComponent', () => {
         expiresIn: 3600,
         tokenType: 'Bearer',
         scope: 'openid profile email',
-        idToken: 'test-id-token'
-      }
-    }
+        idToken: 'test-id-token',
+      },
+    },
   };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        DashboardComponent,
-        CardComponent,
-        ButtonComponent,
-        TitleCasePipe
-      ],
+      imports: [DashboardComponent, CardComponent, ButtonComponent, TitleCasePipe],
       // Enable change detection for testing and provide mocks
       providers: [
         { provide: ChangeDetectionStrategy, useValue: ChangeDetectionStrategy.Default },
         { provide: AuthService, useValue: mockAuth0Service },
-        provideMockStore({ initialState })
-      ]
+        provideMockStore({ initialState }),
+      ],
     }).compileComponents();
 
     store = TestBed.inject(MockStore);
@@ -79,8 +76,8 @@ describe('DashboardComponent', () => {
         iconName: 'mdi:plus-circle',
         label: 'New Task',
         action: 'createTask',
-        variant: 'primary'
-      }
+        variant: 'primary',
+      },
     ];
     component.statCards = [
       {
@@ -92,9 +89,9 @@ describe('DashboardComponent', () => {
         iconColor: 'text-primary-600 dark:text-primary-400',
         change: {
           value: '+2 Today',
-          isPositive: true
-        }
-      }
+          isPositive: true,
+        },
+      },
     ];
     component.tasks = [
       {
@@ -104,8 +101,8 @@ describe('DashboardComponent', () => {
         icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
         iconName: 'mdi:clock',
         iconBg: 'bg-amber-100 dark:bg-amber-900',
-        iconColor: 'text-amber-600 dark:text-amber-400'
-      }
+        iconColor: 'text-amber-600 dark:text-amber-400',
+      },
     ];
 
     fixture.detectChanges();
@@ -134,9 +131,7 @@ describe('DashboardComponent', () => {
     fixture.detectChanges();
 
     // Get all section buttons in mobile nav
-    const sectionButtons = fixture.debugElement.queryAll(
-      By.css('.sm\\:hidden button')
-    );
+    const sectionButtons = fixture.debugElement.queryAll(By.css('.sm\\:hidden button'));
     expect(sectionButtons.length).toBe(4); // Overview, Tasks, Schedule, Admin
   });
 
@@ -165,9 +160,7 @@ describe('DashboardComponent', () => {
   it('should handle action correctly when quick action is clicked', () => {
     spyOn(component, 'handleAction');
 
-    const actionButton = fixture.debugElement.query(
-      By.css('.grid.grid-cols-2 button')
-    );
+    const actionButton = fixture.debugElement.query(By.css('.grid.grid-cols-2 button'));
 
     actionButton.nativeElement.click();
     fixture.detectChanges();
@@ -193,7 +186,8 @@ describe('DashboardComponent', () => {
     fixture.detectChanges();
 
     // Test the condition directly
-    const adminSectionVisible = component.isSectionActive('admin') && component.userRole === 'admin';
+    const adminSectionVisible =
+      component.isSectionActive('admin') && component.userRole === 'admin';
     expect(adminSectionVisible).toBe(true);
 
     // Then check with user role
@@ -201,7 +195,8 @@ describe('DashboardComponent', () => {
     fixture.detectChanges();
 
     // Test the condition again, now it should be false
-    const adminSectionNotVisible = component.isSectionActive('admin') && component.userRole === 'admin';
+    const adminSectionNotVisible =
+      component.isSectionActive('admin') && component.userRole === 'admin';
     expect(adminSectionNotVisible).toBe(false);
   });
 

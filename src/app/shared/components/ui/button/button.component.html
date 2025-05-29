@@ -8,16 +8,20 @@
     variantClasses,
     roundedClasses,
     disabled || loading ? disabledClasses : '',
-    fullWidth ? 'w-full' : ''
+    fullWidth ? 'w-full' : '',
+    'focus:outline-none focus:ring-2 focus:ring-primary-500',
   ]"
+  [attr.aria-label]="ariaLabel"
+  [attr.data-testid]="dataTestId"
 >
   <div *ngIf="loading" class="absolute inset-0 flex items-center justify-center">
-    <div class="animate-spin w-4 h-4 border-2 border-t-transparent rounded-full"
-         [ngClass]="loadingColorClasses">
-    </div>
+    <div
+      class="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"
+      [ngClass]="loadingColorClasses"
+    ></div>
   </div>
 
-  <div [ngClass]="{'opacity-0': loading, 'flex items-center justify-center gap-2': true}">
+  <div [ngClass]="{ 'opacity-0': loading, 'flex items-center justify-center gap-2': true }">
     <ng-content select="[app-button-icon-left]"></ng-content>
     <ng-content></ng-content>
     <ng-content select="[app-button-icon-right]"></ng-content>

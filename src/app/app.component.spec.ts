@@ -1,10 +1,10 @@
-import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
-import { provideMockStore, MockStore } from '@ngrx/store/testing';
-import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
+import { RouterOutlet } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
 
 describe('AppComponent', () => {
   let store: MockStore;
@@ -12,16 +12,8 @@ describe('AppComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        AppComponent, 
-        CommonModule, 
-        FormsModule, 
-        RouterOutlet,
-        RouterTestingModule
-      ],
-      providers: [
-        provideMockStore({ initialState })
-      ]
+      imports: [AppComponent, CommonModule, FormsModule, RouterOutlet, RouterTestingModule],
+      providers: [provideMockStore({ initialState })],
     }).compileComponents();
 
     store = TestBed.inject(MockStore);

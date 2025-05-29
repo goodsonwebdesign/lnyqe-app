@@ -6,20 +6,20 @@
 /* Bottom sheet specific styles for mobile */
 @media (max-width: 640px) {
   :host ::ng-deep {
-    [class*="max-w-"] {
+    [class*='max-w-'] {
       max-width: 100% !important;
     }
 
     /* Bottom position styling */
-    div[class*="bottom-0"] {
+    div[class*='bottom-0'] {
       max-height: 85vh !important;
       border-top-left-radius: 0.75rem;
       border-top-right-radius: 0.75rem;
     }
 
     /* Side positions styling */
-    div[class*="right-0"]:not([class*="bottom-0"]),
-    div[class*="left-0"]:not([class*="bottom-0"]) {
+    div[class*='right-0']:not([class*='bottom-0']),
+    div[class*='left-0']:not([class*='bottom-0']) {
       width: 85vw !important;
     }
   }

@@ -1,22 +1,22 @@
-import { createReducer, on } from '@ngrx/store';
 import { AppActions } from '../actions/app.actions';
+import { createReducer, on } from '@ngrx/store';
 
 export interface AppState {
   isLoading: boolean;
 }
 
 export const initialState: AppState = {
-  isLoading: false
+  isLoading: false,
 };
 
 export const appReducer = createReducer(
   initialState,
-  on(AppActions.loadingStarted, state => ({
+  on(AppActions.loadingStarted, (state) => ({
     ...state,
-    isLoading: true
+    isLoading: true,
   })),
-  on(AppActions.loadingCompleted, state => ({
+  on(AppActions.loadingCompleted, (state) => ({
     ...state,
-    isLoading: false
-  }))
+    isLoading: false,
+  })),
 );

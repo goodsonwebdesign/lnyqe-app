@@ -8,15 +8,15 @@ import * as AuthActions from '../../../store/actions/auth.actions';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SsoService {
   private http = inject(HttpClient);
   private store = inject(Store);
-  
+
   // Cache for domain mappings
   private domainMappingsCache: Map<string, DomainMapping> = new Map();
-  
+
   // Sample domain mappings for development/testing
   // In production, these would be fetched from an API
   private readonly sampleDomainMappings: DomainMapping[] = [
@@ -26,7 +26,7 @@ export class SsoService {
       connectionName: 'Example-Corp-SSO',
       providerType: ProviderType.SAML,
       logoUrl: 'https://example.com/logo.png',
-      displayName: 'Example Corporation'
+      displayName: 'Example Corporation',
     },
     {
       domain: 'enterprise.co',
@@ -34,8 +34,8 @@ export class SsoService {
       connectionName: 'Enterprise-SSO',
       providerType: ProviderType.AZURE_AD,
       logoUrl: 'https://enterprise.co/logo.png',
-      displayName: 'Enterprise Co.'
-    }
+      displayName: 'Enterprise Co.',
+    },
   ];
 
   /**
@@ -48,41 +48,45 @@ export class SsoService {
     if (this.domainMappingsCache.has(domain)) {
       return of(this.domainMappingsCache.get(domain) || null);
     }
-    
+
     // In a real implementation, this would be an API call
     // For now, we'll simulate it using the sample data
     if (environment.production) {
       // In production, call the API to get domain mappings
       return this.http.get<DomainMapping>(`${environment.apiUrl}/sso/domains/${domain}`).pipe(
-        tap(mapping => {
+        tap((mapping) => {
           // Cache the result
           if (mapping) {
             this.domainMappingsCache.set(domain, mapping);
           }
         }),
-        catchError(error => {
+        catchError((error) => {
           console.error('Error checking domain for SSO:', error);
           return of(null);
-        })
+        }),
       );
     } else {
       // In development, use the sample data
       // Simulate network delay
-      return of(this.sampleDomainMappings.find(m => m.domain === domain) || null).pipe(
-        tap(mapping => {
+      return of(this.sampleDomainMappings.find((m) => m.domain === domain) || null).pipe(
+        tap((mapping) => {
           // Cache the result
           if (mapping) {
             this.domainMappingsCache.set(domain, mapping);
-            
+
             // Update the store with organization information
-            this.store.dispatch(AuthActions.setOrganization({ 
-              organizationId: mapping.organizationId 
-            }));
-            this.store.dispatch(AuthActions.setEnterpriseSSOEnabled({ 
-              enabled: true 
-            }));
+            this.store.dispatch(
+              AuthActions.setOrganization({
+                organizationId: mapping.organizationId,
+              }),
+            );
+            this.store.dispatch(
+              AuthActions.setEnterpriseSSOEnabled({
+                enabled: true,
+              }),
+            );
           }
-        })
+        }),
       );
     }
   }

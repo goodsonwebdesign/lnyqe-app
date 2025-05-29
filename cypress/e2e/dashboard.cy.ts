@@ -8,8 +8,30 @@ describe('Dashboard Page', () => {
     // Mock authentication with admin user by default
     cy.intercept('GET', '/api/auth/user', { fixture: 'admin-user.json' }).as('getUser');
 
-    // Visit the dashboard page
-    cy.visit('/dashboard');
+    // Set the e2e-auth flag before visiting the dashboard so the auth guard allows access
+    cy.visit('/dashboard', {
+      onBeforeLoad(win) {
+        win.localStorage.setItem('e2e-auth', 'admin');
+      }
+    });
+
+    // Hydrate the NgRx store with the admin user after the app is loaded
+    cy.window().then((win) => {
+      win.dispatchEvent(
+        new CustomEvent('ngrx-mock-auth', {
+          detail: {
+            user: {
+              id: 1,
+              first_name: 'Admin',
+              last_name: 'User',
+              email: 'admin.user@example.com',
+              role: 'admin',
+              status: 'active'
+            }
+          }
+        })
+      );
+    });
 
     // Wait for the dashboard to load and API calls to complete
     cy.get('[data-testid=dashboard-container]', { timeout: 10000 }).should('be.visible');

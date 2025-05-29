@@ -12,38 +12,62 @@ export class AppEffects {
   private store = inject(Store);
 
   // Show loading state when login starts
-  loginRequest$ = createEffect(() => this.actions$.pipe(
-    ofType(AuthActions.loginRequest),
-    tap(() => this.store.dispatch(appLoading()))
-  ), { dispatch: false });
+  loginRequest$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(AuthActions.loginRequest),
+        tap(() => this.store.dispatch(appLoading())),
+      ),
+    { dispatch: false },
+  );
 
   // Clear loading state when login completes (success or failure)
-  loginComplete$ = createEffect(() => this.actions$.pipe(
-    ofType(AuthActions.loginSuccess, AuthActions.loginFailure),
-    tap(() => this.store.dispatch(appLoaded()))
-  ), { dispatch: false });
+  loginComplete$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(AuthActions.loginSuccess, AuthActions.loginFailure),
+        tap(() => this.store.dispatch(appLoaded())),
+      ),
+    { dispatch: false },
+  );
 
   // Show loading state during route changes
-  routerRequest$ = createEffect(() => this.actions$.pipe(
-    ofType(ROUTER_REQUEST),
-    tap(() => this.store.dispatch(appLoading()))
-  ), { dispatch: false });
+  routerRequest$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(ROUTER_REQUEST),
+        tap(() => this.store.dispatch(appLoading())),
+      ),
+    { dispatch: false },
+  );
 
   // Clear loading state after route changes
-  routerNavigation$ = createEffect(() => this.actions$.pipe(
-    ofType(ROUTER_NAVIGATION),
-    tap(() => this.store.dispatch(appLoaded()))
-  ), { dispatch: false });
+  routerNavigation$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(ROUTER_NAVIGATION),
+        tap(() => this.store.dispatch(appLoaded())),
+      ),
+    { dispatch: false },
+  );
 
   // Show loading during token refresh
-  tokenRefresh$ = createEffect(() => this.actions$.pipe(
-    ofType(AuthActions.refreshToken),
-    tap(() => this.store.dispatch(appLoading()))
-  ), { dispatch: false });
+  tokenRefresh$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(AuthActions.refreshToken),
+        tap(() => this.store.dispatch(appLoading())),
+      ),
+    { dispatch: false },
+  );
 
   // Clear loading after token refresh completes
-  tokenRefreshComplete$ = createEffect(() => this.actions$.pipe(
-    ofType(AuthActions.refreshTokenSuccess, AuthActions.refreshTokenFailure),
-    tap(() => this.store.dispatch(appLoaded()))
-  ), { dispatch: false });
+  tokenRefreshComplete$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(AuthActions.refreshTokenSuccess, AuthActions.refreshTokenFailure),
+        tap(() => this.store.dispatch(appLoaded())),
+      ),
+    { dispatch: false },
+  );
 }

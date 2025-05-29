@@ -1,29 +1,37 @@
-import { createSelector } from '@ngrx/store';
-import { userFeature } from '../reducers/user.reducer';
+import { createFeatureSelector, createSelector } from '@ngrx/store';
+import { UserState, selectAllUsers } from '../reducers/user.reducer';
 
-// Export all the selectors from the feature
-export const {
-  selectUsersState, // Changed from selectUserState to selectUsersState
-  selectUsers,
-  selectLoading,
-  selectError
-} = userFeature;
+// Feature selector for the user state
+export const selectUserState = createFeatureSelector<UserState>('users');
 
-// Create a UserViewModel interface for components
-export interface UserViewModel {
-  users: any[];
-  loading: boolean;
-  error: any | null;
-}
+// Selector to get all users
+export const selectUsers = createSelector(selectUserState, selectAllUsers);
 
-// Create a selector for components to consume
+// Selector to get the loading state
+export const selectUsersLoading = createSelector(selectUserState, (state) => state.loading);
+
+// Selector to get the error state
+export const selectUsersError = createSelector(selectUserState, (state) => state.error);
+
+// Selector to get the selected user ID
+export const selectSelectedUserId = createSelector(selectUserState, (state) => state.selectedUserId);
+
+// Selector to get the selected user details
+export const selectSelectedUser = createSelector(
+  selectUserState,
+  (state) => (state.selectedUserId ? state.entities[state.selectedUserId] : null),
+);
+
+// ViewModel selector for container/presentational components
 export const selectUserViewModel = createSelector(
   selectUsers,
-  selectLoading,
-  selectError,
-  (users, loading, error): UserViewModel => ({
-    users: users || [],
+  selectUsersLoading,
+  selectUsersError,
+  selectSelectedUser,
+  (users, loading, error, selectedUser) => ({
+    users,
     loading,
-    error
-  })
+    error,
+    selectedUser,
+  }),
 );

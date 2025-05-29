@@ -8,7 +8,7 @@ import { IconComponent } from '../../components/ui/icon/icon.component';
   standalone: true,
   imports: [CommonModule, IconComponent],
   templateUrl: './theme-toggle.component.html',
-  styleUrls: ['./theme-toggle.component.scss']
+  styleUrls: ['./theme-toggle.component.scss'],
 })
 export class ThemeToggleComponent {
   themeService = inject(ThemeService);
@@ -16,7 +16,7 @@ export class ThemeToggleComponent {
   isMenuOpen = signal(false);
 
   toggleMenu(): void {
-    this.isMenuOpen.update(open => !open);
+    this.isMenuOpen.update((open) => !open);
   }
 
   setTheme(theme: Theme): void {
@@ -78,7 +78,7 @@ export class ThemeToggleComponent {
 
   private focusNextMenuItem(direction: number): void {
     const menuItems = this.getMenuItems();
-    const currentIndex = menuItems.findIndex(item => item === document.activeElement);
+    const currentIndex = menuItems.findIndex((item) => item === document.activeElement);
 
     if (currentIndex >= 0) {
       const nextIndex = (currentIndex + direction + menuItems.length) % menuItems.length;
@@ -89,8 +89,6 @@ export class ThemeToggleComponent {
   }
 
   private getMenuItems(): HTMLButtonElement[] {
-    return Array.from(
-      this.elementRef.nativeElement.querySelectorAll('[role="menuitem"]')
-    );
+    return Array.from(this.elementRef.nativeElement.querySelectorAll('[role="menuitem"]'));
   }
 }

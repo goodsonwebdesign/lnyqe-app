@@ -1,4 +1,12 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, OnDestroy, HostListener, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+  OnDestroy,
+  HostListener,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -26,15 +34,10 @@ interface NavItem {
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    ...UI_COMPONENTS,
-    ServiceRequestComponent
-  ],
+  imports: [CommonModule, RouterModule, ...UI_COMPONENTS, ServiceRequestComponent],
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {
   currentYear = new Date().getFullYear();
@@ -52,28 +55,28 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     {
       label: 'Dashboard',
       route: '/dashboard',
-      icon: 'mdi:home'
+      icon: 'mdi:home',
     },
     {
       label: 'Service Requests',
       route: '/features/service-requests',
-      icon: 'mdi:file-document-outline'
+      icon: 'mdi:file-document-outline',
     },
     {
       label: 'Calendar',
       route: '/calendar',
-      icon: 'mdi:calendar'
+      icon: 'mdi:calendar',
     },
     {
       label: 'Analytics',
       route: '/analytics',
-      icon: 'mdi:chart-bar'
+      icon: 'mdi:chart-bar',
     },
     {
       label: 'Auth Debug',
       route: '/auth-debug',
-      icon: 'mdi:bug'
-    }
+      icon: 'mdi:bug',
+    },
   ];
 
   // Primary Navigation for the horizontal tabs in desktop view
@@ -82,23 +85,23 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
       label: 'Dashboard',
       route: '/dashboard',
       icon: 'mdi:home',
-      exact: true
+      exact: true,
     },
     {
       label: 'Requests',
       route: '/features/service-requests',
-      icon: 'mdi:file-document-outline'
+      icon: 'mdi:file-document-outline',
     },
     {
       label: 'Analytics',
       route: '/analytics',
-      icon: 'mdi:chart-bar'
+      icon: 'mdi:chart-bar',
     },
     {
       label: 'Auth Debug',
       route: '/auth-debug',
-      icon: 'mdi:bug'
-    }
+      icon: 'mdi:bug',
+    },
   ];
 
   // Current route for active state calculations
@@ -136,32 +139,32 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
     // Subscribe to authentication state
     this.subscriptions.add(
-      this.store.select(selectIsAuthenticated).subscribe(isAuthenticated => {
+      this.store.select(selectIsAuthenticated).subscribe((isAuthenticated) => {
         this.isLoggedIn = isAuthenticated;
         // Removed auto-open sidenav behavior to keep it always closed by default
         this.cdr.markForCheck();
-      })
+      }),
     );
 
     // Subscribe to user data
     this.subscriptions.add(
-      this.store.select(selectCurrentUser).subscribe(user => {
+      this.store.select(selectCurrentUser).subscribe((user) => {
         this.user = user;
         this.cdr.markForCheck();
-      })
+      }),
     );
 
     // Track current route for active state calculations and close sidenav on navigation
     this.subscriptions.add(
       this.router.events
-        .pipe(filter(event => event instanceof NavigationEnd))
+        .pipe(filter((event) => event instanceof NavigationEnd))
         .subscribe((event: any) => {
           // Close sidenav when navigating to a new page
           this.closeSidenav();
 
           this.currentRoute = event.urlAfterRedirects;
           this.cdr.markForCheck();
-        })
+        }),
     );
 
     // Initial check for mobile view
@@ -222,34 +225,35 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
       // Avoid URL parameters completely to prevent URI decoding issues
       const safePath = 'build-info.txt';
 
-      this.http.get(safePath, {
-        responseType: 'text',
-        // Use headers instead of URL parameters
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      })
-      .pipe(
-        catchError(error => {
-          console.error('Error loading build info:', error);
-          this.buildInfo = 'Development Build';
-          return EMPTY;
+      this.http
+        .get(safePath, {
+          responseType: 'text',
+          // Use headers instead of URL parameters
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            Pragma: 'no-cache',
+            Expires: '0',
+          },
         })
-      )
-      .subscribe({
-        next: (data: string) => {
-          if (data && typeof data === 'string') {
-            this.buildInfo = data.trim();
-            // Extract timestamp from the build info if possible
-            if (data.includes('Build date:')) {
-              const dateStr = data.replace('Build date:', '').trim();
-              this.deployedOn = this.formatDate(dateStr);
+        .pipe(
+          catchError((error) => {
+            console.error('Error loading build info:', error);
+            this.buildInfo = 'Development Build';
+            return EMPTY;
+          }),
+        )
+        .subscribe({
+          next: (data: string) => {
+            if (data && typeof data === 'string') {
+              this.buildInfo = data.trim();
+              // Extract timestamp from the build info if possible
+              if (data.includes('Build date:')) {
+                const dateStr = data.replace('Build date:', '').trim();
+                this.deployedOn = this.formatDate(dateStr);
+              }
             }
-          }
-        }
-      });
+          },
+        });
     } catch (error) {
       // Safety catch block to prevent any URI errors from breaking the app
       console.error('Error in loadBuildInfo:', error);

@@ -1,6 +1,6 @@
+import { SidenavComponent } from './sidenav.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { SidenavComponent } from './sidenav.component';
 
 describe('SidenavComponent', () => {
   let component: SidenavComponent;
@@ -10,10 +10,9 @@ describe('SidenavComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         SidenavComponent,
-        RouterTestingModule // Add RouterTestingModule to provide ActivatedRoute
-      ]
-    })
-    .compileComponents();
+        RouterTestingModule, // Add RouterTestingModule to provide ActivatedRoute
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(SidenavComponent);
     component = fixture.componentInstance;
