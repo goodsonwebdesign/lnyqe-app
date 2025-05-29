@@ -8,26 +8,16 @@ import { UserActions } from '../../store/actions/user.actions';
 import { selectUserViewModel } from '../../store/selectors/user.selectors';
 import { UsersFilterService } from './users-filter.service';
 import { UserView } from '../../core/models/user.model';
-import { UsersManagementComponent } from './users-management.component';
 
 @Component({
   selector: 'app-users-management-container',
   standalone: true,
   template: `
-    <app-users-management
-      [filterForm]="filterForm"
-      [users]="(filteredUsers$ | async) || []"
-      [isLoading]="(isLoading$ | async) || false"
-      [error]="error$ | async"
-      (addUser)="onAddUser()"
-      (editUser)="onEditUser($event)"
-      (deleteUser)="onDeleteUser($event)"
-      (viewProfile)="onViewProfile($event)"
-      (filterChange)="onFilterChange()"
-    ></app-users-management>
+    <!-- Add your presentational component here when available -->
+    <div class="p-4">User Management Container Loaded</div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, UsersManagementComponent],
+  imports: [CommonModule, ReactiveFormsModule],
 })
 export class UsersManagementContainerComponent {
   private store = inject(Store);
@@ -55,10 +45,4 @@ export class UsersManagementContainerComponent {
   constructor() {
     this.store.dispatch(UserActions.loadUsers());
   }
-
-  onAddUser() { /* open modal or dispatch action */ }
-  onEditUser(user: UserView) { /* open modal or dispatch action */ }
-  onDeleteUser(user: UserView) { /* confirm and dispatch action */ }
-  onViewProfile(user: UserView) { /* navigate or open profile */ }
-  onFilterChange() { /* optional: handle filter change */ }
 }

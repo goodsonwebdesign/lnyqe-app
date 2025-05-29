@@ -1,19 +1,12 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { UserActions } from '../actions/user.actions';
 import { UsersService } from '../../core/services/users/users.service';
 import { catchError, map, mergeMap, of, switchMap } from 'rxjs';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class UserEffects {
-  // Use functional injection pattern instead of constructor injection
-  private actions$ = inject(Actions);
-  private usersService = inject(UsersService);
-
-  constructor() {
-    console.log('UserEffects constructor called');
-    console.log('UsersService injected:', !!this.usersService);
-  }
+  constructor(private actions$: Actions, private usersService: UsersService) {}
 
   loadUsers$ = createEffect(() =>
     this.actions$.pipe(
