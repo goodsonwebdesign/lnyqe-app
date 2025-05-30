@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, of } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { User, transformUserToViewModel } from '../../models/user.model';
@@ -28,6 +28,61 @@ export class UsersService {
    */
   getUsers(): Observable<UserView[]> {
     console.log('Fetching users from:', this.apiUrl);
+    
+    // Return mock data temporarily since the API is returning HTML instead of JSON
+    // This can be removed once the API is properly configured
+    return of([
+      {
+        id: 1,
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john.doe@example.com',
+        role: 'admin',
+        status: 'active',
+        department: 'Engineering',
+        location: 'New York',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: 2,
+        first_name: 'Jane',
+        last_name: 'Smith',
+        email: 'jane.smith@example.com',
+        role: 'staff',
+        status: 'active',
+        department: 'HR',
+        location: 'San Francisco',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: 3,
+        first_name: 'Robert',
+        last_name: 'Johnson',
+        email: 'robert.johnson@example.com',
+        role: 'staff',
+        status: 'inactive',
+        department: 'Sales',
+        location: 'Chicago',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: 4,
+        first_name: 'Emily',
+        last_name: 'Davis',
+        email: 'emily.davis@example.com',
+        role: 'guest',
+        status: 'pending',
+        department: 'Marketing',
+        location: 'Boston',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    ]);
+    
+    /* Temporarily disabled until API returns proper JSON
     return this.http.get<any>(this.apiUrl).pipe(
       tap((response) => {
         console.log('Raw API response type:', typeof response);
@@ -55,6 +110,7 @@ export class UsersService {
       }),
       catchError(this.handleError),
     );
+    */
   }
 
   /**
@@ -111,15 +167,17 @@ export class UsersService {
     } else if (error.error instanceof ErrorEvent) {
       errorMessage = `Client-side error: ${error.error.message}`;
     } else {
-      // Don't treat 200 as an error
-      if (error.status === 200) {
-        console.warn('Received HTTP 200 in error handler, this should not happen', error);
-        return throwError(() => new Error('Unexpected response format from server'));
+      // Handle the case where the server returns HTML instead of JSON with status 200
+      if (error.status === 200 && error.error && typeof error.error.text === 'string' && 
+          error.error.text.includes('<!doctype html>')) {
+        console.error('Server returned HTML instead of JSON. This typically happens when the API route is not properly configured.');
+        errorMessage = 'The API endpoint is returning the application instead of data. Please check the server configuration.';
+      } else {
+        errorMessage = `Server error: ${error.status}. ${error.error?.message || 'An unknown error occurred'}`;
       }
-      errorMessage = `Server error: ${error.status}. ${error.error?.message || 'An unknown error occurred'}`;
     }
 
-    console.error('API Error:', errorMessage);
+    console.error('API Error:', errorMessage, error);
     return throwError(() => new Error(errorMessage));
   }
 }
