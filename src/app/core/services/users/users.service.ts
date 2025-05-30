@@ -28,18 +28,30 @@ export class UsersService {
    */
   getUsers(): Observable<UserView[]> {
     console.log('Fetching users from:', this.apiUrl);
-    return this.http.get<PaginatedResponse<User>>(this.apiUrl).pipe(
+    return this.http.get<any>(this.apiUrl).pipe(
       tap((response) => {
+        console.log('Raw API response type:', typeof response);
         console.log('Raw API response:', response);
-        if (!response?.data || !Array.isArray(response.data)) {
-          console.warn('Invalid API response:', response);
-        } else {
-          console.log(`Fetched ${response.data.length} users out of ${response.total} total`);
-        }
       }),
       map((response) => {
-        if (!response?.data || !Array.isArray(response.data)) return [];
-        return response.data.map(transformUserToViewModel);
+        // Handle different API response formats
+        if (Array.isArray(response)) {
+          // If the response is already an array, use it directly
+          return response.map(transformUserToViewModel);
+        } else if (response?.data && Array.isArray(response.data)) {
+          // If response has a data property that's an array, use that
+          return response.data.map(transformUserToViewModel);
+        } else if (response && typeof response === 'object') {
+          // If response is an object but doesn't have the expected structure,
+          // try to extract users from it
+          const potentialUsers = Object.values(response).find(Array.isArray);
+          if (potentialUsers) {
+            return potentialUsers.map(transformUserToViewModel);
+          }
+        }
+
+        console.warn('Could not parse users from API response:', response);
+        return []; // Return empty array as fallback
       }),
       catchError(this.handleError),
     );
@@ -99,6 +111,11 @@ export class UsersService {
     } else if (error.error instanceof ErrorEvent) {
       errorMessage = `Client-side error: ${error.error.message}`;
     } else {
+      // Don't treat 200 as an error
+      if (error.status === 200) {
+        console.warn('Received HTTP 200 in error handler, this should not happen', error);
+        return throwError(() => new Error('Unexpected response format from server'));
+      }
       errorMessage = `Server error: ${error.status}. ${error.error?.message || 'An unknown error occurred'}`;
     }
 
