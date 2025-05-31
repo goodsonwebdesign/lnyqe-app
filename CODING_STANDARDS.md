@@ -263,6 +263,19 @@ Example:
 - Support dark mode for all components using Tailwind's `dark:` prefix
 - Test all components in both light and dark mode
 
+#### Using ngClass for Conditional Classes
+- Use Angular's [ngClass] directive for conditional Tailwind classes in templates.
+- Prefer [ngClass] over string interpolation for complex or multi-condition class logic.
+- Example:
+  ```html
+  <button [ngClass]="{
+    'bg-primary-50': isActive,
+    'text-primary-600': isActive,
+    'border-primary-500': isActive,
+    'relative inline-flex items-center px-4 py-2 border border-neutral-300': true
+  }">Button</button>
+  ```
+
 ## Theming Guidelines
 
 ### Color Palette
@@ -329,6 +342,8 @@ Example:
 - Follow the Angular DI pattern consistently
 - Inject services in the constructor
 - Use appropriate provider scope
+
+- Use [ngClass] for conditional styling instead of string interpolation when multiple or complex class conditions are needed.
 
 ## Security Standards
 

@@ -3,19 +3,26 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { UserActions } from '../actions/user.actions';
 import { UsersService } from '../../core/services/users/users.service';
 import { catchError, map, mergeMap, of, switchMap } from 'rxjs';
+import { Store, select } from '@ngrx/store';
+import { selectUserState } from '../selectors/user.selectors';
+import { withLatestFrom } from 'rxjs/operators';
 
 @Injectable()
 export class UserEffects {
   // Use functional injection pattern
   private actions$ = inject(Actions);
   private usersService = inject(UsersService);
+  private store = inject(Store);
 
   loadUsers$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(UserActions.loadUsers),
-      switchMap(() =>
-        this.usersService.getUsers().pipe(
-          map((users) => UserActions.loadUsersSuccess({ users })),
+      ofType(UserActions.loadUsers, UserActions.setUserFilters),
+      withLatestFrom(this.store.pipe(select(selectUserState))),
+      switchMap(([action, state]) =>
+        this.usersService.getUsers(state.filters).pipe(
+          map((users) =>
+            UserActions.loadUsersSuccess({ users })
+          ),
           catchError((error) => of(UserActions.loadUsersFailure({ error })))
         )
       )

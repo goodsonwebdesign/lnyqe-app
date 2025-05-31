@@ -1,6 +1,5 @@
 import { authGuard } from '../core/guards/auth.guard';
 import { HomeContainerComponent } from './home/home-container.component';
-import { UsersManagementContainerComponent } from './users-management/users-management-container.component';
 import { Routes } from '@angular/router';
 
 // This file contains all feature routes for the application
@@ -11,7 +10,7 @@ export const FEATURES_ROUTES: Routes = [
     path: 'dashboard',
     loadComponent: () =>
       import('./dashboard/dashboard-container.component').then(
-        (m) => m.DashboardContainerComponent,
+        (c) => c.DashboardContainerComponent,
       ),
     title: 'Dashboard',
   },
@@ -19,13 +18,16 @@ export const FEATURES_ROUTES: Routes = [
     path: 'service-requests',
     loadComponent: () =>
       import('./service-requests/service-requests-container.component').then(
-        (m) => m.ServiceRequestsContainerComponent,
+        (c) => c.ServiceRequestsContainerComponent,
       ),
     title: 'Service Requests',
   },
   {
     path: 'users-management',
-    component: UsersManagementContainerComponent,
+    loadComponent: () =>
+      import('./users-management/users-management-container.component').then(
+        (c) => c.UsersManagementContainerComponent,
+      ),
     canActivate: [authGuard],
     title: 'LNYQE - User Management',
   },

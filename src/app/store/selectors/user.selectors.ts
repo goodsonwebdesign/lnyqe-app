@@ -35,3 +35,20 @@ export const selectUserViewModel = createSelector(
     selectedUser,
   }),
 );
+
+// Filters selector
+export const selectUsersFilters = createSelector(selectUserState, (state) => state.filters);
+
+// ViewModel selector for users with filters
+export const selectUsersViewModel = createSelector(
+  selectUsers,
+  selectUsersLoading,
+  selectUsersError,
+  selectUsersFilters,
+  (users, loading, error, filters) => ({
+    users,
+    loading,
+    error,
+    filters,
+  }),
+);

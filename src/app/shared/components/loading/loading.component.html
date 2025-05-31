@@ -4,37 +4,24 @@
     <div class="mb-8 animate-pulse">
       <img
         *ngIf="!isDarkMode"
-        src="assets/logo-light.svg"
-        alt="LNYQE Logo"
+        src="https://img-lynqe.s3.us-east-2.amazonaws.com/logo-blk.png"
+        alt="Lynqe Logo"
         class="h-12 sm:h-16"
-        onerror="this.onerror=null; this.src='https://img-lynqe.s3.us-east-2.amazonaws.com/logo-blk.png'"
       />
       <img
         *ngIf="isDarkMode"
-        src="assets/logo-dark.svg"
-        alt="LNYQE Logo"
+        src="https://img-lynqe.s3.us-east-2.amazonaws.com/logo-wht.png"
+        alt="Lynqe Logo"
         class="h-12 sm:h-16"
-        onerror="this.onerror=null; this.src='https://img-lynqe.s3.us-east-2.amazonaws.com/logo-wht.png'"
       />
     </div>
 
-    <!-- Loading spinner -->
-    <div class="relative" role="status" aria-label="Loading" data-testid="loading-spinner">
-      <!-- Primary color orbit -->
-      <div
-        class="h-16 w-16 animate-spin rounded-full border-b-4 border-t-4 border-primary-500"
-      ></div>
-
-      <!-- Secondary color orbit at 45 degree offset -->
-      <div
-        class="absolute left-0 top-0 h-16 w-16 animate-spin rounded-full border-l-4 border-r-4 border-secondary-500"
-        style="animation-duration: 1.5s; animation-direction: reverse"
-      ></div>
-
-      <!-- Inner dot -->
-      <div
-        class="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-primary-600 dark:bg-primary-400"
-      ></div>
+    <!-- Heroicon spinner -->
+    <div class="flex justify-center items-center mt-2 mb-2">
+      <svg class="h-8 w-8 text-primary-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+          d="M4.5 12a7.5 7.5 0 0113.5-4.5m0 0V3m0 4.5h-4.5m9 4.5a7.5 7.5 0 01-13.5 4.5m0 0V21m0-4.5h4.5"/>
+      </svg>
     </div>
 
     <!-- Loading text -->

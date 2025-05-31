@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, of } from 'rxjs';
-import { catchError, tap, map } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { Observable, throwError, of, BehaviorSubject } from 'rxjs';
+import { catchError, tap, map, switchMap, shareReplay } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { User, transformUserToViewModel } from '../../models/user.model';
 import { UserView } from '../../models/user.model';
@@ -10,113 +10,101 @@ interface PaginatedResponse<T> {
   data: T[];
   success: boolean;
   total: number;
+  page?: number;
+  limit?: number;
 }
 
+export interface PaginationParams {
+  page: number;
+  limit: number;
+  search?: string;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+  role?: string;
+  status?: string;
+  department?: string;
+}
+
+/**
+ * Service for managing users data including pagination and search
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class UsersService {
   private apiUrl = `${environment.apiUrl}/v1/users`;
 
+  // Cache all users for client-side filtering
+  private allUsersCache$ = new BehaviorSubject<UserView[]>([]);
+
   constructor(private http: HttpClient) {
     console.log('API URL configured as:', this.apiUrl);
   }
 
   /**
-   * Get all users from the API
-   * @returns Observable of users array
+   * Load all users from the API (potentially with a high limit)
+   * This loads the complete dataset for client-side searching
    */
-  getUsers(): Observable<UserView[]> {
-    console.log('Fetching users from:', this.apiUrl);
-    
-    // Return mock data temporarily since the API is returning HTML instead of JSON
-    // This can be removed once the API is properly configured
-    return of([
-      {
-        id: 1,
-        first_name: 'John',
-        last_name: 'Doe',
-        email: 'john.doe@example.com',
-        role: 'admin',
-        status: 'active',
-        department: 'Engineering',
-        location: 'New York',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: 2,
-        first_name: 'Jane',
-        last_name: 'Smith',
-        email: 'jane.smith@example.com',
-        role: 'staff',
-        status: 'active',
-        department: 'HR',
-        location: 'San Francisco',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: 3,
-        first_name: 'Robert',
-        last_name: 'Johnson',
-        email: 'robert.johnson@example.com',
-        role: 'staff',
-        status: 'inactive',
-        department: 'Sales',
-        location: 'Chicago',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: 4,
-        first_name: 'Emily',
-        last_name: 'Davis',
-        email: 'emily.davis@example.com',
-        role: 'guest',
-        status: 'pending',
-        department: 'Marketing',
-        location: 'Boston',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ]);
-    
-    /* Temporarily disabled until API returns proper JSON
-    return this.http.get<any>(this.apiUrl).pipe(
+  loadAllUsers(): Observable<UserView[]> {
+    // Set limit=0 to get all records if the API supports it
+    return this.fetchUsers({ page: 0, limit: 0 }).pipe(
+      tap(users => this.allUsersCache$.next(users)),
+      shareReplay(1)
+    );
+  }
+
+  /**
+   * Get all users and apply filters client-side
+   */
+  getUsers(filters?: any): Observable<UserView[]> {
+    return this.http.get<{ data: User[] }>(`${this.apiUrl}?limit=0`).pipe(
+      map(response => response.data.map(transformUserToViewModel)),
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Clear the users cache to force a fresh load
+   */
+  clearCache(): void {
+    this.allUsersCache$.next([]);
+  }
+
+  /**
+   * Fetch users from the API with pagination parameters
+   */
+  private fetchUsers(params: PaginationParams): Observable<UserView[]> {
+    // Build query parameters for pagination
+    let httpParams = new HttpParams()
+      .set('page', params.page.toString())
+      .set('limit', params.limit.toString());
+
+    if (params.sortBy) {
+      httpParams = httpParams.set('sort', params.sortBy);
+      httpParams = httpParams.set('direction', params.sortDir || 'asc');
+    }
+
+    if (params.search) {
+      httpParams = httpParams.set('q', params.search);
+    }
+
+    return this.http.get<PaginatedResponse<User>>(this.apiUrl, { params: httpParams }).pipe(
       tap((response) => {
-        console.log('Raw API response type:', typeof response);
-        console.log('Raw API response:', response);
+        console.log(`Fetched ${response?.data?.length || 0} users out of ${response?.total || 0} total`);
       }),
       map((response) => {
-        // Handle different API response formats
-        if (Array.isArray(response)) {
-          // If the response is already an array, use it directly
-          return response.map(transformUserToViewModel);
-        } else if (response?.data && Array.isArray(response.data)) {
-          // If response has a data property that's an array, use that
-          return response.data.map(transformUserToViewModel);
-        } else if (response && typeof response === 'object') {
-          // If response is an object but doesn't have the expected structure,
-          // try to extract users from it
-          const potentialUsers = Object.values(response).find(Array.isArray);
-          if (potentialUsers) {
-            return potentialUsers.map(transformUserToViewModel);
-          }
+        if (!response?.data || !Array.isArray(response.data)) {
+          console.warn('Invalid API response:', response);
+          return [];
         }
-
-        console.warn('Could not parse users from API response:', response);
-        return []; // Return empty array as fallback
+        return response.data.map(transformUserToViewModel);
       }),
       catchError(this.handleError),
     );
-    */
   }
 
   /**
    * Get a single user by ID
-   * @param id User ID
-   * @returns Observable of single user
    */
   getUser(id: number): Observable<UserView> {
     return this.http
@@ -126,34 +114,38 @@ export class UsersService {
 
   /**
    * Create a new user
-   * @param user User data
-   * @returns Observable of created user
    */
   createUser(user: Partial<User>): Observable<UserView> {
     return this.http
       .post<User>(this.apiUrl, user)
-      .pipe(map(transformUserToViewModel), catchError(this.handleError));
+      .pipe(
+        map(transformUserToViewModel),
+        tap(() => this.clearCache()), // Clear cache to force refresh
+        catchError(this.handleError)
+      );
   }
 
   /**
    * Update an existing user
-   * @param id User ID
-   * @param user Updated user data
-   * @returns Observable of updated user
    */
   updateUser(id: number, user: Partial<User>): Observable<UserView> {
     return this.http
       .put<User>(`${this.apiUrl}/${id}`, user)
-      .pipe(map(transformUserToViewModel), catchError(this.handleError));
+      .pipe(
+        map(transformUserToViewModel),
+        tap(() => this.clearCache()), // Clear cache to force refresh
+        catchError(this.handleError)
+      );
   }
 
   /**
    * Delete a user
-   * @param id User ID
-   * @returns Observable of void
    */
   deleteUser(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(catchError(this.handleError));
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+      tap(() => this.clearCache()), // Clear cache to force refresh
+      catchError(this.handleError)
+    );
   }
 
   /**
@@ -168,7 +160,7 @@ export class UsersService {
       errorMessage = `Client-side error: ${error.error.message}`;
     } else {
       // Handle the case where the server returns HTML instead of JSON with status 200
-      if (error.status === 200 && error.error && typeof error.error.text === 'string' && 
+      if (error.status === 200 && error.error && typeof error.error.text === 'string' &&
           error.error.text.includes('<!doctype html>')) {
         console.error('Server returned HTML instead of JSON. This typically happens when the API route is not properly configured.');
         errorMessage = 'The API endpoint is returning the application instead of data. Please check the server configuration.';

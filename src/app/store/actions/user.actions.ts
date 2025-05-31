@@ -27,6 +27,9 @@ export const UserActions = createActionGroup({
     // Select User
     'Select User': props<{ id: number }>(),
     'Clear Selected User': emptyProps(),
+
+    // Set Filters
+    'Set User Filters': props<{ filters: Partial<UserView> | any }>(),
   },
 });
 
