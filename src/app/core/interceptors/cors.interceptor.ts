@@ -31,8 +31,13 @@ export class CorsInterceptor implements HttpInterceptor {
       console.log(`CORS Interceptor: Using API audience: ${this.apiIdentifier}`);
 
       // Get a token with the correct audience specifically for API calls
-      return from(this.authService.getApiAccessToken(this.apiIdentifier)).pipe(
-        tap((token) => {
+      return from(this.authService.getTokenSilently()).pipe(
+        tap((tokenResponse) => {
+          const token = tokenResponse?.accessToken;
+          if (!token) {
+            console.warn('No access token available');
+            return;
+          }
           // For debugging - decode and log token audience (without showing the full token)
           if (token) {
             try {

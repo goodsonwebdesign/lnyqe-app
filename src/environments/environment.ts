@@ -27,3 +27,4 @@ export const environment = {
     disableQueryParsing: true,
   },
 };
+};
