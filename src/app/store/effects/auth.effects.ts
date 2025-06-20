@@ -17,6 +17,10 @@ import {
 import { AuthActions } from '../actions/auth.actions';
 import * as AppActions from '../actions/app.actions';
 import { AuthService } from '../../core/services/auth/auth.service';
+import { UsersService } from '../../core/services/users/users.service';
+import { User } from '../../core/models/user.model';
+import { environment } from '../../../environments/environment';
+
 import { selectIsAuthenticated } from '../selectors/auth.selectors';
 
 @Injectable()
@@ -24,6 +28,7 @@ export class AuthEffects {
   private actions$ = inject(Actions);
   private auth0Service = inject(Auth0Service);
   private authService = inject(AuthService);
+  private usersService = inject(UsersService);
   private router = inject(Router);
   private store = inject(Store);
 
@@ -51,21 +56,22 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
+        tap(() => console.log('[AuthEffects] loginSuccess$ effect triggered.')),
         tap(({ user }) => {
-          if (AuthEffects.actionInProgress) {
-            return;
-          }
-
+          // Removed the initial check for AuthEffects.actionInProgress to ensure navigation logic always runs on loginSuccess.
+          // The actionInProgress flag is still set here to signal to other effects that a login process is active.
           AuthEffects.actionInProgress = true;
-          // Hide loading state
+          
+          // Hide loading state, typically set by checkAuth$
           this.store.dispatch(AppActions.appLoaded());
 
-          // Log success
-          console.log('User authenticated:', user.email);
-
           // Careful with navigation - don't redirect if we're already on the dashboard
-          if (window.location.pathname !== '/dashboard') {
-            this.router.navigate(['/dashboard']);
+          console.log('[AuthEffects] loginSuccess$: Preparing to navigate. Current path:', window.location.pathname);
+          if (window.location.pathname !== '/features/dashboard') {
+            console.log('[AuthEffects] loginSuccess$: Navigating to /features/dashboard');
+            this.router.navigate(['/features/dashboard']);
+          } else {
+            console.log('[AuthEffects] loginSuccess$: Already on /features/dashboard or navigation skipped.');
           }
 
           // Reset the action flag after a short delay
@@ -89,8 +95,6 @@ export class AuthEffects {
           AuthEffects.actionInProgress = true;
           // Hide loading state
           this.store.dispatch(AppActions.appLoaded());
-          // Log error
-          console.error('Authentication failed:', error);
 
           // Redirect to home page only if not already there
           if (window.location.pathname !== '/') {
@@ -123,7 +127,7 @@ export class AuthEffects {
           this.auth0Service.logout({
             logoutParams: {
               returnTo: window.location.origin,
-              clientId: 'jaxCqNsBtZmpnpbjXBsAzYkhygDKg4TM',
+              clientId: environment.auth.clientId,
             },
           });
 
@@ -136,70 +140,60 @@ export class AuthEffects {
     { dispatch: false },
   );
 
-  refreshToken$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.refreshToken),
-      filter(() => !AuthEffects.actionInProgress),
-      tap(() => {
-        AuthEffects.actionInProgress = true;
-      }),
-      exhaustMap(() =>
-        from(this.authService.getTokenSilently()).pipe(
-          map((token) => AuthActions.refreshTokenSuccess({ token })),
-          catchError((error) => of(AuthActions.refreshTokenFailure({ error }))),
-          finalize(() => {
-            AuthEffects.actionInProgress = false;
-          }),
-        ),
-      ),
-    ),
-  );
-
   checkAuth$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.checkAuth),
-      debounceTime(500),
-      filter(() => !AuthEffects.actionInProgress),
-      tap(() => {
-        AuthEffects.actionInProgress = true;
-      }),
+      tap(() => this.store.dispatch(AppActions.appLoading())), // Dispatch appLoading
       exhaustMap(() => {
-        console.log('Checking auth state');
         return this.auth0Service.isAuthenticated$.pipe(
           switchMap((isAuthenticated) => {
-            console.log('Auth state check result:', isAuthenticated);
-
             if (isAuthenticated) {
               return this.auth0Service.user$.pipe(
-                switchMap((user) => {
-                  if (user) {
+                switchMap((auth0User) => {
+                  if (auth0User) {
                     return from(this.authService.getTokenSilently()).pipe(
-                      map((token) => {
-                        const processedUser = this.authService.processUserProfile(user);
-                        return AuthActions.loginSuccess({ user: processedUser, token });
+                      switchMap((token) => {
+                        return this.usersService.getMe().pipe(
+                          tap(() => {
+                            AuthEffects.actionInProgress = false;
+                            console.log('[AuthEffects] checkAuth$: actionInProgress set to false before loginSuccess dispatch.');
+                          }),
+                          map((backendUser: User) => {
+                            if (!backendUser) {
+                              throw new Error('Backend user profile is missing or undefined.');
+                            }
+                            console.log('[AuthEffects] checkAuth$: Dispatching loginSuccess.');
+                            return AuthActions.loginSuccess({ user: backendUser, token });
+                          }),
+                          catchError((getMeError) => {
+                            return of(AuthActions.loginFailure({ error: `Failed to fetch backend user: ${getMeError.message}` }));
+                          })
+                        );
                       }),
+                      catchError((tokenError) => {
+                        return of(AuthActions.loginFailure({ error: `Failed to get API token: ${tokenError.message}` }));
+                      })
                     );
                   }
-                  return of(AuthActions.loginFailure({ error: 'User information not available' }));
+                  return of(AuthActions.loginFailure({ error: 'Auth0 user information not available' }));
                 }),
+                catchError((userError) => {
+                  return of(AuthActions.loginFailure({ error: `Failed to get Auth0 user: ${userError.message}` }));
+                })
               );
             }
-
             return of(AuthActions.loginFailure({ error: 'Not authenticated' }));
           }),
-          catchError((error) => {
-            setTimeout(() => {
-              AuthEffects.actionInProgress = false;
-            }, 1000);
-            return of(AuthActions.loginFailure({ error }));
+          catchError((authCheckError) => {
+            AuthEffects.actionInProgress = false; // Reset flag immediately on error
+            return of(AuthActions.loginFailure({ error: `Authentication check failed: ${authCheckError.message}` }));
           }),
           finalize(() => {
-            setTimeout(() => {
-              AuthEffects.actionInProgress = false;
-            }, 1000);
-          }),
+            AuthEffects.actionInProgress = false;
+            this.store.dispatch(AppActions.appLoaded()); // Dispatch appLoaded
+          })
         );
-      }),
-    ),
+      })
+    )
   );
 }

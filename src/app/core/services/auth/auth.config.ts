@@ -26,13 +26,11 @@ export const AUTH_CONFIG: AuthConfig = {
         uri: `${environment.apiUrl}/*`,
         tokenOptions: {
           authorizationParams: {
-            audience: environment.auth.audience,
+            audience: environment.auth.apiAudience, // Use apiAudience for consistency
             scope: environment.auth.scope,
           },
         },
       },
     ],
-  },
-};
   },
 };

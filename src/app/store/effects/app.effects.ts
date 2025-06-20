@@ -50,24 +50,4 @@ export class AppEffects {
       ),
     { dispatch: false },
   );
-
-  // Show loading during token refresh
-  tokenRefresh$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AuthActions.refreshToken),
-        tap(() => this.store.dispatch(appLoading())),
-      ),
-    { dispatch: false },
-  );
-
-  // Clear loading after token refresh completes
-  tokenRefreshComplete$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AuthActions.refreshTokenSuccess, AuthActions.refreshTokenFailure),
-        tap(() => this.store.dispatch(appLoaded())),
-      ),
-    { dispatch: false },
-  );
 }

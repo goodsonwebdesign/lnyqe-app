@@ -1,4 +1,5 @@
-import { AuthState, AuthToken, AuthUser } from '../../core/models/auth.model';
+import { AuthState, AuthToken } from '../../core/models/auth.model';
+import { User } from '../../core/models/user.model';
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 
 // Feature selector
@@ -33,13 +34,13 @@ export const selectIsEnterpriseSSOEnabled = createSelector(
 
 export const selectUserRole = createSelector(
   selectCurrentUser,
-  (user: AuthUser | null) => user?.role || null,
+  (user: User | null) => user?.role || null,
 );
 
 // Create a unified view model
 export interface AuthViewModel {
   isAuthenticated: boolean;
-  user: AuthUser | null;
+  user: User | null;
   token: AuthToken | null;
   isLoading: boolean;
   error: any | null;

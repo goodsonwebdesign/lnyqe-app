@@ -2,7 +2,6 @@ import { authGuard } from './core/guards/auth.guard';
 import { homeGuard } from './core/guards/home.guard';
 import { AuthDebugComponent } from './features/auth/auth-debug/auth-debug.component';
 import { CallbackComponent } from './features/auth/callback/callback.component';
-import { DashboardContainerComponent } from './features/dashboard/dashboard-container.component';
 import { HomeContainerComponent } from './features/home/home-container.component';
 import { UserPreferencesComponent } from './features/user-preferences/user-preferences.component';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
@@ -24,12 +23,6 @@ export const routes: Routes = [
         component: HomeContainerComponent,
         canActivate: [homeGuard],
         title: 'LNYQE - Home',
-      },
-      {
-        path: 'dashboard',
-        component: DashboardContainerComponent,
-        canActivate: [authGuard],
-        title: 'LNYQE - Dashboard',
       },
       {
         path: 'preferences',

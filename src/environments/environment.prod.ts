@@ -8,6 +8,7 @@ export const environment = {
     domain: 'dev-j6xaaxargtg5y78x.us.auth0.com',
     clientId: 'jaxCqNsBtZmpnpbjXBsAzYkhygDKg4TM',
     audience: 'https://api.lynqe.com', // Updated to the correct API domain
+    apiAudience: 'https://api.lynqe.com', // Added for CorsInterceptor consistency
     scope: 'openid profile email offline_access',
   },
 

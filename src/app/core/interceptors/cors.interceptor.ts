@@ -18,70 +18,28 @@ export class CorsInterceptor implements HttpInterceptor {
   // Get API identifier from environment config
   private apiIdentifier = environment.auth.apiAudience;
 
-  constructor() {
-    console.log('CORS Interceptor initialized with API audience:', this.apiIdentifier);
-  }
+  constructor() {}
+
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    console.log(`CORS Interceptor: Request URL: ${request.url}`);
+    const isApiUrl = request.url.includes(environment.apiUrl); // Use environment.apiUrl for matching
 
     // Only modify API requests
-    if (request.url.includes('/api/')) {
-      console.log(`CORS Interceptor: Handling API request to ${request.url}`);
-      console.log(`CORS Interceptor: Using API audience: ${this.apiIdentifier}`);
+    if (isApiUrl) {
+      return from(this.authService.getApiAccessToken(this.apiIdentifier)).pipe(
+        switchMap((token) => {
+          const headers: { [key: string]: string } = {};
 
-      // Get a token with the correct audience specifically for API calls
-      return from(this.authService.getTokenSilently()).pipe(
-        tap((tokenResponse) => {
-          const token = tokenResponse?.accessToken;
-          if (!token) {
-            console.warn('No access token available');
-            return;
+          // Set Content-Type if not already set. Some requests (like FormData for file uploads) 
+          // rely on the browser to set the Content-Type with the correct boundary.
+          if (!request.headers.has('Content-Type')) {
+            headers['Content-Type'] = 'application/json';
           }
-          // For debugging - decode and log token audience (without showing the full token)
+
           if (token) {
-            try {
-              const tokenParts = token.split('.');
-              if (tokenParts.length === 3) {
-                const payload = JSON.parse(atob(tokenParts[1]));
-                console.log('API Token audience:', payload.aud);
-
-                // Verify the token has the correct audience
-                if (Array.isArray(payload.aud)) {
-                  if (!payload.aud.includes(this.apiIdentifier)) {
-                    console.warn(
-                      `Token has incorrect audience: ${payload.aud.join(', ')}. Expected: ${this.apiIdentifier}`,
-                    );
-                  } else {
-                    console.log('Token has correct audience');
-                  }
-                } else if (payload.aud !== this.apiIdentifier) {
-                  console.warn(
-                    `Token has incorrect audience: ${payload.aud}. Expected: ${this.apiIdentifier}`,
-                  );
-                } else {
-                  console.log('Token has correct audience');
-                }
-              }
-            } catch (e) {
-              console.error('Error decoding token:', e);
-            }
-          }
-        }),
-        switchMap((apiToken) => {
-          const headers: { [key: string]: string } = {
-            'Content-Type': 'application/json',
-          };
-
-          // Add Authorization header with the API-specific token
-          if (apiToken) {
-            headers['Authorization'] = `Bearer ${apiToken}`;
-            console.log('Added API token to request headers');
-          } else {
-            console.warn('No API token available for request');
+            headers['Authorization'] = `Bearer ${token}`;
           }
 
-          // Clone the request with the headers
           const modifiedRequest = request.clone({
             setHeaders: headers,
           });
@@ -92,7 +50,6 @@ export class CorsInterceptor implements HttpInterceptor {
     }
 
     // For non-API requests, pass through unchanged
-    console.log('CORS Interceptor: Passing through non-API request');
     return next.handle(request);
   }
 }

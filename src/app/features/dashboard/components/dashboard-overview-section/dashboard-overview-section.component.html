@@ -1,0 +1,238 @@
+<!-- Stat Cards -->
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+  <app-card
+    *ngFor="let stat of statCards; let i = index"
+    class="overflow-hidden border border-neutral-200 dark:border-neutral-700"
+    [attr.data-testid]="'stat-card-' + i"
+  >
+    <div class="flex items-center p-4">
+      <div
+        class="mr-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full"
+        [class]="stat.iconBg"
+        aria-hidden="true"
+      >
+        <app-icon [name]="stat.iconName" size="md" [className]="stat.iconColor"></app-icon>
+      </div>
+      <div class="min-w-0">
+        <p class="truncate text-sm font-medium text-neutral-500 dark:text-neutral-400">
+          {{ stat.title }}
+        </p>
+        <p class="truncate text-2xl font-bold">{{ stat.value }}</p>
+        <span
+          *ngIf="stat.change"
+          class="flex items-center text-sm font-medium"
+          [class.text-green-500]="stat.change.isPositive"
+          [class.text-red-500]="!stat.change.isPositive"
+        >
+          <app-icon
+            *ngIf="stat.change.isPositive"
+            name="mdi:arrow-up"
+            size="xs"
+            className="mr-1"
+          ></app-icon>
+          <app-icon
+            *ngIf="!stat.change.isPositive"
+            name="mdi:arrow-down"
+            size="xs"
+            className="mr-1"
+          ></app-icon>
+          {{ stat.change.value }}
+        </span>
+        <span *ngIf="stat.info" class="text-sm text-neutral-500 dark:text-neutral-400">
+          {{ stat.info }}
+        </span>
+      </div>
+    </div>
+  </app-card>
+</div>
+
+<!-- Two-Column Layout for larger screens, single column for mobile -->
+<div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+  <!-- Left Column - Tasks and Schedule (2/3 width on large screens) -->
+  <div class="space-y-6 lg:col-span-2">
+    <!-- Tasks Section Preview -->
+    <app-card class="border border-neutral-200 dark:border-neutral-700">
+      <div class="p-4" data-testid="dashboard-tasks-preview">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-lg font-bold">Recent Tasks</h2>
+          <div class="flex gap-2">
+            <app-button
+              (click)="viewAllTasks.emit()"
+              variant="ghost"
+              size="sm"
+              class="focus:outline-none focus:ring-2 focus:ring-primary-500"
+              data-testid="view-all-tasks-overview-button"
+              >View All</app-button
+            >
+            <app-button
+              variant="primary"
+              size="sm"
+              (click)="createTask.emit()"
+              data-testid="create-task-button-overview"
+              aria-label="Add Task"
+              class="focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              <app-icon name="mdi:plus" size="xs" className="mr-1" aria-hidden="true"></app-icon>
+              Add Task
+            </app-button>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div
+            *ngFor="let task of tasks; let i = index"
+            class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-white p-3 dark:border-neutral-700 dark:bg-neutral-800 sm:flex-nowrap"
+            [attr.data-testid]="'task-item-overview-' + i"
+            [attr.aria-label]="'Task: ' + task.title"
+          >
+            <div
+              class="mt-1 flex-shrink-0 rounded-full p-1"
+              [class]="task.iconBg"
+              [attr.aria-label]="task.title + ' status icon'"
+            >
+              <app-icon
+                [name]="task.iconName || 'mdi:clipboard-check'"
+                [className]="task.iconColor"
+                size="sm"
+                [attr.aria-label]="task.title + ' icon'"
+              ></app-icon>
+            </div>
+            <div class="min-w-0">
+              <h3 class="truncate font-medium">{{ task.title }}</h3>
+              <p class="text-sm text-neutral-500 dark:text-neutral-400">{{ task.date }}</p>
+            </div>
+            <span
+              class="flex-shrink-0 rounded-full px-2 py-1 text-xs"
+              [class]="getStatusClass(task.status)"
+              [attr.data-testid]="'status-overview-' + task.status"
+            >
+              {{ task.status | titlecase }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </app-card>
+
+    <!-- Schedule Section Preview -->
+    <app-card class="border border-neutral-200 dark:border-neutral-700">
+      <div class="p-4" data-testid="dashboard-schedule-preview">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-lg font-bold">Today's Schedule</h2>
+          <div class="flex gap-2">
+            <app-button (click)="viewFullSchedule.emit()" variant="ghost" size="sm" data-testid="view-full-schedule-overview-button">Full Calendar</app-button>
+            <app-button
+              variant="primary"
+              size="sm"
+              (click)="addEvent.emit()"
+              class="focus:outline-none focus:ring-2 focus:ring-primary-500"
+              aria-label="Add Event"
+              data-testid="add-event-button-overview"
+            >
+              <app-icon name="mdi:calendar-plus" size="xs" className="mr-1" aria-hidden="true"></app-icon>
+              Add Event
+            </app-button>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div
+            *ngFor="let item of scheduleItems; let i = index"
+            class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-white p-3 dark:border-neutral-700 dark:bg-neutral-800 sm:flex-nowrap"
+            [attr.data-testid]="'schedule-item-overview-' + i"
+          >
+            <div class="flex min-w-0 items-start space-x-3">
+              <div class="w-14 flex-shrink-0 text-center">
+                <p class="text-sm text-neutral-500 dark:text-neutral-400">{{ item.time }}</p>
+                <p class="text-xs">{{ item.duration }}</p>
+              </div>
+              <div class="min-w-0">
+                <h3 class="truncate font-medium">{{ item.title }}</h3>
+                <p class="truncate text-sm text-neutral-500 dark:text-neutral-400">
+                  {{ item.location }}
+                </p>
+              </div>
+            </div>
+            <div class="flex flex-shrink-0 space-x-1">
+              <div
+                *ngFor="let attendee of item.attendees"
+                class="flex h-7 w-7 items-center justify-center rounded-full text-xs"
+                [class]="attendee.color"
+                [attr.title]="'Attendee: ' + attendee.initials"
+                [attr.aria-label]="'Attendee: ' + attendee.initials"
+              >
+                {{ attendee.initials }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </app-card>
+  </div>
+
+  <!-- Right Column - Notifications and System Status -->
+  <div class="space-y-6">
+    <!-- Notifications Preview -->
+    <app-card class="border border-neutral-200 dark:border-neutral-700">
+      <div class="p-4">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-lg font-bold">Notifications</h2>
+          <app-button (click)="viewAllNotifications.emit()" variant="ghost" size="sm" data-testid="view-all-notifications-overview-button">View All</app-button>
+        </div>
+
+        <div class="space-y-3" data-testid="notifications-list-overview">
+          <div
+            *ngFor="let notification of notifications; let i = index"
+            class="flex items-start space-x-3"
+            [attr.data-testid]="'notification-overview-' + i"
+          >
+            <div
+              class="mt-1 flex-shrink-0 rounded-full p-1"
+              [class]="getNotificationIconBg(notification.type)"
+              aria-hidden="true"
+            >
+              <app-icon
+                [name]="getNotificationIconName(notification.type)"
+                size="xs"
+                [className]="getNotificationIconColor(notification.type)"
+              ></app-icon>
+            </div>
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium">{{ notification.message }}</p>
+              <p class="text-xs text-neutral-500 dark:text-neutral-400">
+                {{ notification.time }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </app-card>
+
+    <!-- System Status Preview -->
+    <app-card class="border border-neutral-200 dark:border-neutral-700">
+      <div class="p-4" data-testid="system-status-section-overview">
+        <h2 class="mb-4 text-lg font-bold">System Status</h2>
+
+        <div class="space-y-3">
+          <div
+            *ngFor="let system of systemStatuses; let i = index"
+            class="flex items-center justify-between"
+            [attr.data-testid]="'system-status-overview-' + i"
+          >
+            <span class="text-sm">{{ system.name }}</span>
+            <span
+              class="rounded-full px-2 py-1 text-xs"
+              [class]="getStatusClass(system.status)"
+              [attr.data-testid]="'status-overview-' + system.status"
+            >
+              {{ system.status | titlecase }}
+            </span>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <app-button (click)="viewSystemDetails.emit()" variant="ghost" size="sm" class="w-full" data-testid="view-system-details-overview-button">View Details</app-button>
+        </div>
+      </div>
+    </app-card>
+  </div>
+</div>

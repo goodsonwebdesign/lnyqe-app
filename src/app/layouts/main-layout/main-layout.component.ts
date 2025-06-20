@@ -54,7 +54,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   navItems: NavItem[] = [
     {
       label: 'Dashboard',
-      route: '/dashboard',
+      route: '/features/dashboard',
       icon: 'mdi:home',
     },
     {
@@ -83,7 +83,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   primaryNavItems: NavItem[] = [
     {
       label: 'Dashboard',
-      route: '/dashboard',
+      route: '/features/dashboard',
       icon: 'mdi:home',
       exact: true,
     },

@@ -1,3 +1,18 @@
 :host {
   display: block;
 }
+
+/* Safe area utilities for modern mobile devices */
+.safe-area-inset-left {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+.safe-area-inset {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Improve touch interaction */
+.touch-manipulation {
+  touch-action: manipulation;
+}

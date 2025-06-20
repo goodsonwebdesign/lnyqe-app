@@ -18,8 +18,8 @@ export const homeGuard: CanActivateFn = (route, state) => {
     take(1),
     map((isAuthenticated) => {
       if (isAuthenticated) {
-        console.log('User already authenticated, redirecting to dashboard');
-        return router.createUrlTree(['/dashboard']);
+        console.log('User already authenticated, redirecting to /features/dashboard');
+        return router.createUrlTree(['/features/dashboard']);
       }
 
       // Allow access to home page if not authenticated

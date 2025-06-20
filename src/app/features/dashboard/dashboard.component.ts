@@ -5,9 +5,12 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
   OnInit,
+  OnChanges, // Add OnChanges
+  SimpleChanges, // Add SimpleChanges
   NgZone,
   inject,
 } from '@angular/core';
+import { Router } from '@angular/router'; // Added Router import
 import { CommonModule } from '@angular/common';
 import { UI_COMPONENTS } from '../../shared/components/ui';
 import { AuthService } from '../../core/services/auth/auth.service';
@@ -20,16 +23,40 @@ import {
   SystemStatus,
   SectionType,
 } from './dashboard.types';
+import { DashboardMobileNavigationComponent, NavigationSection } from './components/dashboard-mobile-navigation/dashboard-mobile-navigation.component';
+import { DashboardQuickActionsComponent } from './components/dashboard-quick-actions/dashboard-quick-actions.component';
+import { DashboardOverviewSectionComponent } from './components/dashboard-overview-section/dashboard-overview-section.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ...UI_COMPONENTS],
+  imports: [
+    CommonModule,
+    ...UI_COMPONENTS,
+    DashboardMobileNavigationComponent,
+    DashboardQuickActionsComponent,
+
+    DashboardOverviewSectionComponent,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnChanges { // Implement OnChanges
+  // Method to navigate to a given route
+  // navigateTo(route: string): void { // This was a placeholder, actual implementation is in constructor block
+  //   this.router.navigate([route]);
+  // }
+
+  // Constants for section values to ensure AOT compiler understands them
+  readonly SECTION_OVERVIEW: SectionType = 'overview';
+  readonly SECTION_TASKS: SectionType = 'tasks';
+  readonly SECTION_SCHEDULE: SectionType = 'schedule';
+  readonly SECTION_ADMIN: SectionType = 'admin';
+
+  // Navigation sections for the mobile navigation component
+  navigationSections: NavigationSection[] = [];
+
   // Services
   private authService = inject(AuthService);
 
@@ -38,7 +65,6 @@ export class DashboardComponent implements OnInit {
   @Input() userRole: string = 'admin';
   @Input() activeSection: SectionType = 'overview';
   @Input() quickActions: ActionItem[] = [];
-  @Input() adminActions: ActionItem[] = [];
   @Input() statCards: StatCard[] = [];
   @Input() tasks: Task[] = [];
   @Input() scheduleItems: ScheduleItem[] = [];
@@ -66,41 +92,36 @@ export class DashboardComponent implements OnInit {
   @Output() setTaskPriorityAction = new EventEmitter<void>();
   @Output() manageUsersAction = new EventEmitter<void>();
 
-  // Constants for section values to ensure AOT compiler understands them
-  readonly SECTION_OVERVIEW: SectionType = 'overview';
-  readonly SECTION_TASKS: SectionType = 'tasks';
-  readonly SECTION_SCHEDULE: SectionType = 'schedule';
-  readonly SECTION_ADMIN: SectionType = 'admin';
-
   // Cache for expensive computations
   private statusClassCache = new Map<string, string>();
   private notificationIconCache = new Map<string, string>();
   private notificationIconBgCache = new Map<string, string>();
   private notificationIconColorCache = new Map<string, string>();
 
-  constructor(private ngZone: NgZone) {}
+  constructor(private ngZone: NgZone, private router: Router) { // Injected Router
+    console.log('[DashboardComponent] Constructor: Initial activeSection:', this.activeSection, 'userRole:', this.userRole);
+  }
+
+  // Method to navigate to a given route
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
+  }
 
   ngOnInit(): void {
+    console.log('[DashboardComponent] ngOnInit: Received activeSection:', this.activeSection, 'userRole:', this.userRole, 'user object:', this.user);
+    // Initialize navigation sections
+    this.navigationSections = [
+      { key: this.SECTION_OVERVIEW, label: 'Overview' },
+      { key: this.SECTION_TASKS, label: 'Tasks' },
+      { key: this.SECTION_SCHEDULE, label: 'Schedule' },
+      { key: this.SECTION_ADMIN, label: 'Admin', requiresAdmin: true },
+    ];
+
     // Pre-cache common status classes and icons for better performance
     this.precacheCommonValues();
 
     // Optimize animation frames for better performance on mobile devices
     this.optimizeForMobile();
-  }
-
-  /**
-   * Method to test API token generation
-   * This will help diagnose if Auth0 is properly configured for your API audience
-   */
-  async testApiToken(): Promise<void> {
-    console.log('Testing API token generation...');
-    try {
-      // Use our test method to check if Auth0 can issue tokens with the correct audience
-      await this.authService.testApiTokenRequest();
-      console.log('API token test completed - check console for details');
-    } catch (error) {
-      console.error('API token test failed:', error);
-    }
   }
 
   // Methods to handle section changes
@@ -123,7 +144,7 @@ export class DashboardComponent implements OnInit {
   }
 
   // Helper UI methods with memoization for performance
-  getStatusClass(status: string): string {
+  public getStatusClass = (status: string): string => {
     if (this.statusClassCache.has(status)) {
       return this.statusClassCache.get(status)!;
     }
@@ -163,7 +184,7 @@ export class DashboardComponent implements OnInit {
   }
 
   // Get notification icon based on type with memoization
-  getNotificationIcon(type: string): string {
+  public getNotificationIcon = (type: string): string => {
     if (this.notificationIconCache.has(type)) {
       return this.notificationIconCache.get(type)!;
     }
@@ -194,7 +215,7 @@ export class DashboardComponent implements OnInit {
   }
 
   // New method for getting notification icon name for the template
-  getNotificationIconName(type: string): string {
+  getNotificationIconName = (type: string): string => {
     switch (type) {
       case 'message':
         return 'mdi:message';
@@ -209,7 +230,7 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  getNotificationIconBg(type: string): string {
+  public getNotificationIconBg = (type: string): string => {
     if (this.notificationIconBgCache.has(type)) {
       return this.notificationIconBgCache.get(type)!;
     }
@@ -236,7 +257,7 @@ export class DashboardComponent implements OnInit {
     return result;
   }
 
-  getNotificationIconColor(type: string): string {
+  public getNotificationIconColor = (type: string): string => {
     if (this.notificationIconColorCache.has(type)) {
       return this.notificationIconColorCache.get(type)!;
     }
@@ -318,7 +339,8 @@ export class DashboardComponent implements OnInit {
         this.manageUsersAction.emit();
         break;
       default:
-        console.warn('Unknown action:', action);
+        // Potentially log to a dedicated logging service in the future if unknown actions are critical
+        break;
     }
   }
 
@@ -355,6 +377,19 @@ export class DashboardComponent implements OnInit {
       // Use Intersection Observer for lazy loading if necessary
       this.setupLazyLoading();
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log('[DashboardComponent] ngOnChanges: Changes detected:', changes);
+    if (changes['activeSection']) {
+      console.log('[DashboardComponent] ngOnChanges: activeSection changed to', changes['activeSection'].currentValue);
+    }
+    if (changes['userRole']) {
+      console.log('[DashboardComponent] ngOnChanges: userRole changed to', changes['userRole'].currentValue);
+    }
+    if (changes['user']) {
+      console.log('[DashboardComponent] ngOnChanges: user changed:', changes['user'].currentValue);
+    }
   }
 
   // Setup lazy loading with Intersection Observer

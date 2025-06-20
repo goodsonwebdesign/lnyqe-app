@@ -1,4 +1,5 @@
-import { AuthToken, AuthUser } from '../../core/models/auth.model';
+import { AuthToken } from '../../core/models/auth.model';
+import { User } from '../../core/models/user.model';
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 
 // Auth actions group
@@ -6,16 +7,16 @@ export const AuthActions = createActionGroup({
   source: 'Auth',
   events: {
     'Login Request': props<{ organization?: string }>(),
-    'Login Success': props<{ user: AuthUser; token: AuthToken }>(),
+    'Login Success': props<{ user: User; token: AuthToken }>(),
     'Login Failure': props<{ error: any }>(),
     Logout: emptyProps(),
     'Check Auth': emptyProps(),
+    'Load User': emptyProps(), // For fetching user profile
+    'Load User Success': props<{ user: User }>(),
+    'Load User Failure': props<{ error: any }>(),
     'Set Organization': props<{ organizationId: string }>(),
     'Set Enterprise SSO Enabled': props<{ enabled: boolean }>(),
     'Set Auth State': props<{ isAuthenticated: boolean }>(),
-    'Refresh Token': emptyProps(),
-    'Refresh Token Success': props<{ token: AuthToken }>(),
-    'Refresh Token Failure': props<{ error: any }>(),
   },
 });
 
@@ -25,9 +26,9 @@ export const loginSuccess = AuthActions.loginSuccess;
 export const loginFailure = AuthActions.loginFailure;
 export const logout = AuthActions.logout;
 export const checkAuth = AuthActions.checkAuth;
+export const loadUser = AuthActions.loadUser;
+export const loadUserSuccess = AuthActions.loadUserSuccess;
+export const loadUserFailure = AuthActions.loadUserFailure;
 export const setOrganization = AuthActions.setOrganization;
 export const setEnterpriseSSOEnabled = AuthActions.setEnterpriseSSOEnabled;
 export const setAuthState = AuthActions.setAuthState;
-export const refreshToken = AuthActions.refreshToken;
-export const refreshTokenSuccess = AuthActions.refreshTokenSuccess;
-export const refreshTokenFailure = AuthActions.refreshTokenFailure;

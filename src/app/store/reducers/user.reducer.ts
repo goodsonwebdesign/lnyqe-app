@@ -2,7 +2,7 @@ import { createReducer, on } from '@ngrx/store';
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 import { UserView } from '../../core/models/user.model';
 import { UserActions } from '../actions/user.actions';
-import { createFeature } from '@ngrx/store';
+import { createFeature, createSelector } from '@ngrx/store';
 import { UserFilters } from '../../features/users-management/users-management.types';
 
 export interface UserState extends EntityState<UserView> {
@@ -68,3 +68,39 @@ export const userFeature = createFeature({
   name: 'users',
   reducer: userReducer,
 });
+
+// Selector for user filters
+export const selectUserFilters = userFeature.selectFilters;
+
+// Selector for visible users (all users filtered by active filters)
+export const selectVisibleUsers = createSelector(
+  selectAllUsers, // from userAdapter.getSelectors()
+  selectUserFilters,
+  (allUsers, filters) => {
+    if (!filters || (Object.keys(filters).length === 0 && !filters.search && !filters.role)) {
+      return allUsers; // No filters active or filters object is empty
+    }
+
+    return allUsers.filter(user => {
+      let matchesSearch = true;
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        matchesSearch = 
+          (user.name?.toLowerCase().includes(searchTerm) || 
+           user.first_name.toLowerCase().includes(searchTerm) || 
+           user.last_name.toLowerCase().includes(searchTerm) || 
+           user.email.toLowerCase().includes(searchTerm));
+      }
+
+      let matchesRole = true;
+      if (filters.role) {
+        matchesRole = user.role.toLowerCase() === filters.role.toLowerCase();
+      }
+      
+      // Add other filters like status or department here if UserView model supports them
+      // For now, they are ignored as UserView doesn't have status/department fields.
+
+      return matchesSearch && matchesRole;
+    });
+  }
+);

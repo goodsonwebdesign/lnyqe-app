@@ -8,73 +8,64 @@ export enum UserRole {
 
 export interface User {
   id: number;
+  auth0_id: string;
   email: string;
+  name: string;
   first_name: string;
   last_name: string;
-  avatar?: string;
+  avatar: string;
   role: string;
-  department?: string;
-  status: string;
-  created_at: string;
-  emailVerified?: boolean;
-  lastLogin?: string;
-  updatedAt?: string;
-  jobTitle?: string;
-  location?: string;
-  employeeId?: string;
-  organizationId?: string;
-  usesSSO?: boolean;
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+  last_login: string; // ISO date string
 }
 
 export interface UserView {
   id: number;
+  name?: string; // Added for display
   first_name: string;
   last_name: string;
   email: string;
   avatar?: string;
-  role: string;
-  status: 'active' | 'inactive' | 'pending';
-  lastLogin?: string;
-  department?: string;
-  jobTitle?: string;
-  location?: string;
+  role: string; // Role as string, transformation handles specific enum values
+  last_login?: string; // Renamed for consistency
   created_at?: string;
-  updatedAt?: string;
+  updated_at?: string; // Renamed for consistency
 }
 
 export function transformUserToViewModel(user: User): UserView {
   return {
     id: typeof user.id === 'string' ? parseInt(user.id, 10) : user.id,
+    name: user.name || `${user.first_name} ${user.last_name}`.trim(), // Use backend name or derive
     first_name: user.first_name,
     last_name: user.last_name,
     email: user.email,
     avatar: user.avatar,
     role: user.role?.toLowerCase() || 'guest',
-    status: (user.status?.toLowerCase() || 'pending') as 'active' | 'inactive' | 'pending',
-    lastLogin: user.lastLogin,
-    department: user.department,
-    jobTitle: user.jobTitle,
-    location: user.location,
+    last_login: user.last_login, // Use renamed field
     created_at: user.created_at,
-    updatedAt: user.updatedAt,
+    updated_at: user.updated_at, // Use renamed field
   };
 }
 
 export function transformViewModelToUser(view: Partial<UserView>): Partial<User> {
   if (!view) return {};
 
-  return {
-    id: view.id,
-    first_name: view.first_name,
-    last_name: view.last_name,
-    email: view.email,
-    avatar: view.avatar,
-    role: view.role,
-    status: view.status,
-    department: view.department,
-    jobTitle: view.jobTitle,
-    location: view.location,
-    created_at: view.created_at,
-    updatedAt: view.updatedAt,
-  };
+  const user: Partial<User> = {};
+
+  // Fields that might be updated from a view model
+  if (view.id !== undefined) user.id = view.id;
+  if (view.first_name !== undefined) user.first_name = view.first_name;
+  if (view.last_name !== undefined) user.last_name = view.last_name;
+  if (view.email !== undefined) user.email = view.email;
+  if (view.avatar !== undefined) user.avatar = view.avatar;
+  if (view.role !== undefined) user.role = view.role;
+
+  // If 'name' from UserView is directly editable and should map back to 'name' on User:
+  // if (view.name !== undefined) user.name = view.name; 
+  // However, 'name' is often derived or comes from backend, not typically set directly if first/last are present.
+
+  // Fields like auth0_id, created_at, updated_at, last_login are generally not set from a view model.
+  
+  return user;
 }

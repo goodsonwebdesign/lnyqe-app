@@ -58,11 +58,12 @@ export class UsersManagementContainerComponent implements OnInit, OnDestroy {
     }
     if (filters.attribute) {
       const attr = filters.attribute;
-      filtered = filtered.filter(u => u.role === attr || u.department === attr);
+      filtered = filtered.filter(u => u.role === attr);
     }
-    if (filters.status) {
-      filtered = filtered.filter(u => u.status === filters.status);
-    }
+    // Removed status filter as 'status' no longer exists on UserView
+    // if (filters.status) {
+    //   filtered = filtered.filter(u => u.status === filters.status);
+    // }
     if (filters.sortBy === 'name') {
       filtered = filtered.slice().sort((a, b) => (a.first_name + a.last_name).localeCompare(b.first_name + b.last_name));
     }

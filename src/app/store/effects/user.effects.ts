@@ -2,10 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { UserActions } from '../actions/user.actions';
 import { UsersService } from '../../core/services/users/users.service';
-import { catchError, map, mergeMap, of, switchMap } from 'rxjs';
-import { Store, select } from '@ngrx/store';
+import { of, EMPTY } from 'rxjs';
+import { catchError, map, withLatestFrom, mergeMap, concatMap } from 'rxjs/operators';
+import { Store, select, Action } from '@ngrx/store';
 import { selectUserState } from '../selectors/user.selectors';
-import { withLatestFrom } from 'rxjs/operators';
+import { UserState } from '../reducers/user.reducer'; // Import UserState
 
 @Injectable()
 export class UserEffects {
@@ -18,14 +19,23 @@ export class UserEffects {
     this.actions$.pipe(
       ofType(UserActions.loadUsers, UserActions.setUserFilters),
       withLatestFrom(this.store.pipe(select(selectUserState))),
-      switchMap(([action, state]) =>
-        this.usersService.getUsers(state.filters).pipe(
-          map((users) =>
-            UserActions.loadUsersSuccess({ users })
-          ),
-          catchError((error) => of(UserActions.loadUsersFailure({ error })))
-        )
-      )
+      concatMap(([action, state]: [Action, UserState]) => {
+        // Check if this is a filter action and if users are already loaded
+        if (
+          action.type === UserActions.setUserFilters.type &&
+          state.ids && 
+          (state.ids as Array<string | number>).length > 0
+        ) {
+          // Users are loaded and it's a filter change, so don't call API.
+          return EMPTY;
+        }
+
+        // Proceed to fetch users if initial load or if users aren't loaded yet
+        return this.usersService.getUsers(state.filters).pipe(
+          map(users => UserActions.loadUsersSuccess({ users })),
+          catchError(error => of(UserActions.loadUsersFailure({ error })))
+        );
+      })
     )
   );
 

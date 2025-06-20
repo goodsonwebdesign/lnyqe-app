@@ -12,6 +12,7 @@ export const FEATURES_ROUTES: Routes = [
       import('./dashboard/dashboard-container.component').then(
         (c) => c.DashboardContainerComponent,
       ),
+    canActivate: [authGuard], // Protect the dashboard route
     title: 'Dashboard',
   },
   {

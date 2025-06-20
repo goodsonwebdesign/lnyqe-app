@@ -4,6 +4,7 @@ import { Observable, throwError, of, BehaviorSubject } from 'rxjs';
 import { catchError, tap, map, switchMap, shareReplay } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { User, transformUserToViewModel } from '../../models/user.model';
+
 import { UserView } from '../../models/user.model';
 
 interface PaginatedResponse<T> {
@@ -37,9 +38,8 @@ export class UsersService {
   // Cache all users for client-side filtering
   private allUsersCache$ = new BehaviorSubject<UserView[]>([]);
 
-  constructor(private http: HttpClient) {
-    console.log('API URL configured as:', this.apiUrl);
-  }
+  constructor(private http: HttpClient) {}
+
 
   /**
    * Load all users from the API (potentially with a high limit)
@@ -89,17 +89,29 @@ export class UsersService {
     }
 
     return this.http.get<PaginatedResponse<User>>(this.apiUrl, { params: httpParams }).pipe(
-      tap((response) => {
-        console.log(`Fetched ${response?.data?.length || 0} users out of ${response?.total || 0} total`);
-      }),
       map((response) => {
         if (!response?.data || !Array.isArray(response.data)) {
-          console.warn('Invalid API response:', response);
           return [];
         }
         return response.data.map(transformUserToViewModel);
       }),
       catchError(this.handleError),
+    );
+  }
+
+  /**
+   * Get the current logged-in user's data
+   */
+  getMe(): Observable<User> {
+    // The backend returns { "user": User }, so we map the response to extract it.
+    return this.http.get<{ user: User }>(`${this.apiUrl}/me`).pipe(
+      map(response => {
+        if (!response || !response.user) {
+          throw new Error('User data not found in API response');
+        }
+        return response.user;
+      }),
+      catchError(this.handleError)
     );
   }
 

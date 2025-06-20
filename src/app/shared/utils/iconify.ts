@@ -13,6 +13,5 @@ import 'iconify-icon';
  */
 export function setupIconify() {
   // This is a placeholder function for any future initialization needs
-  console.log('Iconify setup complete');
   return Promise.resolve();
 }

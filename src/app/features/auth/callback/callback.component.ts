@@ -1,14 +1,16 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { AuthService } from '../../../core/services/auth/auth.service';
+import { AuthService as AppAuthService } from '../../../core/services/auth/auth.service'; // Renamed to avoid conflict
 import { Store } from '@ngrx/store';
 import { AuthActions } from '../../../store/actions/auth.actions';
 import { AuthService as Auth0Service } from '@auth0/auth0-angular';
-import { take, switchMap, catchError } from 'rxjs/operators';
-import { from, of } from 'rxjs';
+import { take, switchMap, catchError, map, tap } from 'rxjs/operators'; // Added tap
+import { from, of, Observable } from 'rxjs';
 import { IdToken } from '@auth0/auth0-spa-js';
-import { AuthUser, AuthToken } from '../../../core/models/auth.model';
+import { AuthToken } from '../../../core/models/auth.model';
+import { User } from '../../../core/models/user.model';
+import { UsersService } from '../../../core/services/users/users.service'; // Added UsersService
 
 @Component({
   selector: 'app-callback',
@@ -20,21 +22,15 @@ export class CallbackComponent implements OnInit {
   private router = inject(Router);
   private auth0Service = inject(Auth0Service);
   private store = inject(Store);
+  private appAuthService = inject(AppAuthService);
+  private usersService = inject(UsersService); // Injected UsersService
 
   ngOnInit(): void {
-    console.log('Callback component initialized');
-
-    // Check if the user is already authenticated first
-    this.auth0Service.isAuthenticated$.pipe(take(1)).subscribe((isAuthenticated) => {
-      if (isAuthenticated) {
-        console.log('User is already authenticated, proceeding to dashboard');
-        this.router.navigate(['/dashboard']);
-        return;
-      }
-
-      // Only try to handle the callback if not already authenticated
-      this.handleCallback();
-    });
+    // The auth0Service.handleRedirectCallback() below is designed to be called on the callback route.
+    // It will process the authentication result. If a user is already authenticated and lands here,
+    // the handleRedirectCallback might be a no-op or re-confirm, then the subsequent checkUserStatus
+    // and loginSuccess action dispatch will ensure the user is correctly routed by effects.
+    this.handleCallback();
   }
 
   private handleCallback(): void {
@@ -42,153 +38,69 @@ export class CallbackComponent implements OnInit {
       .handleRedirectCallback()
       .pipe(
         take(1),
-        switchMap(() => this.auth0Service.isAuthenticated$),
-        take(1),
-        switchMap((isAuthenticated) => {
-          if (isAuthenticated) {
-            return this.auth0Service.user$.pipe(
-              take(1),
-              switchMap((user) => {
-                if (!user) {
-                  throw new Error('No user information available');
-                }
-                return this.auth0Service.idTokenClaims$.pipe(
-                  take(1),
-                  switchMap((claims) => {
-                    if (!claims) {
-                      throw new Error('No token claims available');
-                    }
-                    const processedUser: AuthUser = {
-                      id: user.sub || '',
-                      email: user.email || '',
-                      first_name: user.given_name || '',
-                      last_name: user.family_name || '',
-                      avatar: user.picture || '',
-                      emailVerified: user.email_verified || false,
-                      created_at: new Date().toISOString(),
-                      role: (user['https://lnyqe.io/roles']?.[0] || 'user') as string,
-                      status: 'active',
-                      department: user['https://lnyqe.io/department'] || '',
-                      jobTitle: user['https://lnyqe.io/job_title'] || '',
-                      employeeId: user['https://lnyqe.io/employee_id'] || '',
-                      location: user['https://lnyqe.io/location'] || '',
-                      organizationId: user['org_id'] || '',
-                      usesSSO: !!user['org_id'],
-                    };
-
-                    // Get token expiration from claims
-                    const tokenExpiry = claims.exp
-                      ? new Date(claims.exp * 1000).getTime()
-                      : Date.now() + 3600000;
-                    const expiresIn = tokenExpiry - Date.now();
-
-                    const token: AuthToken = {
-                      accessToken: claims['__raw'],
-                      idToken: claims['__raw'],
-                      expiresIn,
-                      tokenType: 'Bearer',
-                      scope: 'openid profile email offline_access',
-                    };
-
-                    return of({ user: processedUser, token });
-                  }),
-                );
-              }),
-            );
-          }
-          // If not authenticated after redirect, try alternative approach
-          console.log('Not authenticated after redirect callback, checking user status directly');
-          return this.checkUserStatus();
+        switchMap(() => {
+          return this.checkUserStatus(); // Returns Observable<{ user: UserApiResponse; token: AuthToken }>
         }),
+        map(({ user, token }: { user: User; token: AuthToken }) => { // user is now User
+          this.store.dispatch(AuthActions.loginSuccess({ user, token })); // Dispatch User
+          return user; // Return User for further processing
+        }),
+        // Removed tap operator that previously navigated. Navigation is now handled by loginSuccess$ effect.
         catchError((error) => {
-          console.error('Error handling callback:', error);
-
-          // For Invalid State errors, try to recover by checking if user is authenticated anyway
-          if (error.message && error.message.includes('Invalid state')) {
-            console.log('Auth0 state validation failed, trying alternative auth check');
-            return this.checkUserStatus();
-          }
-
-          // For other errors, proceed with failure
           this.store.dispatch(AuthActions.loginFailure({ error }));
-          this.router.navigate(['/']);
-          return of(null);
-        }),
+          this.router.navigate(['/']); // Navigate to a safe page on error
+          return of(null); // Handle error gracefully
+        })
       )
-      .subscribe((result) => {
-        if (result) {
-          console.log('Successfully processed authentication for:', result.user.email);
-          this.store.dispatch(AuthActions.loginSuccess({ user: result.user, token: result.token }));
-          this.router.navigate(['/dashboard']);
-        }
-      });
+      .subscribe();
   }
 
-  // Alternative approach to get user info without relying on the callback state
-  private checkUserStatus() {
+  private checkUserStatus(): Observable<{ user: User; token: AuthToken }> {
     return this.auth0Service.isAuthenticated$.pipe(
       take(1),
       switchMap((isAuthenticated) => {
         if (!isAuthenticated) {
-          throw new Error('User is not authenticated');
+          throw new Error('User not authenticated');
         }
-
-        return this.auth0Service.user$.pipe(
+        return this.auth0Service.user$.pipe( // Get Auth0 user for context if needed, though not strictly for token/backend user
           take(1),
-          switchMap((user) => {
-            if (!user) {
-              throw new Error('No user information available');
+          switchMap((auth0User) => {
+            if (!auth0User) {
+              throw new Error('No Auth0 user information available');
             }
-
-            return this.auth0Service.getAccessTokenSilently().pipe(
+            // Get the complete AuthToken object for our API
+            return from(this.appAuthService.getTokenSilently()).pipe(
               take(1),
-              switchMap((accessToken) => {
-                return this.auth0Service.idTokenClaims$.pipe(
-                  take(1),
-                  switchMap((claims) => {
-                    if (!claims) {
-                      throw new Error('No token claims available');
+              switchMap((authToken: AuthToken) => {
+                if (!authToken || !authToken.accessToken) {
+                  throw new Error('AuthToken or its accessToken is null or undefined.');
+                }
+                // Fetch backend user profile
+                return this.usersService.getMe().pipe(
+                  map((backendUser: User) => {
+                    if (!backendUser) {
+                      throw new Error('Backend user profile is missing or undefined.');
                     }
-
-                    const processedUser: AuthUser = {
-                      id: user.sub || '',
-                      email: user.email || '',
-                      first_name: user.given_name || '',
-                      last_name: user.family_name || '',
-                      avatar: user.picture || '',
-                      emailVerified: user.email_verified || false,
-                      created_at: new Date().toISOString(),
-                      role: (user['https://lnyqe.io/roles']?.[0] || 'user') as string,
-                      status: 'active',
-                      department: user['https://lnyqe.io/department'] || '',
-                      jobTitle: user['https://lnyqe.io/job_title'] || '',
-                      employeeId: user['https://lnyqe.io/employee_id'] || '',
-                      location: user['https://lnyqe.io/location'] || '',
-                      organizationId: user['org_id'] || '',
-                      usesSSO: !!user['org_id'],
-                    };
-
-                    const tokenExpiry = claims.exp
-                      ? new Date(claims.exp * 1000).getTime()
-                      : Date.now() + 3600000;
-                    const expiresIn = tokenExpiry - Date.now();
-
-                    const token: AuthToken = {
-                      accessToken,
-                      idToken: claims['__raw'],
-                      expiresIn,
-                      tokenType: 'Bearer',
-                      scope: 'openid profile email offline_access',
-                    };
-
-                    return of({ user: processedUser, token });
+                    return { user: backendUser, token: authToken };
                   }),
+                  catchError(getMeErr => {
+                    throw getMeErr;
+                  })
                 );
               }),
+              catchError(accessTokenErr => {
+                throw accessTokenErr;
+              })
             );
           }),
+          catchError(userErr => {
+            throw userErr;
+          })
         );
       }),
+      catchError(authErr => {
+        throw authErr;
+      })
     );
   }
 }

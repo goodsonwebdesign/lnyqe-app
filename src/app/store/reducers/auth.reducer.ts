@@ -1,5 +1,6 @@
 import { AuthState } from '../../core/models/auth.model';
 import { AuthActions } from '../actions/auth.actions';
+import { AppActions } from '../actions/app.actions'; // Import AppActions
 import { createReducer, on } from '@ngrx/store';
 
 export const initialAuthState: AuthState = {
@@ -10,11 +11,21 @@ export const initialAuthState: AuthState = {
   organizationId: null,
   isEnterpriseSSOEnabled: false,
   token: null,
-  role: null,
 };
 
 export const authReducer = createReducer(
   initialAuthState,
+
+  // Handle global loading state
+  on(AppActions.loadingStarted, (state) => ({
+    ...state,
+    isLoading: true,
+  })),
+
+  on(AppActions.loadingCompleted, (state) => ({
+    ...state,
+    isLoading: false,
+  })),
 
   on(AuthActions.loginRequest, (state, { organization }) => ({
     ...state,
@@ -27,11 +38,9 @@ export const authReducer = createReducer(
     ...state,
     isAuthenticated: true,
     isLoading: false,
-    user,
+    user, // The user object is now passed directly
     token,
     error: null,
-    organizationId: user?.organizationId || state.organizationId,
-    role: user?.role || null,
   })),
 
   on(AuthActions.loginFailure, (state, { error }) => ({
@@ -41,22 +50,27 @@ export const authReducer = createReducer(
     user: null,
     token: null,
     error,
-    role: null,
   })),
 
-  on(AuthActions.refreshTokenSuccess, (state, { token }) => ({
+  on(AuthActions.loadUser, state => ({
     ...state,
-    token,
+    isLoading: true,
+    error: null,
   })),
 
-  on(AuthActions.refreshTokenFailure, (state, { error }) => ({
+  on(AuthActions.loadUserSuccess, (state, { user }) => ({
     ...state,
+    isLoading: false,
+    user,
+  })),
+
+  on(AuthActions.loadUserFailure, (state, { error }) => ({
+    ...state,
+    isLoading: false,
     error,
   })),
 
-  on(AuthActions.logout, () => ({
-    ...initialAuthState,
-  })),
+  on(AuthActions.logout, () => initialAuthState),
 
   on(AuthActions.setOrganization, (state, { organizationId }) => ({
     ...state,

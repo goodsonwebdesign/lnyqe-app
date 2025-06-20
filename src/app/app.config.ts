@@ -12,6 +12,8 @@ import { serviceRequestFeature } from './store/reducers/service-request.reducer'
 import { userFeature } from './store/reducers/user.reducer';
 import { HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, ApplicationConfig, importProvidersFrom, isDevMode } from '@angular/core';
+import { HTTP_INTERCEPTORS } from '@angular/common/http'; // Added import
+import { CorsInterceptor } from './core/interceptors/cors.interceptor'; // Added import
 import { BrowserModule } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { AuthModule } from '@auth0/auth0-angular';
@@ -25,11 +27,8 @@ import { provideServiceWorker } from '@angular/service-worker';
 // Factory function to handle authentication state on app initialization
 export function initializeAuth(authService: AuthService) {
   return () => {
-    console.log('Initializing auth with simplified logic');
-
     return new Promise<void>((resolve) => {
       if (window.location.pathname === '/callback') {
-        console.log('On callback page, letting Auth0 SDK handle it');
         resolve();
         return;
       }
@@ -40,7 +39,6 @@ export function initializeAuth(authService: AuthService) {
         .pipe(take(1))
         .subscribe({
           next: (isAuthenticated) => {
-            console.log('Auth check complete, authenticated:', isAuthenticated);
             resolve();
           },
           error: (err) => {
@@ -77,6 +75,11 @@ export const appConfig: ApplicationConfig = {
     }),
     provideRouterStore(),
     provideEffects([AuthEffects, AppEffects, ServiceRequestEffects, UserEffects]),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: CorsInterceptor,
+      multi: true,
+    },
     {
       provide: APP_INITIALIZER,
       useFactory: initializeAuth,

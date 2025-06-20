@@ -7,6 +7,7 @@ import { DashboardComponent } from './dashboard.component';
 import { selectCurrentUser } from '../../store/selectors/auth.selectors';
 import { selectUserViewModel } from '../../store/selectors/user.selectors';
 import { UserActions } from '../../store/actions/user.actions';
+import { User } from '../../core/models/user.model'; // Ensure User model is imported
 import { UI_COMPONENTS } from '../../shared/components/ui';
 
 // Define the component type interfaces
@@ -30,8 +31,7 @@ import {
       [user]="user"
       [userRole]="userRole"
       [activeSection]="activeSection"
-      [quickActions]="quickActions"
-      [adminActions]="adminActions"
+      [quickActions]="consolidatedQuickActions"
       [statCards]="statCards"
       [tasks]="tasks"
       [scheduleItems]="scheduleItems"
@@ -63,9 +63,9 @@ import {
 })
 export class DashboardContainerComponent implements OnInit, OnDestroy {
   // Component state
-  user: any = null;
-  userRole: string = 'admin'; // Default to admin for now, will be dynamic in the future
-  activeSection: SectionType = 'admin';
+  user: User | null = null; // Typed the user property
+  userRole: string = 'guest'; // Initialize with a default non-null string value
+  activeSection: SectionType = 'overview'; // Default to 'overview'
 
   // Store access
   private store = inject(Store);
@@ -73,7 +73,7 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
   private router = inject(Router);
 
   // Dashboard data
-  quickActions: ActionItem[] = [
+  baseQuickActions: ActionItem[] = [ // Renamed from quickActions to baseQuickActions
     {
       iconName: 'mdi:plus',
       label: 'New Task',
@@ -100,8 +100,28 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
     },
   ];
 
-  // Admin actions only shown to admins in the admin section
-  adminActions: ActionItem[] = [
+  // Admin actions that can be merged into the quick actions ribbon for admins
+  adminSpecificQuickActions: ActionItem[] = [
+    {
+      iconName: 'mdi:account-cog',
+      label: 'Manage Users',
+      action: 'manageUsers', // This will call the manageUsers method
+      variant: 'secondary',
+    },
+    {
+      iconName: 'mdi:cog',
+      label: 'System Settings',
+      action: 'systemSettings', // This will call the systemSettings method
+      variant: 'neutral',
+    },
+    // Add other admin actions here if they should appear in the ribbon
+  ];
+
+  // This will hold the final list of actions for the ribbon
+  consolidatedQuickActions: ActionItem[] = [];
+
+  // Original adminActions for other purposes if any (currently unused after ribbon merge)
+  allAdminActions: ActionItem[] = [ // Renamed from adminActions to allAdminActions
     {
       iconName: 'mdi:account-plus',
       label: 'Add User',
@@ -266,10 +286,25 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
+    // Log initial activeSection (which is the default 'overview')
+    console.log('[DashboardContainer] Initial activeSection in ngOnInit:', this.activeSection);
+
     // Get the current authenticated user from the store
     this.subscriptions.add(
       this.store.select(selectCurrentUser).subscribe((user) => {
+        console.log('[DashboardContainer] User from store:', user);
         this.user = user;
+        if (user && user.role) {
+          this.userRole = user.role as string;
+          console.log('[DashboardContainer] User has role. userRole:', this.userRole);
+        } else {
+          this.userRole = 'guest';
+          console.log('[DashboardContainer] User has no role or is null. userRole:', this.userRole);
+        }
+        // Always default to 'overview' after user context is established
+        this.activeSection = 'overview';
+        console.log('[DashboardContainer] Active section set to:', this.activeSection);
+        this.buildConsolidatedQuickActions(); // Build the consolidated list
       }),
     );
 
@@ -277,14 +312,28 @@ export class DashboardContainerComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.store.select(selectUserViewModel).subscribe((viewModel) => {
         if (viewModel.error) {
-          console.error('Error loading users:', viewModel.error);
+          console.error('[DashboardContainer] Error from userViewModel:', viewModel.error);
         }
+        // console.log('[DashboardContainer] UserViewModel:', viewModel); // Optional: uncomment for more details
       }),
     );
+
+    // Log activeSection at the end of ngOnInit. This shows the value after synchronous setup.
+    // The value might change again once the async 'selectCurrentUser' subscription emits.
+    console.log('[DashboardContainer] activeSection at end of ngOnInit (before async store updates apply):', this.activeSection);
+
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+  }
+
+  private buildConsolidatedQuickActions(): void {
+    this.consolidatedQuickActions = [...this.baseQuickActions];
+    if (this.userRole === 'admin') {
+      this.consolidatedQuickActions.push(...this.adminSpecificQuickActions);
+    }
+    console.log('[DashboardContainer] Consolidated Quick Actions:', this.consolidatedQuickActions);
   }
 
   // Methods to handle section changes

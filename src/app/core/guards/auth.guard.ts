@@ -23,37 +23,40 @@ export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
   const authService = inject(AuthService);
   const targetRoute = state.url;
-
-  console.log(`Auth guard checking authentication for route: ${targetRoute}`);
+  console.log(`[AuthGuard] Activated for route: ${targetRoute}`);
 
   // First check the store state (fast)
   return store.select(selectIsAuthenticated).pipe(
     take(1),
     switchMap((isStoreAuthenticated) => {
+      console.log(`[AuthGuard] Store isAuthenticated: ${isStoreAuthenticated}`);
       if (isStoreAuthenticated) {
-        console.log('User authenticated via store state');
+        console.log('[AuthGuard] Allowing access based on store state.');
         return of(true);
       }
 
       // If store says not authenticated, double-check with Auth0 service
-      console.log('Store reports not authenticated, checking Auth0 service...');
-
       // Get auth status directly from Auth0 with a short timeout
+      console.log('[AuthGuard] Store says not authenticated. Checking Auth0 service...');
       return authService.auth0Service.isAuthenticated$.pipe(
         timeout(1000), // Don't wait too long
         take(1),
         map((isAuth0Authenticated) => {
+          console.log(`[AuthGuard] Auth0 service isAuthenticated: ${isAuth0Authenticated}`);
           if (isAuth0Authenticated) {
-            console.log('User IS authenticated via Auth0 service, allowing access');
+            console.log('[AuthGuard] Allowing access based on Auth0 state.');
+            // IMPORTANT: If Auth0 says authenticated but store doesn't,
+            // we should probably dispatch checkAuth here to sync the store.
+            // For now, just allow access if Auth0 is positive.
+            // Consider: store.dispatch(AuthActions.checkAuth());
             return true;
           }
-
-          console.log('User not authenticated, redirecting to home');
-          return router.createUrlTree(['/']);
+          console.log('[AuthGuard] Denying access. Redirecting to /login.');
+          return router.createUrlTree(['/']); // Should be /login or landing page
         }),
         catchError((err) => {
-          console.log('Auth check error or timeout, defaulting to not authenticated');
-          return of(router.createUrlTree(['/']));
+          console.error('[AuthGuard] Error checking Auth0 service:', err, 'Redirecting to /login.');
+          return of(router.createUrlTree(['/'])); // Should be /login or landing page
         }),
       );
     }),
