@@ -1,0 +1,6 @@
+<ul class="flex flex-col gap-2">
+  <li *ngFor="let task of tasks" class="flex items-center p-2 rounded-md transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
+    <input type="checkbox" [checked]="task.completed" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:ring-offset-gray-800" readonly />
+    <span class="ml-3 text-sm" [class.line-through]="task.completed" [class.text-gray-500]="task.completed" [class.dark:text-gray-400]="task.completed">{{ task.text }}</span>
+  </li>
+</ul>

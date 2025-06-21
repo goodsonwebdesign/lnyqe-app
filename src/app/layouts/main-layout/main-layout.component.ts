@@ -7,7 +7,7 @@ import {
   HostListener,
   ChangeDetectorRef,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Store } from '@ngrx/store';
@@ -17,24 +17,17 @@ import { catchError, EMPTY, Subscription } from 'rxjs';
 import { ServiceRequestService } from '../../features/service-request/service-request.service';
 import { selectIsAuthenticated, selectCurrentUser } from '../../store/selectors/auth.selectors';
 import { AuthService } from '../../core/services/auth/auth.service';
-import { Router, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { Router } from '@angular/router';
 import { FlyoutPosition } from '../../shared/components/ui/toolbar/toolbar.component';
 import { ServiceRequestComponent } from '../../features/service-request/service-request.component';
 import { UI_COMPONENTS } from '../../shared/components/ui';
 
-interface NavItem {
-  label: string;
-  route: string;
-  icon: string;
-  requiredRole?: string;
-  exact?: boolean;
-}
+
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, ...UI_COMPONENTS, ServiceRequestComponent],
+  imports: [CommonModule, RouterModule, NgOptimizedImage, ...UI_COMPONENTS, ServiceRequestComponent],
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,66 +39,10 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   user: any = null;
 
-  // Sidenav state
-  isSidenavOpen = false; // Always closed by default
+
   isMobileView = window.innerWidth < 1024;
 
-  // Navigation items with Iconify icon names
-  navItems: NavItem[] = [
-    {
-      label: 'Dashboard',
-      route: '/features/dashboard',
-      icon: 'mdi:home',
-    },
-    {
-      label: 'Service Requests',
-      route: '/features/service-requests',
-      icon: 'mdi:file-document-outline',
-    },
-    {
-      label: 'Calendar',
-      route: '/calendar',
-      icon: 'mdi:calendar',
-    },
-    {
-      label: 'Analytics',
-      route: '/analytics',
-      icon: 'mdi:chart-bar',
-    },
-    {
-      label: 'Auth Debug',
-      route: '/auth-debug',
-      icon: 'mdi:bug',
-    },
-  ];
 
-  // Primary Navigation for the horizontal tabs in desktop view
-  primaryNavItems: NavItem[] = [
-    {
-      label: 'Dashboard',
-      route: '/features/dashboard',
-      icon: 'mdi:home',
-      exact: true,
-    },
-    {
-      label: 'Requests',
-      route: '/features/service-requests',
-      icon: 'mdi:file-document-outline',
-    },
-    {
-      label: 'Analytics',
-      route: '/analytics',
-      icon: 'mdi:chart-bar',
-    },
-    {
-      label: 'Auth Debug',
-      route: '/auth-debug',
-      icon: 'mdi:bug',
-    },
-  ];
-
-  // Current route for active state calculations
-  currentRoute: string = '';
 
   private subscriptions = new Subscription();
   private store = inject(Store);
@@ -154,24 +91,8 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
       }),
     );
 
-    // Track current route for active state calculations and close sidenav on navigation
-    this.subscriptions.add(
-      this.router.events
-        .pipe(filter((event) => event instanceof NavigationEnd))
-        .subscribe((event: any) => {
-          // Close sidenav when navigating to a new page
-          this.closeSidenav();
-
-          this.currentRoute = event.urlAfterRedirects;
-          this.cdr.markForCheck();
-        }),
-    );
-
     // Initial check for mobile view
     this.handleResize();
-
-    // Set current route initially
-    this.currentRoute = this.router.url;
   }
 
   ngOnDestroy(): void {
@@ -179,43 +100,11 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  // Toggle sidenav
-  toggleSidenav(): void {
-    this.isSidenavOpen = !this.isSidenavOpen;
-    this.cdr.markForCheck();
-  }
 
-  // Close sidenav (useful for mobile after navigation)
-  closeSidenav(): void {
-    // Close the sidenav regardless of screen size
-    this.isSidenavOpen = false;
-    this.cdr.markForCheck();
-  }
-
-  // Added method to check if viewport is desktop
-  isDesktopView(): boolean {
-    return !this.isMobileView;
-  }
-
-  // Check if a route is active (for custom styling)
-  isActiveRoute(route: string): boolean {
-    if (route === '/') {
-      return this.currentRoute === '/';
-    }
-    return this.currentRoute.startsWith(route);
-  }
 
   // Handle window resize
   private handleResize(): void {
-    const wasDesktop = !this.isMobileView;
     this.isMobileView = window.innerWidth < 1024;
-
-    // Auto-close sidenav on mobile when resizing down
-    if (this.isMobileView && wasDesktop) {
-      this.isSidenavOpen = false;
-    }
-
-    // Removed the auto-open behavior for desktop to keep sidenav closed by default
 
     this.cdr.markForCheck();
   }
@@ -271,7 +160,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   }
 
   openServiceRequestFlyout(position: FlyoutPosition = 'right'): void {
-    console.log('Opening service request flyout with position:', position);
+
     this.serviceRequestService.openServiceRequest(position);
   }
 
@@ -312,13 +201,12 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   // Logout method for the sidenav
   logout(): void {
-    this.closeSidenav();
     this.authService.logout();
   }
 
   // Login method for handling login button click in the toolbar
   login(): void {
-    console.log('Login button clicked, redirecting to Auth0 login');
+
     this.authService.login();
   }
 }

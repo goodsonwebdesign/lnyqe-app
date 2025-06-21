@@ -12,7 +12,7 @@ import {
 } from '../../../store/selectors/auth.selectors';
 import { AuthToken } from '../../models/auth.model';
 import { User } from '../../models/user.model';
-// import { UsersService } from '../users/users.service'; // NOTE: UsersService seems unused in this file after review
+
 import { environment } from '../../../../environments/environment';
 
 /**
@@ -179,23 +179,23 @@ export class AuthService {
       return;
     }
     try {
-      // console.log(`AUTH TEST: Requesting token with audience: ${apiAudience}`);
-      // console.log('AUTH TEST: Including scopes: openid profile email offline_access');
+
+
 
       const token = await this.getApiAccessToken(apiAudience);
 
       if (token) {
-        // console.log('AUTH TEST: Token received successfully');
+
 
         // Decode token to verify audience
         try {
           const tokenParts = token.split('.');
           if (tokenParts.length === 3) {
             // const payload = JSON.parse(atob(tokenParts[1]));
-            // console.log('AUTH TEST: Token audience:', payload.aud);
-            // console.log('AUTH TEST: Token issuer:', payload.iss);
-            // console.log('AUTH TEST: Token scopes:', payload.scope);
-            // console.log('AUTH TEST: Token expiration:', new Date(payload.exp * 1000).toISOString());
+
+
+
+
           }
         } catch (e) {
           // console.error('AUTH TEST: Error decoding token:', e);

@@ -10,7 +10,7 @@ import { from, of, Observable } from 'rxjs';
 import { IdToken } from '@auth0/auth0-spa-js';
 import { AuthToken } from '../../../core/models/auth.model';
 import { User } from '../../../core/models/user.model';
-import { UsersService } from '../../../core/services/users/users.service'; // Added UsersService
+import { UserService } from '../../../core/services/user/user.service'; // Added UserService
 
 @Component({
   selector: 'app-callback',
@@ -23,7 +23,7 @@ export class CallbackComponent implements OnInit {
   private auth0Service = inject(Auth0Service);
   private store = inject(Store);
   private appAuthService = inject(AppAuthService);
-  private usersService = inject(UsersService); // Injected UsersService
+  private userService = inject(UserService); // Injected UsersService
 
   ngOnInit(): void {
     // The auth0Service.handleRedirectCallback() below is designed to be called on the callback route.
@@ -76,7 +76,7 @@ export class CallbackComponent implements OnInit {
                   throw new Error('AuthToken or its accessToken is null or undefined.');
                 }
                 // Fetch backend user profile
-                return this.usersService.getMe().pipe(
+                return this.userService.getMe().pipe(
                   map((backendUser: User) => {
                     if (!backendUser) {
                       throw new Error('Backend user profile is missing or undefined.');

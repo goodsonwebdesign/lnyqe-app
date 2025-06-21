@@ -17,7 +17,7 @@ import {
 import { AuthActions } from '../actions/auth.actions';
 import * as AppActions from '../actions/app.actions';
 import { AuthService } from '../../core/services/auth/auth.service';
-import { UsersService } from '../../core/services/users/users.service';
+import { UserService } from '../../core/services/user/user.service';
 import { User } from '../../core/models/user.model';
 import { environment } from '../../../environments/environment';
 
@@ -28,7 +28,7 @@ export class AuthEffects {
   private actions$ = inject(Actions);
   private auth0Service = inject(Auth0Service);
   private authService = inject(AuthService);
-  private usersService = inject(UsersService);
+  private userService = inject(UserService);
   private router = inject(Router);
   private store = inject(Store);
 
@@ -56,7 +56,7 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
-        tap(() => console.log('[AuthEffects] loginSuccess$ effect triggered.')),
+
         tap(({ user }) => {
           // Removed the initial check for AuthEffects.actionInProgress to ensure navigation logic always runs on loginSuccess.
           // The actionInProgress flag is still set here to signal to other effects that a login process is active.
@@ -66,12 +66,12 @@ export class AuthEffects {
           this.store.dispatch(AppActions.appLoaded());
 
           // Careful with navigation - don't redirect if we're already on the dashboard
-          console.log('[AuthEffects] loginSuccess$: Preparing to navigate. Current path:', window.location.pathname);
-          if (window.location.pathname !== '/features/dashboard') {
-            console.log('[AuthEffects] loginSuccess$: Navigating to /features/dashboard');
-            this.router.navigate(['/features/dashboard']);
+
+                    if (!window.location.pathname.startsWith('/dashboard')) {
+
+            this.router.navigate(['/dashboard']);
           } else {
-            console.log('[AuthEffects] loginSuccess$: Already on /features/dashboard or navigation skipped.');
+
           }
 
           // Reset the action flag after a short delay
@@ -153,16 +153,16 @@ export class AuthEffects {
                   if (auth0User) {
                     return from(this.authService.getTokenSilently()).pipe(
                       switchMap((token) => {
-                        return this.usersService.getMe().pipe(
+                        return this.userService.getMe().pipe(
                           tap(() => {
                             AuthEffects.actionInProgress = false;
-                            console.log('[AuthEffects] checkAuth$: actionInProgress set to false before loginSuccess dispatch.');
+
                           }),
                           map((backendUser: User) => {
                             if (!backendUser) {
                               throw new Error('Backend user profile is missing or undefined.');
                             }
-                            console.log('[AuthEffects] checkAuth$: Dispatching loginSuccess.');
+
                             return AuthActions.loginSuccess({ user: backendUser, token });
                           }),
                           catchError((getMeError) => {

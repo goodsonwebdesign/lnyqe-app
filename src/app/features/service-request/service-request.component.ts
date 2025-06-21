@@ -131,7 +131,7 @@ export class ServiceRequestComponent implements OnDestroy {
           files: this.files,
         };
 
-        console.log('Submitting request:', formData);
+
 
         this.isSubmitting = false;
         this.close();

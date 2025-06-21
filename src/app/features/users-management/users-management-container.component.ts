@@ -1,10 +1,13 @@
 import { Component, ChangeDetectionStrategy, inject, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Observable, BehaviorSubject, combineLatest, Subject } from 'rxjs';
+import { Observable, combineLatest, Subject } from 'rxjs';
 import { map, debounceTime, takeUntil, startWith } from 'rxjs/operators';
-import { UsersService } from '../../core/services/users/users.service';
+import { UserFilters } from '../../core/models/user-filters.model';
 import { UserView } from '../../core/models/user.model';
+import { Store } from '@ngrx/store';
+import { UserActions } from '../../store/actions/user.actions';
+import { selectUserViews, selectUsersError, selectUsersLoading } from '../../store/selectors/user.selectors';
 
 @Component({
   selector: 'app-users-management-container',
@@ -14,7 +17,7 @@ import { UserView } from '../../core/models/user.model';
   imports: [CommonModule, ReactiveFormsModule],
 })
 export class UsersManagementContainerComponent implements OnInit, OnDestroy {
-  private usersService = inject(UsersService);
+  private store = inject(Store);
   private fb = inject(FormBuilder);
   Math = Math;
 
@@ -27,19 +30,23 @@ export class UsersManagementContainerComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  users$: Observable<UserView[]> = this.usersService.loadAllUsers();
-  isLoading = false;
-  error: any = null;
-
-  filteredUsers$: Observable<UserView[]> = combineLatest([
-    this.users$,
-    this.filterForm.valueChanges.pipe(startWith(this.filterForm.value), debounceTime(200))
-  ]).pipe(
-    map(([users, filters]) => this.applyFilters(users, filters))
-  );
+  users$!: Observable<UserView[]>;
+  loading$!: Observable<boolean>;
+  error$!: Observable<any>;
+  filteredUsers$!: Observable<UserView[]>;
 
   ngOnInit(): void {
-    // Optionally, handle loading/error states here if needed
+    this.users$ = this.store.select(selectUserViews);
+    this.loading$ = this.store.select(selectUsersLoading);
+    this.error$ = this.store.select(selectUsersError);
+
+    this.filteredUsers$ = combineLatest([
+      this.users$,
+      this.filterForm.valueChanges.pipe(startWith(this.filterForm.value), debounceTime(200))
+    ]).pipe(
+      map(([users, filters]) => this.applyFilters(users, filters)),
+      takeUntil(this.destroy$)
+    );
   }
 
   ngOnDestroy(): void {
@@ -60,10 +67,6 @@ export class UsersManagementContainerComponent implements OnInit, OnDestroy {
       const attr = filters.attribute;
       filtered = filtered.filter(u => u.role === attr);
     }
-    // Removed status filter as 'status' no longer exists on UserView
-    // if (filters.status) {
-    //   filtered = filtered.filter(u => u.status === filters.status);
-    // }
     if (filters.sortBy === 'name') {
       filtered = filtered.slice().sort((a, b) => (a.first_name + a.last_name).localeCompare(b.first_name + b.last_name));
     }
@@ -76,24 +79,17 @@ export class UsersManagementContainerComponent implements OnInit, OnDestroy {
 
   addUser(): void {
     // TODO: Implement add user functionality
-    console.log('Add user clicked');
+
   }
 
   editUser(user: UserView): void {
     // TODO: Implement edit user functionality
-    console.log('Edit user clicked:', user);
+
   }
 
   deleteUser(user: UserView): void {
     if (confirm(`Are you sure you want to delete ${user.first_name} ${user.last_name}?`)) {
-      this.usersService.deleteUser(user.id).subscribe({
-        next: () => {
-          // Optionally, reload users or show a notification
-        },
-        error: err => {
-          this.error = err;
-        }
-      });
+      this.store.dispatch(UserActions.deleteUser({ id: user.id }));
     }
   }
 }

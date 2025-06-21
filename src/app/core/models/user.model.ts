@@ -7,10 +7,10 @@ export enum UserRole {
 }
 
 export interface User {
-  id: number;
+  id: number | string;
   auth0_id: string;
   email: string;
-  name: string;
+  name?: string;
   first_name: string;
   last_name: string;
   avatar: string;
@@ -21,7 +21,7 @@ export interface User {
 }
 
 export interface UserView {
-  id: number;
+  id: number; // Enforce number for consistency with service layer
   name?: string; // Added for display
   first_name: string;
   last_name: string;
@@ -35,7 +35,7 @@ export interface UserView {
 
 export function transformUserToViewModel(user: User): UserView {
   return {
-    id: typeof user.id === 'string' ? parseInt(user.id, 10) : user.id,
+    id: typeof user.id === 'string' ? parseInt(user.id, 10) : user.id, // Normalize ID to number
     name: user.name || `${user.first_name} ${user.last_name}`.trim(), // Use backend name or derive
     first_name: user.first_name,
     last_name: user.last_name,

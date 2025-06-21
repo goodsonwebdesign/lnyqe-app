@@ -1,0 +1,48 @@
+<div class="ribbon-container bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+  <!-- Tabs -->
+    <div class="ribbon-tabs px-2" role="tablist" aria-label="Dashboard Actions">
+        <button
+      *ngFor="let tab of tabs"
+      [id]="'tab-' + tab.id"
+      role="tab"
+      [attr.aria-selected]="tab.id === activeTab"
+      [attr.aria-controls]="'tabpanel-' + tab.id"
+      [class.active]="tab.id === activeTab"
+      (click)="setActiveTab(tab.id)"
+      class="tab-button">
+      {{ tab.title }}
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="ribbon-content p-2">
+    <ng-container *ngFor="let tab of tabs">
+            <div 
+        *ngIf="tab.id === activeTab" 
+        class="ribbon-groups"
+        role="tabpanel"
+        [id]="'tabpanel-' + tab.id"
+        [attr.aria-labelledby]="'tab-' + tab.id">
+        <ng-container *ngFor="let group of tab.groups">
+          <div class="ribbon-group">
+            <div class="ribbon-group-content">
+                            <ng-container *ngFor="let action of group.actions">
+                <a *ngIf="action.route" [routerLink]="action.route" class="action-button" [attr.aria-label]="action.label">
+                  <iconify-icon [icon]="action.icon" class="action-icon" aria-hidden="true"></iconify-icon>
+                  <span class="text-xs">{{ action.label }}</span>
+                </a>
+                <button *ngIf="!action.route" class="action-button" [attr.aria-label]="action.label">
+                  <iconify-icon [icon]="action.icon" class="action-icon" aria-hidden="true"></iconify-icon>
+                  <span class="text-xs">{{ action.label }}</span>
+                </button>
+              </ng-container>
+            </div>
+                        <div class="ribbon-group-label" aria-hidden="true">
+              {{ group.title }}
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </ng-container>
+  </div>
+</div>

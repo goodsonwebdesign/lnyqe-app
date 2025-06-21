@@ -22,5 +22,5 @@ export class ContainerComponent {
     | '6xl'
     | '7xl'
     | 'full' = '7xl';
-  @Input() padding: number = 4;
+
 }

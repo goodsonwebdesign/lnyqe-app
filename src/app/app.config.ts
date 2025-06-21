@@ -6,14 +6,13 @@ import { AppEffects } from './store/effects/app.effects';
 import { AuthEffects } from './store/effects/auth.effects';
 import { ServiceRequestEffects } from './store/effects/service-request.effects';
 import { UserEffects } from './store/effects/user.effects';
-import { metaReducers, reducers } from './store/reducers';
-import { authReducer } from './store/reducers/auth.reducer';
+import { authFeature } from './store/reducers/auth.reducer';
 import { serviceRequestFeature } from './store/reducers/service-request.reducer';
 import { userFeature } from './store/reducers/user.reducer';
 import { HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, ApplicationConfig, importProvidersFrom, isDevMode } from '@angular/core';
-import { HTTP_INTERCEPTORS } from '@angular/common/http'; // Added import
-import { CorsInterceptor } from './core/interceptors/cors.interceptor'; // Added import
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { CorsInterceptor } from './core/interceptors/cors.interceptor';
 import { BrowserModule } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { AuthModule } from '@auth0/auth0-angular';
@@ -62,10 +61,11 @@ export const appConfig: ApplicationConfig = {
   providers: [
     importProvidersFrom(BrowserModule, AuthModule.forRoot(AUTH_CONFIG), HttpClientModule),
     provideRouter(routes),
-    provideStore(reducers, { metaReducers }),
-    provideState('auth', authReducer),
-    provideState(serviceRequestFeature.name, serviceRequestFeature.reducer),
-    provideState(userFeature.name, userFeature.reducer),
+            provideStore(), // Root store setup
+    // Register all state slices as features for a consistent, modern setup
+    provideState(authFeature),
+    provideState(userFeature),
+    provideState(serviceRequestFeature),
     provideStoreDevtools({
       maxAge: 25,
       logOnly: !isDevMode(),
@@ -90,10 +90,8 @@ export const appConfig: ApplicationConfig = {
       provide: APP_INITIALIZER,
       useFactory: initializeIconify,
       multi: true,
-    }, provideServiceWorker('ngsw-worker.js', {
-            enabled: !isDevMode(),
-            registrationStrategy: 'registerWhenStable:30000'
-          }), provideServiceWorker('ngsw-worker.js', {
+    },
+    provideServiceWorker('ngsw-worker.js', {
             enabled: !isDevMode(),
             registrationStrategy: 'registerWhenStable:30000'
           }),

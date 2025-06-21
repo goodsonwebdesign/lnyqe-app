@@ -6,17 +6,18 @@ export const UserActions = createActionGroup({
   events: {
     // Load Users
     'Load Users': emptyProps(),
-    'Load Users Success': props<{ users: UserView[] }>(),
+    'Load Users No Op': emptyProps(),
+    'Load Users Success': props<{ users: User[] }>(),
     'Load Users Failure': props<{ error: any }>(),
 
     // Create User
     'Create User': props<{ user: Partial<UserView> }>(),
-    'Create User Success': props<{ user: UserView }>(),
+    'Create User Success': props<{ user: User }>(),
     'Create User Failure': props<{ error: any }>(),
 
     // Update User
     'Update User': props<{ id: number; user: Partial<UserView> }>(),
-    'Update User Success': props<{ user: UserView }>(),
+    'Update User Success': props<{ user: User }>(),
     'Update User Failure': props<{ error: any }>(),
 
     // Delete User

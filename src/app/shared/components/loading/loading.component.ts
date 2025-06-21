@@ -1,11 +1,11 @@
 import { Component, OnInit, inject, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-loading',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgOptimizedImage],
   templateUrl: './loading.component.html',
   styleUrls: ['./loading.component.scss'],
 })

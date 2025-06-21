@@ -2,13 +2,7 @@
 
 // Make sure the outer container is responsive and properly constrained
 :host {
-  display: block;
   width: 100%;
-  max-width: 100vw;
   overflow-x: hidden;
 }
 
-// Add responsive padding for the main content area
-.main-content {
-  @apply px-1 sm:px-2;
-}

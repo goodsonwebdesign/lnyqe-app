@@ -1,35 +1,35 @@
 import { authGuard } from '../core/guards/auth.guard';
-import { HomeContainerComponent } from './home/home-container.component';
 import { Routes } from '@angular/router';
+import { DashboardContainerComponent } from './dashboard/dashboard-container.component';
+import { DashboardWidgetsComponent } from './dashboard/components/dashboard-widgets/dashboard-widgets.component';
+import { UsersManagementContainerComponent } from './users-management/users-management-container.component';
+import { ServiceRequestsContainerComponent } from './service-requests/service-requests-container.component';
 
 // This file contains all feature routes for the application
 // Each feature should be a separate lazy-loaded module
 export const FEATURES_ROUTES: Routes = [
-  { path: '', component: HomeContainerComponent, title: 'Home' },
   {
-    path: 'dashboard',
-    loadComponent: () =>
-      import('./dashboard/dashboard-container.component').then(
-        (c) => c.DashboardContainerComponent,
-      ),
+    path: '', // The 'dashboard' path is now defined in app.routes.ts
+    component: DashboardContainerComponent,
     canActivate: [authGuard], // Protect the dashboard route
     title: 'Dashboard',
-  },
-  {
-    path: 'service-requests',
-    loadComponent: () =>
-      import('./service-requests/service-requests-container.component').then(
-        (c) => c.ServiceRequestsContainerComponent,
-      ),
-    title: 'Service Requests',
-  },
-  {
-    path: 'users-management',
-    loadComponent: () =>
-      import('./users-management/users-management-container.component').then(
-        (c) => c.UsersManagementContainerComponent,
-      ),
-    canActivate: [authGuard],
-    title: 'LNYQE - User Management',
+    children: [
+      {
+        path: '',
+        component: DashboardWidgetsComponent,
+        title: 'Dashboard',
+      },
+      {
+        path: 'users',
+        component: UsersManagementContainerComponent,
+        canActivate: [authGuard],
+        title: 'Manage Users',
+      },
+      {
+        path: 'requests',
+        component: ServiceRequestsContainerComponent,
+        title: 'Service Requests',
+      },
+    ],
   },
 ];

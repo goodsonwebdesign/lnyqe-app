@@ -15,7 +15,8 @@
     box-sizing: border-box;
   }
 
-  html {
+    html {
+    height: 100%;
     @apply bg-white text-neutral-900;
   }
 
@@ -23,10 +24,11 @@
     @apply bg-neutral-900 text-neutral-100;
   }
 
-  body {
-    @apply font-sans antialiased;
+    body, app-root {
+    height: 100%;
     margin: 0;
     padding: 0;
+    @apply font-sans antialiased;
   }
 
   h1,

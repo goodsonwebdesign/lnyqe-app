@@ -3,16 +3,12 @@
     <!-- Logo section -->
     <div class="mb-8 animate-pulse">
       <img
-        *ngIf="!isDarkMode"
-        src="https://img-lynqe.s3.us-east-2.amazonaws.com/logo-blk.png"
+        [ngSrc]="isDarkMode ? 'https://img-lynqe.s3.us-east-2.amazonaws.com/logo-wht.png' : 'https://img-lynqe.s3.us-east-2.amazonaws.com/logo-blk.png'"
         alt="Lynqe Logo"
-        class="h-12 sm:h-16"
-      />
-      <img
-        *ngIf="isDarkMode"
-        src="https://img-lynqe.s3.us-east-2.amazonaws.com/logo-wht.png"
-        alt="Lynqe Logo"
-        class="h-12 sm:h-16"
+        class="h-12 w-auto sm:h-16 object-contain"
+        width="384"
+        height="64"
+        priority
       />
     </div>
 

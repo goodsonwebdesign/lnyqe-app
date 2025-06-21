@@ -4,12 +4,10 @@
   <!-- Main Header - Using our toolbar component -->
   <app-toolbar
     [isLoggedIn]="isLoggedIn"
-    [isSidenavOpen]="isSidenavOpen"
     [lightModeLogo]="lightModeLogo"
     [darkModeLogo]="darkModeLogo"
     [userName]="getUserFirstName()"
     [greeting]="getGreeting()"
-    (toggleSidenav)="toggleSidenav()"
     (openServiceRequest)="openServiceRequestFlyout($event)"
     (login)="login()"
   >
@@ -20,283 +18,22 @@
 
   <!-- Main Content Area - Added padding to account for fixed toolbar height -->
   <div class="main-content relative flex-1 pt-16 md:pt-[4.5rem]">
-    <!-- Sidenav Overlay - Improved transition -->
-    <div
-      *ngIf="isLoggedIn && isSidenavOpen"
-      class="fixed inset-0 z-30 bg-black/50 backdrop-blur-[2px] transition-opacity duration-300 dark:bg-black/70"
-      [class.opacity-100]="isSidenavOpen"
-      [class.opacity-0]="!isSidenavOpen"
-      [class.pointer-events-auto]="isSidenavOpen"
-      [class.pointer-events-none]="!isSidenavOpen"
-      (click)="closeSidenav()"
-      aria-hidden="true"
-    ></div>
 
-    <!-- Mobile Sidebar - Adjusted for fixed header -->
-    <aside
-      *ngIf="isLoggedIn"
-      class="xs:w-[75vw] safe-area-inset-left fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-[80vw] transform overflow-hidden backdrop-blur-xl transition-all duration-300 ease-in-out sm:w-80 md:top-[4.5rem] md:h-[calc(100vh-4.5rem)]"
-      [class.translate-x-0]="isSidenavOpen"
-      [class.-translate-x-full]="!isSidenavOpen"
-      [attr.aria-hidden]="!isSidenavOpen"
-    >
-      <!-- Sidebar inner container -->
-      <div
-        class="flex h-full flex-col border-r border-neutral-200/70 bg-white/95 dark:border-neutral-700/70 dark:bg-neutral-800/95"
-      >
-        <!-- User profile card - Better spacing for mobile -->
-        <div class="relative border-b border-neutral-200/70 p-4 dark:border-neutral-700/70 sm:p-5">
-          <!-- Decorative background element -->
-          <div
-            class="absolute right-0 top-0 -mr-16 -mt-16 h-32 w-32 rounded-full bg-primary-500/5 dark:bg-primary-500/10"
-          ></div>
-
-          <div class="relative flex items-center space-x-3">
-            <!-- User avatar with status indicator -->
-            <div class="relative">
-              <div
-                *ngIf="user?.picture"
-                class="h-12 w-12 overflow-hidden rounded-xl border-2 border-white shadow-sm dark:border-neutral-700"
-              >
-                <img [src]="user.picture" alt="Profile" class="h-full w-full object-cover" />
-              </div>
-              <div
-                *ngIf="!user?.picture"
-                class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-lg font-semibold text-white shadow-sm dark:from-primary-600 dark:to-primary-800"
-              >
-                {{ getUserInitials() }}
-              </div>
-              <div
-                class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-neutral-800"
-              ></div>
-            </div>
-
-            <!-- User info -->
-            <div class="min-w-0 flex-1">
-              <h3
-                class="truncate-text flex items-center text-base font-medium text-neutral-900 dark:text-white"
-              >
-                {{ user?.name || 'User' }}
-                <app-icon
-                  name="mdi:check-decagram"
-                  size="xs"
-                  className="ml-1 text-primary-500 flex-shrink-0"
-                ></app-icon>
-              </h3>
-              <p class="truncate-text text-sm text-neutral-500 dark:text-neutral-400">
-                {{ user?.email || 'user@example.com' }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Main Navigation - Improved touch targets -->
-        <nav
-          class="hide-scrollbar flex-1 overflow-y-auto overflow-x-hidden overscroll-contain py-2 sm:py-4"
-        >
-          <div class="px-3 sm:px-4">
-            <h3
-              class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400"
-            >
-              Main Navigation
-            </h3>
-            <ul class="space-y-1">
-              <li *ngFor="let item of navItems">
-                <a
-                  [routerLink]="item.route"
-                  routerLinkActive="bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500"
-                  [routerLinkActiveOptions]="{ exact: false }"
-                  class="group flex touch-manipulation items-center rounded-lg border-l-2 border-transparent px-3 py-3.5 text-sm transition-all duration-200 sm:py-3"
-                  [ngClass]="{
-                    'hover:bg-neutral-100 dark:hover:bg-neutral-700/50': !isActiveRoute(item.route),
-                  }"
-                  (click)="closeSidenav()"
-                >
-                  <!-- Icon container with subtle animation -->
-                  <span
-                    class="mr-3 inline-flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200 group-hover:bg-white dark:group-hover:bg-neutral-800"
-                  >
-                    <app-icon
-                      [name]="item.icon"
-                      size="sm"
-                      className="text-neutral-500 dark:text-neutral-400 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-200"
-                    ></app-icon>
-                  </span>
-                  <span>{{ item.label }}</span>
-
-                  <!-- Right arrow indicator -->
-                  <app-icon
-                    name="mdi:chevron-right"
-                    size="xs"
-                    className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                  ></app-icon>
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Personal section -->
-          <div class="mt-6 px-3 sm:mt-8 sm:px-4">
-            <h3
-              class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400"
-            >
-              Personal
-            </h3>
-            <ul class="space-y-1">
-              <li>
-                <a
-                  routerLink="/preferences"
-                  routerLinkActive="bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500"
-                  class="group flex touch-manipulation items-center rounded-lg border-l-2 border-transparent px-3 py-3.5 text-sm transition-all duration-200 sm:py-3"
-                  [ngClass]="{
-                    'hover:bg-neutral-100 dark:hover:bg-neutral-700/50':
-                      !isActiveRoute('/preferences'),
-                  }"
-                  (click)="closeSidenav()"
-                >
-                  <span
-                    class="mr-3 inline-flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200 group-hover:bg-white dark:group-hover:bg-neutral-800"
-                  >
-                    <app-icon
-                      name="mdi:cog"
-                      size="sm"
-                      className="text-neutral-500 dark:text-neutral-400 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-200"
-                    ></app-icon>
-                  </span>
-                  <span>Settings</span>
-                </a>
-              </li>
-              <li>
-                <button
-                  (click)="logout()"
-                  class="group flex w-full touch-manipulation items-center rounded-lg border-l-2 border-transparent px-3 py-3.5 text-left text-sm transition-all duration-200 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 sm:py-3"
-                >
-                  <span
-                    class="mr-3 inline-flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200 group-hover:bg-white dark:group-hover:bg-neutral-800"
-                  >
-                    <app-icon
-                      name="mdi:logout"
-                      size="sm"
-                      className="text-neutral-500 dark:text-neutral-400 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors duration-200"
-                    ></app-icon>
-                  </span>
-                  <span>Sign Out</span>
-                </button>
-              </li>
-            </ul>
-          </div>
-        </nav>
-
-        <!-- App info footer -->
-        <div
-          class="border-t border-neutral-200/70 bg-neutral-50/80 p-3 dark:border-neutral-700/70 dark:bg-neutral-800/80 sm:p-4"
-        >
-          <div
-            class="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-500"
-          >
-            <span>LNYQE v2.5.0</span>
-            <span>{{ currentYear }}</span>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Desktop-only side nav - Improved with better spacing -->
-    <aside
-      *ngIf="isLoggedIn"
-      class="safe-area-inset-left fixed left-0 top-16 z-40 hidden h-[calc(100vh-4rem)] w-16 border-r border-neutral-200/70 bg-white/95 backdrop-blur-sm dark:border-neutral-700/70 dark:bg-neutral-800/95 lg:top-[4.5rem] lg:block lg:h-[calc(100vh-4.5rem)]"
-    >
-      <!-- Vertical icon-only navigation -->
-      <div class="flex h-full flex-col items-center pt-6">
-        <nav class="flex flex-col items-center space-y-4">
-          <ng-container *ngFor="let item of navItems">
-            <a
-              [routerLink]="item.route"
-              routerLinkActive="text-primary-600 dark:text-primary-500 bg-primary-50 dark:bg-primary-900/30"
-              [routerLinkActiveOptions]="{ exact: false }"
-              class="group relative flex h-10 w-10 touch-manipulation items-center justify-center rounded-lg text-neutral-500 transition-all duration-200 hover:bg-neutral-100 hover:text-primary-600 dark:text-neutral-400 dark:hover:bg-neutral-700/50 dark:hover:text-primary-400"
-              [attr.aria-label]="item.label"
-            >
-              <!-- Icon -->
-              <app-icon
-                [name]="item.icon"
-                size="sm"
-                className="text-neutral-500 dark:text-neutral-400 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-200"
-              ></app-icon>
-
-              <!-- Tooltip - Positioned with extra care for all viewports -->
-              <div
-                class="pointer-events-none invisible absolute left-full z-10 ml-2 whitespace-nowrap rounded bg-neutral-800/90 px-2 py-1 text-xs font-medium text-white opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 dark:bg-neutral-700/90"
-              >
-                {{ item.label }}
-                <div
-                  class="absolute -left-1 top-1/2 h-2 w-2 -translate-y-1/2 rotate-45 transform bg-neutral-800/90 dark:bg-neutral-700/90"
-                ></div>
-              </div>
-            </a>
-          </ng-container>
-        </nav>
-      </div>
-    </aside>
-
-    <!-- Mobile Tab Bar for quick navigation (new) -->
-    <nav
-      *ngIf="isLoggedIn"
-      class="safe-area-inset-bottom fixed inset-x-0 bottom-0 z-40 flex h-[4.5rem] items-center justify-around border-t border-neutral-200/70 bg-white/95 shadow-lg backdrop-blur-sm dark:border-neutral-700/70 dark:bg-neutral-800/95 lg:hidden"
-    >
-      <ng-container *ngFor="let item of primaryNavItems">
-        <a
-          [routerLink]="item.route"
-          routerLinkActive="text-primary-600 dark:text-primary-500"
-          [routerLinkActiveOptions]="{ exact: false }"
-          class="flex w-1/5 touch-manipulation flex-col items-center justify-center rounded-lg p-2 text-neutral-500 dark:text-neutral-400"
-          [attr.aria-label]="item.label"
-        >
-          <div
-            class="flex h-8 w-8 items-center justify-center rounded-md transition-all duration-200"
-          >
-            <app-icon
-              [name]="item.icon"
-              size="sm"
-              className="text-neutral-500 dark:text-neutral-400 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors duration-200"
-            ></app-icon>
-          </div>
-          <span class="mt-1 text-xs font-medium">{{ item.label }}</span>
-        </a>
-      </ng-container>
-    </nav>
 
     <!-- Main Content Container -->
     <div
-      class="min-w-0 transition-all duration-300"
-      [class.lg:ml-16]="isLoggedIn"
-      [class.pb-[4.5rem]="isLoggedIn && !isDesktopView()"
-      [class.pb-0]="!isLoggedIn || isDesktopView()"
-    >
-      <!-- Main Content with adjusted spacing for mobile tab bar -->
-      <main
-        class="flex min-h-[calc(100vh-4rem-var(--footer-height,9rem)-var(--tabbar-height,0rem))] flex-1 flex-col md:min-h-[calc(100vh-4.5rem-var(--footer-height,8rem)-var(--tabbar-height,0rem))]"
-      >
-        <!-- Use a straightforward container for unauthenticated users -->
-        <ng-container *ngIf="!isLoggedIn">
-          <div class="flex-grow px-4 py-4 sm:px-6 sm:py-6 md:px-8">
-            <router-outlet></router-outlet>
-          </div>
-        </ng-container>
+      class="main-content-area relative flex h-full w-full flex-col transition-all duration-300 ease-in-out"
 
-        <!-- Use the styled container for authenticated users -->
-        <ng-container *ngIf="isLoggedIn">
-          <app-container [padding]="4" class="flex-grow py-4 sm:py-6">
-            <router-outlet></router-outlet>
-          </app-container>
-        </ng-container>
+    >
+      <!-- Main Content with simplified structure -->
+      <main class="flex-1 px-4 py-4 sm:px-6 sm:py-6 md:px-8">
+        <router-outlet></router-outlet>
       </main>
 
       <!-- Redesigned Footer -->
       <footer
         class="dark:via-neutral-850 safe-area-inset-bottom relative overflow-hidden border-t border-neutral-200/70 bg-gradient-to-r from-white via-neutral-50 to-white py-4 dark:border-neutral-700/70 dark:from-neutral-800 dark:to-neutral-800 sm:py-6"
-        [class.lg:block]="isLoggedIn"
-        [class.hidden]="isLoggedIn && !isDesktopView()"
+
       >
         <!-- Decorative elements -->
         <div
@@ -314,23 +51,20 @@
             <div
               class="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-x-4 sm:space-y-0"
             >
-              <a routerLink="/" class="flex items-center">
+              <a routerLink="/" class="flex flex-shrink-0 items-center">
                 <img
-                  *ngIf="!themeService.isDarkMode()"
-                  [src]="lightModeLogo"
+                  [ngSrc]="themeService.isDarkMode() ? darkModeLogo : lightModeLogo"
                   alt="LNYQE Logo"
-                  class="h-6"
-                />
-                <img
-                  *ngIf="themeService.isDarkMode()"
-                  [src]="darkModeLogo"
-                  alt="LNYQE Logo"
-                  class="h-6"
+                  class="h-6 w-auto object-contain"
+                  width="144"
+                  height="24"
                 />
               </a>
-              <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                &copy; {{ currentYear }} LNYQE. All rights reserved.
-              </p>
+              <div class="flex flex-col">
+                <p class="text-sm text-neutral-500 dark:text-neutral-400">
+                  &copy; {{ currentYear }} LNYQE. All rights reserved.
+                </p>
+              </div>
             </div>
 
             <!-- Right: Links and social -->
@@ -386,25 +120,4 @@
   </div>
 </div>
 
-<script>
-  // Dynamically calculate footer height and tab bar height for proper content spacing
-  document.addEventListener('DOMContentLoaded', function () {
-    const footer = document.querySelector('footer');
-    const tabBar = document.querySelector('nav.fixed.bottom-0');
 
-    const updateHeights = () => {
-      if (footer && footer.offsetHeight > 0) {
-        document.documentElement.style.setProperty('--footer-height', footer.offsetHeight + 'px');
-      }
-
-      if (tabBar && tabBar.offsetHeight > 0) {
-        document.documentElement.style.setProperty('--tabbar-height', tabBar.offsetHeight + 'px');
-      } else {
-        document.documentElement.style.setProperty('--tabbar-height', '0px');
-      }
-    };
-
-    updateHeights();
-    window.addEventListener('resize', updateHeights);
-  });
-</script>

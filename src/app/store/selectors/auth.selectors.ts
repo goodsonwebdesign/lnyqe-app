@@ -1,41 +1,33 @@
-import { AuthState, AuthToken } from '../../core/models/auth.model';
+import { createSelector } from '@ngrx/store';
+import { AuthToken } from '../../core/models/auth.model';
 import { User } from '../../core/models/user.model';
-import { createFeatureSelector, createSelector } from '@ngrx/store';
+import {
+  selectIsAuthenticated,
+  selectUser,
+  selectToken,
+  selectIsLoading,
+  selectError,
+  selectOrganizationId,
+  selectIsEnterpriseSSOEnabled,
+} from '../reducers/auth.reducer';
 
-// Feature selector
-export const selectAuthState = createFeatureSelector<AuthState>('auth');
+// Re-exporting for global use
+export {
+  selectIsAuthenticated,
+  selectUser,
+  selectToken,
+  selectIsLoading,
+  selectError,
+  selectOrganizationId,
+  selectIsEnterpriseSSOEnabled,
+};
 
-// Individual selectors
-export const selectIsAuthenticated = createSelector(
-  selectAuthState,
-  (state: AuthState) => state.isAuthenticated,
-);
+// Aliases for consistency
+export const selectCurrentUser = selectUser;
+export const selectAuthToken = selectToken;
+export const selectAuthLoading = selectIsLoading;
 
-export const selectCurrentUser = createSelector(selectAuthState, (state: AuthState) => state.user);
-
-export const selectAuthToken = createSelector(selectAuthState, (state: AuthState) => state.token);
-
-export const selectAuthLoading = createSelector(
-  selectAuthState,
-  (state: AuthState) => state.isLoading,
-);
-
-export const selectAuthError = createSelector(selectAuthState, (state: AuthState) => state.error);
-
-export const selectOrganizationId = createSelector(
-  selectAuthState,
-  (state: AuthState) => state.organizationId,
-);
-
-export const selectIsEnterpriseSSOEnabled = createSelector(
-  selectAuthState,
-  (state: AuthState) => state.isEnterpriseSSOEnabled,
-);
-
-export const selectUserRole = createSelector(
-  selectCurrentUser,
-  (user: User | null) => user?.role || null,
-);
+export const selectUserRole = createSelector(selectUser, (user: User | null) => user?.role || null);
 
 // Create a unified view model
 export interface AuthViewModel {
@@ -51,10 +43,10 @@ export interface AuthViewModel {
 
 export const selectAuthViewModel = createSelector(
   selectIsAuthenticated,
-  selectCurrentUser,
-  selectAuthToken,
-  selectAuthLoading,
-  selectAuthError,
+  selectUser,
+  selectToken,
+  selectIsLoading,
+  selectError,
   selectOrganizationId,
   selectIsEnterpriseSSOEnabled,
   selectUserRole,
@@ -66,7 +58,7 @@ export const selectAuthViewModel = createSelector(
     error,
     organizationId,
     isEnterpriseSSOEnabled,
-    role,
+    role
   ): AuthViewModel => ({
     isAuthenticated,
     user,
@@ -76,5 +68,5 @@ export const selectAuthViewModel = createSelector(
     organizationId,
     isEnterpriseSSOEnabled,
     role,
-  }),
+  })
 );

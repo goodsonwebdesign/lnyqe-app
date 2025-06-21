@@ -1,6 +1,6 @@
 <div
   [ngClass]="[
-    'lnyqe-container mx-auto w-full',
+    'lnyqe-container mx-auto w-full h-full flex flex-col px-4 py-4 sm:px-6 md:px-8',
     size === 'xs' ? 'max-w-xs' : '',
     size === 'sm' ? 'max-w-sm' : '',
     size === 'md' ? 'max-w-md' : '',
@@ -13,7 +13,6 @@
     size === '6xl' ? 'max-w-6xl' : '',
     size === '7xl' ? 'max-w-7xl' : '',
     size === 'full' ? 'max-w-full' : '',
-    padding ? 'px-' + padding : '',
   ]"
 >
   <ng-content></ng-content>

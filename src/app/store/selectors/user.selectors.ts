@@ -1,54 +1,61 @@
-import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { UserState, selectAllUsers } from '../reducers/user.reducer';
+import { createSelector, createFeatureSelector } from '@ngrx/store';
+import { userAdapter, UserState, userFeature } from '../reducers/user.reducer';
+import { transformUserToViewModel } from '../../core/models/user.model';
 
-// Feature selector for the user state
-export const selectUserState = createFeatureSelector<UserState>('users');
+export const selectUsersState = createFeatureSelector<UserState>(userFeature.name);
 
-// Selector to get all users
-export const selectUsers = createSelector(selectUserState, selectAllUsers);
+const { selectAll, selectEntities, selectIds, selectTotal } = userAdapter.getSelectors();
 
-// Selector to get the loading state
-export const selectUsersLoading = createSelector(selectUserState, (state) => state.loading);
-
-// Selector to get the error state
-export const selectUsersError = createSelector(selectUserState, (state) => state.error);
-
-// Selector to get the selected user ID
-export const selectSelectedUserId = createSelector(selectUserState, (state) => state.selectedUserId);
-
-// Selector to get the selected user details
-export const selectSelectedUser = createSelector(
-  selectUserState,
-  (state) => (state.selectedUserId ? state.entities[state.selectedUserId] : null),
+export const selectAllUsers = createSelector(
+    selectUsersState,
+    selectAll
 );
 
-// ViewModel selector for container/presentational components
-export const selectUserViewModel = createSelector(
-  selectUsers,
-  selectUsersLoading,
-  selectUsersError,
-  selectSelectedUser,
-  (users, loading, error, selectedUser) => ({
-    users,
-    loading,
-    error,
-    selectedUser,
-  }),
+export const selectUserEntities = createSelector(
+    selectUsersState,
+    selectEntities
 );
 
-// Filters selector
-export const selectUsersFilters = createSelector(selectUserState, (state) => state.filters);
-
-// ViewModel selector for users with filters
-export const selectUsersViewModel = createSelector(
-  selectUsers,
-  selectUsersLoading,
-  selectUsersError,
-  selectUsersFilters,
-  (users, loading, error, filters) => ({
-    users,
-    loading,
-    error,
-    filters,
-  }),
+export const selectUserIds = createSelector(
+    selectUsersState,
+    selectIds
 );
+
+export const selectUserTotal = createSelector(
+    selectUsersState,
+    selectTotal
+);
+
+export const selectCurrentUserId = createSelector(
+    selectUsersState,
+    (state: UserState) => state.selectedUserId
+);
+
+export const selectCurrentUser = createSelector(
+    selectUserEntities,
+    selectCurrentUserId,
+    (userEntities, userId) => userId && userEntities[userId]
+);
+
+export const selectUsersLoading = createSelector(
+    selectUsersState,
+    (state: UserState) => state.loading
+);
+
+export const selectUsersError = createSelector(
+    selectUsersState,
+    (state: UserState) => state.error
+);
+
+export const selectUserLastLoaded = createSelector(
+    selectUsersState,
+    (state: UserState) => state.lastLoaded
+);
+
+export const selectUserViews = createSelector(
+    selectAllUsers,
+    (users) => users.map(user => transformUserToViewModel(user))
+);
+
+// selectUsers is now an alias for selectAllUsers, which returns User[]
+export const selectUsers = selectAllUsers;

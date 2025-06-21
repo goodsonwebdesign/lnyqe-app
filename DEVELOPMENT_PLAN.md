@@ -80,3 +80,27 @@ This plan synthesizes the `CODING_STANDARDS.md` and `design-doc.txt` to provide 
     - **Versioning**: Use Semantic Versioning (Major.Minor.Patch) for all releases.
     - **Changelog**: Maintain a `CHANGELOG.md` file to document changes in each release.
     - **Deployment**: Use the documented deployment process, including running production builds and deploying to the target environment.
+
+### Phase 6: Dashboard Overhaul (In Progress)
+
+- **Objective**: Rework the primary dashboard into a highly customizable, performant, and user-centric hub for all application activities. The new design will be based on a widget-based, drag-and-drop grid system with a central ribbon bar for actions.
+- **Core Technologies**:
+    - **Grid System**: `angular-gridster2` for a dynamic, resizable, and draggable grid layout.
+    - **Data Visualization**: `ngx-charts` for creating modular and interactive charts and graphs.
+- **Tasks**:
+    1.  **Foundation**:
+        - Remove the previous dashboard implementation while preserving routing.
+        - Install and configure `angular-gridster2` and `ngx-charts`.
+        - Create a new `DashboardContainerComponent` to host the grid.
+    2.  **Core UI Components**:
+        - Develop a `RibbonComponent` to house primary user actions, inspired by familiar interfaces like Microsoft Outlook.
+        - Create a generic `DashboardWidgetComponent` to serve as a standardized wrapper for all dashboard widgets, handling resize and interaction logic.
+    3.  **Widget Development (Iterative)**:
+        - Re-implement existing functionality (user tasks, messages, etc.) as individual, self-contained widgets.
+        - Develop new data visualization widgets (e.g., performance charts, activity graphs).
+    4.  **State Management (NgRx)**:
+        - Define state for managing the dashboard layout (widget positions, sizes).
+        - Ensure widget-specific state is handled cleanly within their respective feature stores.
+    5.  **Responsiveness & Performance**:
+        - Ensure the grid and all widgets are fully responsive and optimized for mobile devices.
+        - Profile and optimize the performance of the dashboard, especially with a large number of widgets.

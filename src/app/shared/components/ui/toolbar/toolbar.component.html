@@ -7,58 +7,20 @@
   >
     <!-- Left Section with Logo and Mobile Toggle -->
     <div class="flex items-center justify-start space-x-3">
-      <!-- Mobile Toggle Button - Always visible when logged in -->
-      <button
-        *ngIf="isLoggedIn"
-        (click)="toggleSidenav.emit()"
-        class="relative flex touch-manipulation items-center justify-center rounded-lg border border-neutral-200 bg-white p-3 shadow-sm transition-all duration-200 hover:shadow-md dark:border-neutral-700 dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-primary-500"
-        [ngClass]="{
-          'bg-primary-50 dark:bg-primary-900/30': isSidenavOpen,
-          'bg-white dark:bg-neutral-800': !isSidenavOpen,
-        }"
-        aria-label="Toggle navigation menu"
-        [attr.aria-expanded]="isSidenavOpen"
-        data-testid="toolbar-toggle-sidenav-btn"
-      >
-        <!-- Animated hamburger icon -->
-        <div class="flex h-5 w-5 flex-col items-center justify-center">
-          <span
-            class="block h-0.5 w-5 bg-neutral-600 transition-all duration-200 dark:bg-neutral-300"
-            [ngClass]="{
-              'translate-y-1 rotate-45': isSidenavOpen,
-            }"
-          ></span>
-          <span
-            class="my-1 block h-0.5 w-5 bg-neutral-600 transition-all duration-200 dark:bg-neutral-300"
-            [ngClass]="{
-              'opacity-0': isSidenavOpen,
-            }"
-          ></span>
-          <span
-            class="block h-0.5 w-5 bg-neutral-600 transition-all duration-200 dark:bg-neutral-300"
-            [ngClass]="{
-              '-translate-y-1 -rotate-45': isSidenavOpen,
-            }"
-          ></span>
-        </div>
-      </button>
+
 
       <!-- Logo - Always visible and prominent -->
-      <a routerLink="/" class="logo-container group flex items-center focus:outline-none focus:ring-2 focus:ring-primary-500" data-testid="toolbar-logo-link">
+      <a routerLink="/" class="logo-container group flex flex-shrink-0 items-center focus:outline-none focus:ring-2 focus:ring-primary-500" data-testid="toolbar-logo-link">
         <div
           class="relative overflow-hidden rounded-xl bg-white/80 p-1.5 shadow-sm transition-all duration-300 group-hover:shadow-md dark:bg-neutral-900/80"
         >
           <img
-            *ngIf="!themeService.isDarkMode()"
-            [src]="lightModeLogo"
+            [ngSrc]="themeService.isDarkMode() ? darkModeLogo : lightModeLogo"
             alt="LNYQE Logo"
-            class="h-7 transform transition-transform duration-300 group-hover:scale-105 sm:h-8"
-          />
-          <img
-            *ngIf="themeService.isDarkMode()"
-            [src]="darkModeLogo"
-            alt="LNYQE Logo"
-            class="h-7 transform transition-transform duration-300 group-hover:scale-105 sm:h-8"
+            class="h-7 w-auto transform transition-transform duration-300 group-hover:scale-105 sm:h-8 object-contain"
+            width="192"
+            height="32"
+            priority
           />
         </div>
       </a>

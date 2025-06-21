@@ -208,14 +208,14 @@ export class AuthDebugComponent implements OnInit {
       const token = await this.authService.getApiAccessToken(audience);
       this.apiToken = token;
       this.decodeToken(token);
-      console.log('Token generated successfully');
+
     } catch (error) {
       console.error('Error generating token:', error);
       this.tokenError = JSON.stringify(error, null, 2);
 
       // Try alternative method as fallback
       try {
-        console.log('Trying alternative token method...');
+
         const token = await firstValueFrom(
           this.auth0Service.getAccessTokenSilently({
             authorizationParams: {
@@ -226,7 +226,7 @@ export class AuthDebugComponent implements OnInit {
         );
         this.apiToken = token;
         this.decodeToken(token);
-        console.log('Token generated using alternative method');
+
         this.tokenError = 'Primary method failed, but fallback succeeded';
       } catch (fallbackError) {
         console.error('Fallback token method also failed:', fallbackError);
@@ -241,7 +241,7 @@ export class AuthDebugComponent implements OnInit {
 
     try {
       await this.authService.testApiTokenRequest(this.tokenForm.get('audience')?.value);
-      console.log('Test token generated - check browser console for details');
+
     } catch (error) {
       console.error('Error in test token generation:', error);
       this.tokenError = JSON.stringify(error, null, 2);
@@ -273,7 +273,7 @@ export class AuthDebugComponent implements OnInit {
       navigator.clipboard
         .writeText(this.apiToken)
         .then(() => {
-          console.log('Token copied to clipboard');
+
           alert('Token copied to clipboard!');
         })
         .catch((err) => {

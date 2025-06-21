@@ -23,6 +23,7 @@ export const routes: Routes = [
         component: HomeContainerComponent,
         canActivate: [homeGuard],
         title: 'LNYQE - Home',
+        pathMatch: 'full',
       },
       {
         path: 'preferences',
@@ -36,9 +37,11 @@ export const routes: Routes = [
         canActivate: [authGuard],
         title: 'LNYQE - Auth Debugging',
       },
+      // Lazy-load feature routes under the main layout
       {
-        path: 'features',
-        loadChildren: () => import('./features/features.routes').then((m) => m.FEATURES_ROUTES),
+        path: 'dashboard',
+        loadChildren: () =>
+          import('./features/features.routes').then((m) => m.FEATURES_ROUTES),
       },
     ],
   },

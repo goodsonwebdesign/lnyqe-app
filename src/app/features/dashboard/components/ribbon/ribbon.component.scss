@@ -1,0 +1,107 @@
+:host {
+  display: block;
+}
+
+.ribbon-container {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.ribbon-tabs {
+  display: flex;
+}
+
+.tab-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-color-secondary);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease-in-out;
+
+  &.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+  }
+
+  &:hover:not(.active) {
+    background-color: rgba(0,0,0,0.05);
+  }
+}
+
+.ribbon-content {
+  min-height: 80px;
+}
+
+.ribbon-groups {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.5rem;
+}
+
+.ribbon-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0.5rem;
+  border-right: 1px solid var(--border-color);
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.ribbon-group-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  gap: 0.5rem;
+}
+
+.action-icon {
+  font-size: 1.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0.5rem;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+
+  &:hover {
+    background-color: rgba(0,0,0,0.05);
+    border-color: rgba(0,0,0,0.1);
+  }
+}
+
+.ribbon-group-label {
+  font-size: 0.75rem;
+  color: var(--text-color-secondary);
+  margin-top: 0.25rem;
+}
+
+// Define theme variables for light/dark mode compatibility
+:host {
+  --text-color-secondary: #6b7280; // gray-500
+  --primary-color: #4f46e5; // indigo-600
+  --border-color: #e5e7eb; // gray-200
+}
+
+:host-context(.dark) {
+  --text-color-secondary: #9ca3af; // gray-400
+  --primary-color: #818cf8; // indigo-400
+  --border-color: #4b5563; // gray-600
+}
