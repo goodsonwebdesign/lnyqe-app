@@ -31,6 +31,9 @@ describe('ToolbarComponent', () => {
 
     fixture = TestBed.createComponent(ToolbarComponent);
     component = fixture.componentInstance;
+    // Provide mock values for inputs to prevent NgOptimizedImage error
+    component.lightModeLogo = 'assets/logo-light.png';
+    component.darkModeLogo = 'assets/logo-dark.png';
     fixture.detectChanges();
   });
 

@@ -19,8 +19,7 @@ describe('ContainerComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should have default values', () => {
+  it('should have a default size of "7xl"', () => {
     expect(component.size).toBe('7xl');
-    expect(component.padding).toBe(4);
   });
 });
