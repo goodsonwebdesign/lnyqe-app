@@ -14,6 +14,12 @@
   <!-- Work Requests Chart Widget -->
   <div class="col-span-1 md:col-span-2 xl:col-span-3 bg-white dark:bg-gray-900 p-4 sm:p-6 rounded-lg shadow-md">
     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Work Requests Overview</h3>
-    <app-work-requests-chart-widget></app-work-requests-chart-widget>
+    @defer (on viewport) {
+      <app-work-requests-chart-widget></app-work-requests-chart-widget>
+    } @placeholder {
+      <div class="h-64 flex items-center justify-center">
+        <p class="text-gray-500 dark:text-gray-400">Loading chart...</p>
+      </div>
+    }
   </div>
 </div>

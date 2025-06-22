@@ -9,7 +9,7 @@ import { WorkRequestsChartWidgetComponent } from '../../widgets/work-requests-ch
   imports: [
     UserTasksWidgetComponent,
     RecentMessagesWidgetComponent,
-    WorkRequestsChartWidgetComponent,
+
   ],
   templateUrl: './dashboard-widgets.component.html',
   styleUrls: ['./dashboard-widgets.component.scss']
