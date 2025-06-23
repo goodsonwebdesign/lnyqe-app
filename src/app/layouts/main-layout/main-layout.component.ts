@@ -15,7 +15,7 @@ import { ThemeService } from '../../core/services/theme.service';
 import { FlyoutService } from '../../core/services/flyout/flyout.service';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { ServiceRequestService } from '../../features/service-request/service-request.service';
-import { selectIsAuthenticated, selectCurrentUser } from '../../store/selectors/auth.selectors';
+import { selectIsAuthenticated, selectCurrentUser, selectIsRedirecting } from '../../store/selectors/auth.selectors';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { Router } from '@angular/router';
 import { FlyoutPosition } from '../../shared/components/ui/toolbar/toolbar.component';
@@ -23,41 +23,47 @@ import { ServiceRequestComponent } from '../../features/service-request/service-
 import { UI_COMPONENTS } from '../../shared/components/ui';
 import { User } from '@auth0/auth0-angular';
 
-
-
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, NgOptimizedImage, ...UI_COMPONENTS, ServiceRequestComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    NgOptimizedImage,
+    ...UI_COMPONENTS, // This now includes LoadingSpinnerComponent
+    ServiceRequestComponent,
+  ],
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {
-  currentYear = new Date().getFullYear();
-  buildInfo = '';
-  deployedOn = '';
-  isLoggedIn = false;
-  user: User | null = null;
-
-
-  isMobileView = window.innerWidth < 1024;
-
-
-
-  private subscriptions = new Subscription();
+  // Injected Services
   private store = inject(Store);
   private authService = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private http = inject(HttpClient);
+  private serviceRequestService = inject(ServiceRequestService);
+  private flyoutService = inject(FlyoutService);
+  themeService = inject(ThemeService);
 
+  // State Observables
+  isRedirecting$ = this.store.select(selectIsRedirecting);
+
+  // Component State
+  isLoggedIn = false;
+  user: User | null = null;
+  isMobileView = window.innerWidth < 1024;
+
+  // Static & Display Properties
+  currentYear = new Date().getFullYear();
+  buildInfo = '';
+  deployedOn = '';
   lightModeLogo = 'https://img-lynqe.s3.us-east-2.amazonaws.com/logo-blk.png';
   darkModeLogo = 'https://img-lynqe.s3.us-east-2.amazonaws.com/logo-wht.png';
 
-  themeService = inject(ThemeService);
-  private serviceRequestService = inject(ServiceRequestService);
-  private flyoutService = inject(FlyoutService);
-  private http = inject(HttpClient);
+  private subscriptions = new Subscription();
 
   // Handle window resize
   @HostListener('window:resize')
@@ -100,8 +106,6 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     // Clean up subscriptions when component is destroyed
     this.subscriptions.unsubscribe();
   }
-
-
 
   // Handle window resize
   private handleResize(): void {
@@ -161,7 +165,6 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   }
 
   openServiceRequestFlyout(position: FlyoutPosition = 'right'): void {
-
     this.serviceRequestService.openServiceRequest(position);
   }
 
@@ -207,7 +210,6 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   // Login method for handling login button click in the toolbar
   login(): void {
-
     this.authService.login();
   }
 }

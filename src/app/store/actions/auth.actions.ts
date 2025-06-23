@@ -6,6 +6,7 @@ import { createActionGroup, emptyProps, props } from '@ngrx/store';
 export const AuthActions = createActionGroup({
   source: 'Auth',
   events: {
+    'Auth Callback Started': emptyProps(),
     'Login Request': props<{ organization?: string }>(),
     'Login Success': props<{ user: User; token: AuthToken }>(),
     'Login Failure': props<{ error: string }>(),
@@ -21,6 +22,7 @@ export const AuthActions = createActionGroup({
 });
 
 // For backward compatibility during migration
+export const authCallbackStarted = AuthActions.authCallbackStarted;
 export const loginRequest = AuthActions.loginRequest;
 export const loginSuccess = AuthActions.loginSuccess;
 export const loginFailure = AuthActions.loginFailure;

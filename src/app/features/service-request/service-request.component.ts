@@ -10,6 +10,7 @@ import { FlyoutService } from '../../core/services/flyout/flyout.service';
 import { Subject, takeUntil } from 'rxjs';
 import { ServiceRequestFormComponent } from './components/service-request-form/service-request-form.component';
 import { ServiceRequest } from '../service-requests/service-requests.types';
+import { IconComponent } from '../../shared/components/ui/icon/icon.component';
 
 // Define the expected payload structure for this flyout type
 interface ServiceRequestFlyoutPayload {
@@ -20,7 +21,7 @@ interface ServiceRequestFlyoutPayload {
 @Component({
   selector: 'app-service-request',
   standalone: true,
-  imports: [CommonModule, ServiceRequestFormComponent],
+    imports: [CommonModule, ServiceRequestFormComponent, IconComponent],
   templateUrl: './service-request.component.html',
   styleUrls: ['./service-request.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

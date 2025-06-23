@@ -15,6 +15,7 @@ export interface UserApiResponse {
 export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
+  isRedirecting: boolean;
   user: User | null; // Store the User object directly
   error: string | null;
   organizationId: string | null;

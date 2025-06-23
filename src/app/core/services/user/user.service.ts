@@ -12,8 +12,8 @@ export class UserService {
   private readonly apiUrl = '/api/v1/users';
 
   getUsers(): Observable<User[]> {
-    return this.http.get<{ users: User[] }>(this.apiUrl).pipe(
-      map((response) => response.users)
+    return this.http.get<{ data: User[] }>(this.apiUrl).pipe(
+      map((response) => response.data)
     );
   }
 

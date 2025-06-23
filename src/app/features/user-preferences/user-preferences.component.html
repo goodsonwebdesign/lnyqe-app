@@ -13,8 +13,8 @@
           <!-- User Avatar -->
           <div class="flex-shrink-0">
             <img
-              *ngIf="user.picture; else initialsAvatar"
-              [src]="user.picture"
+              *ngIf="user.avatar; else initialsAvatar"
+              [src]="user.avatar"
               [alt]="user.name + ' avatar'"
               class="h-20 w-20 rounded-full object-cover"
               data-testid="user-avatar-img"

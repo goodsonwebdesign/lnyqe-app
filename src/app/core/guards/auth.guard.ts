@@ -4,7 +4,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
-import { map, switchMap, take, timeout } from 'rxjs/operators';
+import { catchError, map, switchMap, take, timeout } from 'rxjs/operators';
 
 /**
  * Improved Auth Guard
@@ -57,7 +57,7 @@ export const authGuard: CanActivateFn = () => {
 
           return router.createUrlTree(['/']); // Should be /login or landing page
         }),
-        catchError((err) => {
+                        catchError((err: unknown) => {
           console.error('[AuthGuard] Error checking Auth0 service:', err, 'Redirecting to /login.');
           return of(router.createUrlTree(['/'])); // Should be /login or landing page
         }),

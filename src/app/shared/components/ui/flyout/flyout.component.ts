@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, state, style, transition, animate } from '@angular/animations';
-import { ClickOutsideDirective } from '../../../directives/click-outside.directive';
+
 import { IconComponent } from '../icon/icon.component';
 
 export type FlyoutPosition = 'right' | 'left' | 'bottom';
@@ -10,7 +10,7 @@ export type FlyoutSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 @Component({
   selector: 'app-flyout',
   standalone: true,
-  imports: [CommonModule, ClickOutsideDirective, IconComponent],
+  imports: [CommonModule, IconComponent],
   templateUrl: './flyout.component.html',
   styleUrls: ['./flyout.component.scss'],
   animations: [

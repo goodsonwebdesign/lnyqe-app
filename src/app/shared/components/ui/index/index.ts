@@ -15,6 +15,7 @@ import { IconComponent } from '../icon/icon.component';
 import { InputComponent } from '../input/input.component';
 import { SidenavComponent } from '../sidenav/sidenav.component';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
+import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 
 // Export individual components (better for tree-shaking)
 export { IconComponent } from '../icon/icon.component';
@@ -25,6 +26,7 @@ export { FlyoutComponent } from '../flyout/flyout.component';
 export { SidenavComponent } from '../sidenav/sidenav.component';
 export { ContainerComponent } from '../container/container.component';
 export { ToolbarComponent } from '../toolbar/toolbar.component';
+export { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 
 // Export component array for bulk imports
 export const UI_COMPONENTS = [
@@ -36,4 +38,5 @@ export const UI_COMPONENTS = [
   SidenavComponent,
   ContainerComponent,
   ToolbarComponent,
+  LoadingSpinnerComponent,
 ];

@@ -14,12 +14,7 @@ export function filterUsers(users: UserView[], filters: UserFilters): UserView[]
   if (filters.role) {
     filtered = filtered.filter(u => u.role === filters.role);
   }
-  if (filters.status) {
-    filtered = filtered.filter(u => u.status === filters.status);
-  }
-  if (filters.department) {
-    filtered = filtered.filter(u => u.department === filters.department);
-  }
+
   if (filters.sortBy === 'name') {
     filtered = filtered.slice().sort((a, b) => (a.first_name + a.last_name).localeCompare(b.first_name + b.last_name));
   }

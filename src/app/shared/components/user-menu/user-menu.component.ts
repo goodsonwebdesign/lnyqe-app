@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
-import { ClickOutsideDirective } from '../../directives/click-outside.directive';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { selectIsAuthenticated, selectCurrentUser } from '../../../store/selectors/auth.selectors';
 import { IconComponent } from '../ui/icon/icon.component';
@@ -12,7 +11,7 @@ import { User } from '../../../core/models/user.model';
 @Component({
   selector: 'app-user-menu',
   standalone: true,
-  imports: [CommonModule, ClickOutsideDirective, RouterModule, IconComponent],
+  imports: [CommonModule, RouterModule, IconComponent],
   templateUrl: './user-menu.component.html',
   styleUrls: ['./user-menu.component.scss'],
 })

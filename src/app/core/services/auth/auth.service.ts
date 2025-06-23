@@ -55,6 +55,7 @@ export class AuthService {
    * Log in user via Auth0
    */
   login(organization?: string): void {
+    this.store.dispatch(AuthActions.loginRequest({ organization }));
     this.ngZone.run(() => {
       this.auth0Service.loginWithRedirect({
         appState: { target: '/dashboard' },

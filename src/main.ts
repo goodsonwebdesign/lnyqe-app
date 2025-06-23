@@ -11,7 +11,8 @@ bootstrapApplication(AppComponent, appConfig).then((ref) => {
   // Cypress E2E: Listen for ngrx-mock-auth event to set auth state in the store
   if (window && (window as { Cypress?: object }).Cypress) {
     const store = ref.injector.get(Store);
-    window.addEventListener('ngrx-mock-auth', (event: CustomEvent) => {
+    window.addEventListener('ngrx-mock-auth', (e: Event) => {
+      const event = e as CustomEvent;
       const user = event.detail.user;
       // Provide a dummy token for the test
       const token = {

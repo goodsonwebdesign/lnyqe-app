@@ -51,7 +51,7 @@ export class UserEffects {
       ofType(UserActions.updateUser),
       mergeMap(({ id, user }) => {
         const userPayload = transformViewModelToUser(user);
-        return this.userService.updateUser(id, userPayload).pipe(
+        return this.userService.updateUser(String(id), userPayload).pipe(
           map((updatedUser) => UserActions.updateUserSuccess({ user: updatedUser })),
           catchError((error) => of(UserActions.updateUserFailure({ error })))
         );
@@ -63,7 +63,7 @@ export class UserEffects {
     this.actions$.pipe(
       ofType(UserActions.deleteUser),
       mergeMap(({ id }) =>
-        this.userService.deleteUser(id).pipe(
+        this.userService.deleteUser(String(id)).pipe(
           map(() => UserActions.deleteUserSuccess({ id })),
           catchError((error) => of(UserActions.deleteUserFailure({ error })))
         )

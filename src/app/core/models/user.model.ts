@@ -10,10 +10,11 @@ export interface User {
   id: number | string;
   auth0_id: string;
   email: string;
+  email_verified?: boolean;
   name?: string;
   first_name: string;
   last_name: string;
-  avatar: string;
+  avatar?: string;
   role: string;
   created_at: string; // ISO date string
   updated_at: string; // ISO date string
@@ -27,6 +28,7 @@ export interface UserView {
   last_name: string;
   email: string;
   avatar?: string;
+  email_verified?: boolean;
   role: string; // Role as string, transformation handles specific enum values
   last_login?: string; // Renamed for consistency
   created_at?: string;
@@ -41,6 +43,7 @@ export function transformUserToViewModel(user: User): UserView {
     last_name: user.last_name,
     email: user.email,
     avatar: user.avatar,
+    email_verified: user.email_verified,
     role: user.role?.toLowerCase() || 'guest',
     last_login: user.last_login, // Use renamed field
     created_at: user.created_at,
@@ -59,6 +62,7 @@ export function transformViewModelToUser(view: Partial<UserView>): Partial<User>
   if (view.last_name !== undefined) user.last_name = view.last_name;
   if (view.email !== undefined) user.email = view.email;
   if (view.avatar !== undefined) user.avatar = view.avatar;
+  if (view.email_verified !== undefined) user.email_verified = view.email_verified;
   if (view.role !== undefined) user.role = view.role;
 
   // If 'name' from UserView is directly editable and should map back to 'name' on User:

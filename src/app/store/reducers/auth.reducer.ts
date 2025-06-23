@@ -6,6 +6,7 @@ import { AuthActions } from '../actions/auth.actions';
 export const initialAuthState: AuthState = {
   isAuthenticated: false,
   isLoading: false,
+  isRedirecting: false,
   user: null,
   error: null,
   organizationId: null,
@@ -13,81 +14,89 @@ export const initialAuthState: AuthState = {
   token: null,
 };
 
+export const authReducer = createReducer(
+  initialAuthState,
+  // Handle global loading state for non-redirect actions
+  on(AppActions.loadingStarted, (state) => ({ ...state, isLoading: true })),
+  on(AppActions.loadingCompleted, (state) => ({ ...state, isLoading: false })),
+
+  // Handle auth-specific actions
+  on(AuthActions.checkAuth, (state) => ({ ...state, isLoading: true, error: null })),
+
+  on(AuthActions.setAuthState, (state, { isAuthenticated }) => ({
+    ...state,
+    isAuthenticated,
+    isLoading: false,
+  })),
+
+  on(AuthActions.authCallbackStarted, (state) => ({ ...state, isLoading: true, isRedirecting: true })),
+
+  on(AuthActions.loginRequest, (state, { organization }) => ({
+    ...state,
+    isLoading: true,
+    isRedirecting: true,
+    error: null,
+    organizationId: organization || state.organizationId,
+  })),
+
+  on(AuthActions.loginSuccess, (state, { user, token }) => ({
+    ...state,
+    isAuthenticated: true,
+    isLoading: false,
+    isRedirecting: false,
+    user,
+    token,
+    error: null,
+  })),
+
+  on(AuthActions.loginFailure, (state, { error }) => ({
+    ...state,
+    isAuthenticated: false,
+    isLoading: false,
+    isRedirecting: false,
+    user: null,
+    token: null,
+    error,
+  })),
+
+  on(AuthActions.loadUser, (state) => ({
+    ...state,
+    isLoading: true,
+    error: null,
+  })),
+
+  on(AuthActions.loadUserSuccess, (state, { user }) => ({
+    ...state,
+    isLoading: false,
+    user,
+  })),
+
+  on(AuthActions.loadUserFailure, (state, { error }) => ({
+    ...state,
+    isLoading: false,
+    error,
+  })),
+
+  on(AuthActions.logout, () => ({
+    ...initialAuthState,
+    isLoading: true,
+    isRedirecting: true,
+  })),
+
+  on(AuthActions.setOrganization, (state, { organizationId }) => ({
+    ...state,
+    organizationId,
+  })),
+
+  on(AuthActions.setEnterpriseSSOEnabled, (state, { enabled }) => ({
+    ...state,
+    isEnterpriseSSOEnabled: enabled,
+  }))
+);
+
 export const authFeature = createFeature({
   name: 'auth',
-  reducer: createReducer(
-    initialAuthState,
-    // Handle global loading state
-    on(AppActions.loadingStarted, (state) => ({
-      ...state,
-      isLoading: true,
-    })),
-
-    on(AppActions.loadingCompleted, (state) => ({
-      ...state,
-      isLoading: false,
-    })),
-
-    on(AuthActions.loginRequest, (state, { organization }) => ({
-      ...state,
-      isLoading: true,
-      error: null,
-      organizationId: organization || state.organizationId,
-    })),
-
-    on(AuthActions.loginSuccess, (state, { user, token }) => ({
-      ...state,
-      isAuthenticated: true,
-      isLoading: false,
-      user, // The user object is now passed directly
-      token,
-      error: null,
-    })),
-
-    on(AuthActions.loginFailure, (state, { error }) => ({
-      ...state,
-      isAuthenticated: false,
-      isLoading: false,
-      user: null,
-      token: null,
-      error,
-    })),
-
-    on(AuthActions.loadUser, (state) => ({
-      ...state,
-      isLoading: true,
-      error: null,
-    })),
-
-    on(AuthActions.loadUserSuccess, (state, { user }) => ({
-      ...state,
-      isLoading: false,
-      user,
-    })),
-
-    on(AuthActions.loadUserFailure, (state, { error }) => ({
-      ...state,
-      isLoading: false,
-      error,
-    })),
-
-    on(AuthActions.logout, () => initialAuthState),
-
-    on(AuthActions.setOrganization, (state, { organizationId }) => ({
-      ...state,
-      organizationId,
-    })),
-
-    on(AuthActions.setEnterpriseSSOEnabled, (state, { enabled }) => ({
-      ...state,
-      isEnterpriseSSOEnabled: enabled,
-    })),
-
-    on(AuthActions.setAuthState, (state, { isAuthenticated }) => ({
-      ...state,
-      isAuthenticated,
-    }))
-  ),
+  reducer: authReducer,
 });
 
 export const {

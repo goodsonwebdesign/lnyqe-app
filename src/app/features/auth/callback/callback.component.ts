@@ -25,6 +25,7 @@ export class CallbackComponent implements OnInit {
   private userService = inject(UserService); // Injected UsersService
 
   ngOnInit(): void {
+    this.store.dispatch(AuthActions.authCallbackStarted());
     // The auth0Service.handleRedirectCallback() below is designed to be called on the callback route.
     // It will process the authentication result. If a user is already authenticated and lands here,
     // the handleRedirectCallback might be a no-op or re-confirm, then the subsequent checkUserStatus
@@ -45,8 +46,9 @@ export class CallbackComponent implements OnInit {
           return user; // Return User for further processing
         }),
         // Removed tap operator that previously navigated. Navigation is now handled by loginSuccess$ effect.
-        catchError((error: unknown) => {
-          this.store.dispatch(AuthActions.loginFailure({ error }));
+                catchError((error: unknown) => {
+          const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+          this.store.dispatch(AuthActions.loginFailure({ error: errorMessage }));
           this.router.navigate(['/']); // Navigate to a safe page on error
           return of(null); // Handle error gracefully
         })
