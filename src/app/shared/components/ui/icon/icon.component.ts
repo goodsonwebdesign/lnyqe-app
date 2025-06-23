@@ -39,7 +39,7 @@ export class IconComponent {
    * The icon name to display. Uses the Iconify naming format:
    * 'prefix:icon-name', e.g., 'mdi:home'
    */
-  @Input() name: string = '';
+  @Input() name = '';
   
   /**
    * The size of the icon. Available options: xs, sm, md, lg, xl
@@ -49,7 +49,7 @@ export class IconComponent {
   /**
    * Optional CSS class to apply to the icon
    */
-  @Input() className: string = '';
+  @Input() className = '';
 
   /**
    * Map of size names to pixel values

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { DomainMapping, ProviderType } from '../../models/identity-provider.model';
 import { Store } from '@ngrx/store';
 import * as AuthActions from '../../../store/actions/auth.actions';
@@ -15,7 +15,7 @@ export class SsoService {
   private store = inject(Store);
 
   // Cache for domain mappings
-  private domainMappingsCache: Map<string, DomainMapping> = new Map();
+  private domainMappingsCache = new Map<string, DomainMapping>();
 
   // Sample domain mappings for development/testing
   // In production, these would be fetched from an API
@@ -39,7 +39,7 @@ export class SsoService {
   ];
 
   /**
-   * Check if a domain is configured for SSO
+   * Check if a domain is configured for SSO, updates cache, and dispatches actions.
    * @param domain The email domain to check
    * @returns Observable that resolves to the domain mapping if found
    */
@@ -49,46 +49,17 @@ export class SsoService {
       return of(this.domainMappingsCache.get(domain) || null);
     }
 
-    // In a real implementation, this would be an API call
-    // For now, we'll simulate it using the sample data
-    if (environment.production) {
-      // In production, call the API to get domain mappings
-      return this.http.get<DomainMapping>(`${environment.apiUrl}/sso/domains/${domain}`).pipe(
-        tap((mapping) => {
-          // Cache the result
-          if (mapping) {
-            this.domainMappingsCache.set(domain, mapping);
-          }
-        }),
-        catchError((error) => {
-          console.error('Error checking domain for SSO:', error);
-          return of(null);
-        }),
-      );
-    } else {
-      // In development, use the sample data
-      // Simulate network delay
-      return of(this.sampleDomainMappings.find((m) => m.domain === domain) || null).pipe(
-        tap((mapping) => {
-          // Cache the result
-          if (mapping) {
-            this.domainMappingsCache.set(domain, mapping);
+    return this._getDomainMapping(domain).pipe(
+      tap((mapping) => {
+        if (mapping) {
+          // Cache the result for subsequent checks
+          this.domainMappingsCache.set(domain, mapping);
 
-            // Update the store with organization information
-            this.store.dispatch(
-              AuthActions.setOrganization({
-                organizationId: mapping.organizationId,
-              }),
-            );
-            this.store.dispatch(
-              AuthActions.setEnterpriseSSOEnabled({
-                enabled: true,
-              }),
-            );
-          }
-        }),
-      );
-    }
+          // Update the store with organization information to prepare for SSO
+          this.prepareForSsoLogin(mapping.organizationId);
+        }
+      }),
+    );
   }
 
   /**
@@ -97,10 +68,11 @@ export class SsoService {
    * @returns The domain portion of the email
    */
   extractDomainFromEmail(email: string): string {
-    if (!email || !email.includes('@')) {
-      throw new Error('Invalid email format');
+    const atIndex = email?.indexOf('@');
+    if (!atIndex || atIndex === -1 || atIndex === email.length - 1) {
+      throw new Error(`Invalid email format provided: ${email}`);
     }
-    return email.split('@')[1].toLowerCase();
+    return email.substring(atIndex + 1).toLowerCase();
   }
 
   /**
@@ -118,5 +90,22 @@ export class SsoService {
   resetSsoState(): void {
     this.store.dispatch(AuthActions.setOrganization({ organizationId: '' }));
     this.store.dispatch(AuthActions.setEnterpriseSSOEnabled({ enabled: false }));
+  }
+
+  /**
+   * Fetches domain mapping from API (prod) or sample data (dev).
+   * @param domain The email domain to check
+   */
+  private _getDomainMapping(domain: string): Observable<DomainMapping | null> {
+    if (environment.production) {
+      return this.http.get<DomainMapping>(`${environment.apiUrl}/sso/domains/${domain}`).pipe(
+        catchError((error: unknown) => {
+          console.error(`Error checking SSO domain ${domain}:`, error);
+          return of(null); // Gracefully handle API errors
+        }),
+      );
+    } else {
+      return of(this.sampleDomainMappings.find((m) => m.domain === domain) || null);
+    }
   }
 }

@@ -1,5 +1,12 @@
 <div *ngIf="isOpen" class="flyout-container">
-  <div class="flyout-backdrop" (click)="close()"></div>
+  <div
+    class="flyout-backdrop"
+    (click)="close()"
+    (keydown.enter)="close()"
+    role="button"
+    tabindex="0"
+    aria-label="Close service request form"
+  ></div>
 
   <div class="flyout-panel">
     <div class="flyout-header">
@@ -18,229 +25,11 @@
     </div>
 
     <div class="flyout-body">
-      <form [formGroup]="requestForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        <!-- Service Request Type Selection - Enhanced for mobile -->
-        <div class="space-y-1.5">
-          <label
-            for="request-type"
-            class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
-          >
-            Request Type <span class="text-red-500">*</span>
-          </label>
-          <div class="relative">
-            <select
-              id="request-type"
-              formControlName="type"
-              class="block w-full cursor-pointer appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-neutral-900 shadow-sm outline-none transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-              [class.border-red-500]="isFieldInvalid('type')"
-            >
-              <option value="" disabled selected>Select Request Type</option>
-              <option *ngFor="let type of requestTypes" [value]="type.value">
-                {{ type.label }}
-              </option>
-            </select>
-            <div
-              class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500 dark:text-neutral-400"
-            >
-              <app-icon name="mdi:chevron-down" size="xs"></app-icon>
-            </div>
-          </div>
-          <div *ngIf="isFieldInvalid('type')" class="mt-1 text-sm text-red-500">
-            Please select a request type
-          </div>
-        </div>
-
-        <!-- Title field - Better mobile padding -->
-        <div class="space-y-1.5">
-          <label
-            for="request-title"
-            class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
-          >
-            Title <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="request-title"
-            formControlName="title"
-            placeholder="Brief description of your request"
-            class="block w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-neutral-900 shadow-sm outline-none transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-            [class.border-red-500]="isFieldInvalid('title')"
-          />
-          <div *ngIf="isFieldInvalid('title')" class="mt-1 text-sm text-red-500">
-            Please enter a title for your request
-          </div>
-        </div>
-
-        <!-- Two column layout that stacks on mobile -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
-          <!-- Priority selection -->
-          <div class="space-y-1.5">
-            <label
-              for="request-priority"
-              class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
-            >
-              Priority <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <select
-                id="request-priority"
-                formControlName="priority"
-                class="block w-full cursor-pointer appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-neutral-900 shadow-sm outline-none transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-                [class.border-red-500]="isFieldInvalid('priority')"
-              >
-                <option value="" disabled selected>Select Priority</option>
-                <option *ngFor="let priority of priorities" [value]="priority.value">
-                  {{ priority.label }}
-                </option>
-              </select>
-              <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500 dark:text-neutral-400"
-              >
-                <app-icon name="mdi:chevron-down" size="xs"></app-icon>
-              </div>
-            </div>
-            <div *ngIf="isFieldInvalid('priority')" class="mt-1 text-sm text-red-500">
-              Please select a priority level
-            </div>
-          </div>
-
-          <!-- Department selection -->
-          <div class="space-y-1.5">
-            <label
-              for="request-department"
-              class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
-            >
-              Department <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <select
-                id="request-department"
-                formControlName="department"
-                class="block w-full cursor-pointer appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-neutral-900 shadow-sm outline-none transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-                [class.border-red-500]="isFieldInvalid('department')"
-              >
-                <option value="" disabled selected>Select Department</option>
-                <option *ngFor="let dept of departments" [value]="dept.value">
-                  {{ dept.label }}
-                </option>
-              </select>
-              <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500 dark:text-neutral-400"
-              >
-                <app-icon name="mdi:chevron-down" size="xs"></app-icon>
-              </div>
-            </div>
-            <div *ngIf="isFieldInvalid('department')" class="mt-1 text-sm text-red-500">
-              Please select a department
-            </div>
-          </div>
-        </div>
-
-        <!-- Description textarea - Larger on mobile for easier text input -->
-        <div class="space-y-1.5">
-          <label
-            for="request-description"
-            class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
-          >
-            Description <span class="text-red-500">*</span>
-          </label>
-          <textarea
-            id="request-description"
-            formControlName="description"
-            rows="5"
-            placeholder="Provide a detailed description of your request"
-            class="block w-full resize-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-neutral-900 shadow-sm outline-none transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
-            [class.border-red-500]="isFieldInvalid('description')"
-          ></textarea>
-          <div *ngIf="isFieldInvalid('description')" class="mt-1 text-sm text-red-500">
-            Please provide a description
-          </div>
-        </div>
-
-        <!-- Mobile-friendly File upload area -->
-        <div class="space-y-1.5">
-          <span class="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            Attachments
-          </span>
-          <div
-            class="cursor-pointer rounded-lg border-2 border-dashed border-neutral-300 p-4 text-center transition-colors duration-200 hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800/50"
-            (click)="fileInput.click()"
-            [class.border-primary-500]="isDragging"
-            (dragover)="onDragOver($event)"
-            (dragleave)="onDragLeave()"
-            (drop)="onDrop($event)"
-          >
-            <input
-              #fileInput
-              type="file"
-              multiple
-              class="hidden"
-              (change)="onFileSelected($event)"
-              accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
-            />
-
-            <div class="flex flex-col items-center justify-center space-y-2">
-              <app-icon
-                name="mdi:cloud-upload"
-                size="xl"
-                className="text-neutral-400 dark:text-neutral-500"
-              ></app-icon>
-              <div class="text-sm text-neutral-600 dark:text-neutral-400">
-                <span class="font-medium text-primary-600 dark:text-primary-400"
-                  >Click to upload</span
-                >
-                or drag and drop
-                <p class="mt-1">PNG, JPG, PDF, DOC, XLS (max 5MB each)</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- File list with previews -->
-          <div *ngIf="files.length > 0" class="mt-3 space-y-2">
-            <div
-              *ngFor="let file of files; let i = index"
-              class="group flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-3 transition-all duration-200 hover:shadow-sm dark:border-neutral-700 dark:bg-neutral-800"
-            >
-              <div class="flex items-center overflow-hidden">
-                <!-- File type icon -->
-                <div
-                  class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600 dark:bg-neutral-700/50 dark:text-neutral-400"
-                >
-                  <app-icon *ngIf="isImageFile(file)" name="mdi:image" size="sm"></app-icon>
-                  <app-icon *ngIf="isPdfFile(file)" name="mdi:file-pdf" size="sm"></app-icon>
-                  <app-icon
-                    *ngIf="!isImageFile(file) && !isPdfFile(file)"
-                    name="mdi:file-document"
-                    size="sm"
-                  ></app-icon>
-                </div>
-
-                <!-- File name and size -->
-                <div class="ml-3 overflow-hidden">
-                  <p
-                    class="truncate-text text-sm font-medium text-neutral-900 dark:text-neutral-100"
-                  >
-                    {{ file.name }}
-                  </p>
-                  <p class="text-xs text-neutral-500 dark:text-neutral-400">
-                    {{ formatFileSize(file.size) }}
-                  </p>
-                </div>
-              </div>
-
-              <!-- Remove button - Larger target on mobile -->
-              <button
-                type="button"
-                (click)="removeFile(i)"
-                class="touch-manipulation rounded-full p-2 text-neutral-400 transition-colors duration-200 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400"
-                aria-label="Remove file"
-              >
-                <app-icon name="mdi:close" size="sm"></app-icon>
-              </button>
-            </div>
-          </div>
-        </div>
-      </form>
+      <app-service-request-form
+        [requestData]="requestData"
+        (formSubmit)="onFormSubmit($event)"
+        (formClose)="close()"
+      ></app-service-request-form>
     </div>
 
     <div class="flyout-footer">
@@ -251,18 +40,6 @@
           class="w-full touch-manipulation rounded-lg border border-neutral-300 bg-white px-6 py-3 text-neutral-700 shadow-sm transition-colors duration-200 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 sm:order-1 sm:w-auto"
         >
           Cancel
-        </button>
-        <button
-          type="button"
-          (click)="onSubmit()"
-          class="w-full touch-manipulation rounded-lg bg-primary-600 px-6 py-3 text-white shadow-sm transition-colors duration-200 hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:bg-primary-600 sm:w-auto sm:flex-1"
-          [disabled]="requestForm.invalid || isSubmitting"
-        >
-          <span *ngIf="!isSubmitting">{{ editing ? 'Update Request' : 'Submit Request' }}</span>
-          <span *ngIf="isSubmitting" class="flex items-center justify-center">
-            <app-icon name="mdi:loading" size="xs" className="animate-spin mr-2"></app-icon>
-            Processing...
-          </span>
         </button>
       </div>
     </div>

@@ -170,6 +170,7 @@
           aria-label="Service requests list"
         >
           <div
+            #requestItem
             *ngFor="let request of serviceRequests; let i = index"
             class="p-4 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-700/50"
             [id]="'request-' + i"
@@ -183,7 +184,7 @@
               ', Priority: ' +
               request.priority
             "
-            (click)="onViewRequestDetails(request)"
+            (click)="onViewRequestDetails(request)" (keydown.enter)="onViewRequestDetails(request)" role="button"
           >
             <div class="mb-3 flex items-start justify-between">
               <div>
@@ -272,11 +273,12 @@
           </thead>
           <tbody>
             <tr
+              #requestItem
               *ngFor="let request of serviceRequests; let i = index"
               class="border-b bg-white hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700/50"
               [id]="'request-' + i"
               [attr.tabindex]="i === focusedRequestIndex ? 0 : -1"
-              (click)="onViewRequestDetails(request)"
+              (click)="onViewRequestDetails(request)" (keydown.enter)="onViewRequestDetails(request)" role="button"
             >
               <td class="px-4 py-4 font-medium sm:px-6">{{ request.id }}</td>
               <td class="px-4 py-4 sm:px-6">

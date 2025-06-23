@@ -1,3 +1,5 @@
+import { HttpErrorResponse } from '@angular/common/http';
+
 // Types for service requests components
 export interface ServiceRequest {
   id: string;
@@ -13,8 +15,10 @@ export interface ServiceRequest {
 export type ServiceRequestStatus = 'new' | 'in-progress' | 'completed' | 'cancelled';
 export type ServiceRequestPriority = 'low' | 'medium' | 'high' | 'urgent';
 
+export type ServiceRequestApiResponse = Record<string, unknown>;
+
 export interface ServiceRequestViewModel {
   serviceRequests: ServiceRequest[];
   isLoading: boolean;
-  error: any;
+  error: HttpErrorResponse | null;
 }

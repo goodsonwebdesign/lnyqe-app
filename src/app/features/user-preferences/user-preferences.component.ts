@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { selectCurrentUser } from '../../store/selectors/auth.selectors';
+import { User } from '../../core/models/user.model';
 import { ThemeService, Theme } from '../../core/services/theme.service';
 import { UI_COMPONENTS } from '../../shared/components/ui';
 
@@ -15,7 +16,7 @@ import { UI_COMPONENTS } from '../../shared/components/ui';
   styleUrl: './user-preferences.component.scss',
 })
 export class UserPreferencesComponent implements OnInit, OnDestroy {
-  user: any = null;
+  user: User | null = null;
   private store = inject(Store);
   private themeService = inject(ThemeService);
   private subscriptions = new Subscription();

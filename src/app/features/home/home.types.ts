@@ -13,3 +13,17 @@ export interface HomeFeature {
   iconName: string; // Now required
   route: string;
 }
+
+export interface Update {
+  category: string;
+  date: string;
+  title: string;
+  summary: string;
+}
+
+export interface Testimonial {
+  quote: string;
+  name: string;
+  position: string;
+  initials: string;
+}

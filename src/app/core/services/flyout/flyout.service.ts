@@ -1,28 +1,25 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-export interface FlyoutState {
+export interface FlyoutState<T = unknown> {
   isOpen: boolean;
   position: 'right' | 'left' | 'bottom';
   type: string;
-  data?: any;
+  data?: T;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class FlyoutService {
-  private initialState: FlyoutState = {
+  private flyoutState = new BehaviorSubject<FlyoutState<unknown>>({
     isOpen: false,
     position: 'right',
     type: '',
-  };
+    data: undefined,
+  });
 
-  private flyoutState = new BehaviorSubject<FlyoutState>(this.initialState);
-
-  constructor() {}
-
-  getState(): Observable<FlyoutState> {
+  getState(): Observable<FlyoutState<unknown>> {
     return this.flyoutState.asObservable();
   }
 
@@ -32,7 +29,7 @@ export class FlyoutService {
    * @param position The position of the flyout ('right', 'left', or 'bottom')
    * @param data Optional data to pass to the flyout component
    */
-  openFlyout(type: string, position: 'right' | 'left' | 'bottom' = 'right', data?: any): void {
+  openFlyout<T>(type: string, position: 'right' | 'left' | 'bottom' = 'right', data?: T): void {
     if (!type) {
       console.error('FlyoutService: Cannot open flyout without a type');
       return;
@@ -51,8 +48,10 @@ export class FlyoutService {
    */
   closeFlyout(): void {
     this.flyoutState.next({
-      ...this.flyoutState.value,
       isOpen: false,
+      position: 'right',
+      type: '',
+      data: undefined,
     });
   }
 
@@ -60,9 +59,15 @@ export class FlyoutService {
    * Updates the data in the current flyout without changing its open state
    * @param data The new data to be passed to the flyout
    */
-  updateFlyoutData(data: any): void {
+  updateFlyoutData<T>(data: T): void {
+    const currentState = this.flyoutState.getValue();
+    if (!currentState.isOpen) {
+      console.warn('FlyoutService: Cannot update data when flyout is closed.');
+      return;
+    }
+
     this.flyoutState.next({
-      ...this.flyoutState.value,
+      ...currentState,
       data,
     });
   }

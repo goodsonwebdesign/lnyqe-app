@@ -1,5 +1,6 @@
 import { InputComponent } from './input.component';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('InputComponent', () => {
@@ -29,16 +30,25 @@ describe('InputComponent', () => {
 
   it('should emit changes on input', () => {
     spyOn(component, 'onChange');
-    const event = { target: { value: 'test' } } as any;
-    component.onInputChange(event);
+
+    const inputElement = fixture.debugElement.query(By.css('input')).nativeElement;
+    inputElement.value = 'test';
+    inputElement.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
     expect(component.value).toBe('test');
     expect(component.onChange).toHaveBeenCalledWith('test');
   });
 
   it('should mark as touched on blur', () => {
     spyOn(component, 'onTouched');
+    const inputElement = fixture.debugElement.query(By.css('input')).nativeElement;
+
     expect(component.touched).toBe(false);
-    component.onBlur();
+
+    inputElement.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
     expect(component.touched).toBe(true);
     expect(component.onTouched).toHaveBeenCalled();
   });

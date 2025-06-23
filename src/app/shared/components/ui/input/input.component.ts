@@ -39,14 +39,12 @@ export class InputComponent implements ControlValueAccessor {
 
   @HostBinding('class.w-full') isFullWidth = true;
 
-  value: any = '';
+  value: string | number | null = '';
   touched = false;
-  onChange = (_: any) => {};
-  onTouched = () => {};
+  onChange: (value: string | number | null) => void = () => { /* c8 ignore next */ };
+  onTouched: () => void = () => { /* c8 ignore next */ };
 
-  get baseClasses(): string {
-    return 'block w-full rounded-md shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-600 dark:bg-neutral-800 dark:text-neutral-100';
-  }
+  readonly baseClasses = 'block w-full rounded-md shadow-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-600 dark:bg-neutral-800 dark:text-neutral-100';
 
   get sizeClasses(): string {
     const sizes = {
@@ -58,17 +56,11 @@ export class InputComponent implements ControlValueAccessor {
     return sizes[this.size];
   }
 
-  get standardClasses(): string {
-    return 'border border-neutral-300 dark:border-neutral-600';
-  }
+  readonly standardClasses = 'border border-neutral-300 dark:border-neutral-600';
 
-  get errorClasses(): string {
-    return 'border-red-500 dark:border-red-600 focus:ring-red-500 dark:focus:ring-red-600';
-  }
+  readonly errorClasses = 'border-red-500 dark:border-red-600 focus:ring-red-500 dark:focus:ring-red-600';
 
-  get disabledClasses(): string {
-    return 'bg-neutral-100 dark:bg-neutral-700 cursor-not-allowed opacity-75';
-  }
+  readonly disabledClasses = 'bg-neutral-100 dark:bg-neutral-700 cursor-not-allowed opacity-75';
 
   onInputChange(event: Event): void {
     const target = event.target as HTMLInputElement;
@@ -83,15 +75,15 @@ export class InputComponent implements ControlValueAccessor {
     }
   }
 
-  writeValue(value: any): void {
+  writeValue(value: string | number | null): void {
     this.value = value;
   }
 
-  registerOnChange(fn: any): void {
+  registerOnChange(fn: (value: string | number | null) => void): void {
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
   }
 

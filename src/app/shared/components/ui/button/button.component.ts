@@ -31,9 +31,7 @@ export class ButtonComponent {
 
   @Output() buttonClick = new EventEmitter<MouseEvent>();
 
-  get baseClasses(): string {
-    return 'relative inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-neutral-900';
-  }
+  readonly baseClasses = 'relative inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-neutral-900';
 
   get sizeClasses(): string {
     const sizes = {
@@ -75,9 +73,7 @@ export class ButtonComponent {
     return roundedValues[this.rounded];
   }
 
-  get disabledClasses(): string {
-    return 'opacity-50 cursor-not-allowed pointer-events-none';
-  }
+  readonly disabledClasses = 'opacity-50 cursor-not-allowed pointer-events-none';
 
   get loadingColorClasses(): string {
     const loadingColors = {

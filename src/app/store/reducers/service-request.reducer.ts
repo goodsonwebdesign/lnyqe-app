@@ -2,10 +2,11 @@ import { ServiceRequest } from '../../features/service-requests/service-requests
 import { ServiceRequestActions } from '../actions/service-request.actions';
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { createFeature, createReducer, on } from '@ngrx/store';
+import { HttpErrorResponse } from '@angular/common/http';
 
 export interface ServiceRequestState extends EntityState<ServiceRequest> {
   loading: boolean;
-  error: any | null;
+  error: HttpErrorResponse | null;
   selectedRequestId: string | null;
 }
 
@@ -138,8 +139,8 @@ export const {
 } = serviceRequestFeature;
 
 // Export adapter selectors that we need to wrap with our feature state
-export const selectAll = (state: any) =>
+export const selectAll = (state: object) =>
   adapterSelectors.selectAll(selectServiceRequestsState(state));
 
-export const selectTotal = (state: any) =>
+export const selectTotal = (state: object) =>
   adapterSelectors.selectTotal(selectServiceRequestsState(state));

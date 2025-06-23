@@ -5,9 +5,8 @@ import { AuthService as AppAuthService } from '../../../core/services/auth/auth.
 import { Store } from '@ngrx/store';
 import { AuthActions } from '../../../store/actions/auth.actions';
 import { AuthService as Auth0Service } from '@auth0/auth0-angular';
-import { take, switchMap, catchError, map, tap } from 'rxjs/operators'; // Added tap
+import { take, switchMap, catchError, map } from 'rxjs/operators';
 import { from, of, Observable } from 'rxjs';
-import { IdToken } from '@auth0/auth0-spa-js';
 import { AuthToken } from '../../../core/models/auth.model';
 import { User } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user/user.service'; // Added UserService
@@ -46,7 +45,7 @@ export class CallbackComponent implements OnInit {
           return user; // Return User for further processing
         }),
         // Removed tap operator that previously navigated. Navigation is now handled by loginSuccess$ effect.
-        catchError((error) => {
+        catchError((error: unknown) => {
           this.store.dispatch(AuthActions.loginFailure({ error }));
           this.router.navigate(['/']); // Navigate to a safe page on error
           return of(null); // Handle error gracefully
@@ -58,13 +57,13 @@ export class CallbackComponent implements OnInit {
   private checkUserStatus(): Observable<{ user: User; token: AuthToken }> {
     return this.auth0Service.isAuthenticated$.pipe(
       take(1),
-      switchMap((isAuthenticated) => {
+      switchMap(isAuthenticated => {
         if (!isAuthenticated) {
           throw new Error('User not authenticated');
         }
-        return this.auth0Service.user$.pipe( // Get Auth0 user for context if needed, though not strictly for token/backend user
+        return this.auth0Service.user$.pipe(
           take(1),
-          switchMap((auth0User) => {
+          switchMap(auth0User => {
             if (!auth0User) {
               throw new Error('No Auth0 user information available');
             }
@@ -82,24 +81,12 @@ export class CallbackComponent implements OnInit {
                       throw new Error('Backend user profile is missing or undefined.');
                     }
                     return { user: backendUser, token: authToken };
-                  }),
-                  catchError(getMeErr => {
-                    throw getMeErr;
                   })
                 );
-              }),
-              catchError(accessTokenErr => {
-                throw accessTokenErr;
               })
             );
-          }),
-          catchError(userErr => {
-            throw userErr;
           })
         );
-      }),
-      catchError(authErr => {
-        throw authErr;
       })
     );
   }

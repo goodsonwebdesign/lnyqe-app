@@ -8,11 +8,10 @@ import {
   FormControl,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Store } from '@ngrx/store';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { SsoService } from '../../../core/services/sso/sso.service';
-import * as AuthActions from '../../../store/actions/auth.actions';
+import { DomainMapping } from '../../../core/models/identity-provider.model';
 
 @Component({
   selector: 'app-sso-entry',
@@ -26,7 +25,6 @@ export class SsoEntryComponent implements OnInit {
   private authService = inject(AuthService);
   private ssoService = inject(SsoService);
   private router = inject(Router);
-  private store = inject(Store);
 
   ssoForm!: FormGroup;
   isLoading = false;
@@ -65,7 +63,7 @@ export class SsoEntryComponent implements OnInit {
           }),
         )
         .subscribe({
-          next: (mapping) => {
+          next: (mapping: DomainMapping | null) => {
             if (mapping) {
               this.detectedOrganization = mapping.displayName;
 
@@ -79,13 +77,14 @@ export class SsoEntryComponent implements OnInit {
                 "We couldn't find an SSO configuration for this email domain. Please try another email or log in with password.";
             }
           },
-          error: (err) => {
+          error: (err: unknown) => {
             console.error('Error checking domain for SSO:', err);
             this.error =
               'An error occurred while checking your domain. Please try again or log in with password.';
           },
         });
-    } catch (err) {
+    } catch {
+      // The error is intentionally ignored as the user is simply notified of an invalid email.
       this.isLoading = false;
       this.error = 'Please enter a valid email address.';
     }

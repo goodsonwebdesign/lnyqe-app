@@ -5,6 +5,37 @@ import {
   ServiceRequestPriority,
 } from '../service-requests.types';
 
+// API-specific interfaces for type safety
+export interface ServiceRequestApiResponse {
+  requestId?: string;
+  id?: string;
+  title?: string;
+  requestTitle?: string;
+  description?: string;
+  requestDescription?: string;
+  status?: string;
+  requestStatus?: string;
+  priority?: string;
+  requestPriority?: string;
+  dateCreated?: string | number;
+  createdDate?: string | number;
+  requestedBy?: string;
+  requesterName?: string;
+  assignedTo?: string;
+  assigneeUser?: string;
+}
+
+export interface ServiceRequestApiPayload {
+  requestId: string;
+  title: string;
+  description: string;
+  status: ServiceRequestStatus;
+  priority: ServiceRequestPriority;
+  createdDate: string;
+  requesterName: string;
+  assigneeUser: string | undefined;
+}
+
 /**
  * Adapter for handling API response transformation for service requests
  * Implements the Adapter Pattern from our coding standards
@@ -18,7 +49,7 @@ export class ServiceRequestAdapter {
    * @param apiResponse The raw API response
    * @returns An array of ServiceRequest objects
    */
-  adaptFromApi(apiResponse: any[]): ServiceRequest[] {
+  adaptFromApi(apiResponse: ServiceRequestApiResponse[]): ServiceRequest[] {
     return apiResponse.map((item) => this.adaptSingleItem(item));
   }
 
@@ -27,15 +58,16 @@ export class ServiceRequestAdapter {
    * @param item A single item from the API response
    * @returns A ServiceRequest object
    */
-  adaptSingleItem(item: any): ServiceRequest {
+  adaptSingleItem(item: ServiceRequestApiResponse): ServiceRequest {
     return {
-      id: item.requestId || item.id,
-      title: item.title || item.requestTitle,
-      description: item.description || item.requestDescription,
+      // TODO: Add proper validation or error handling for missing required fields from the API
+      id: item.requestId || item.id || '',
+      title: item.title || item.requestTitle || '',
+      description: item.description || item.requestDescription || '',
       status: this.normalizeStatus(item.status || item.requestStatus),
       priority: this.normalizePriority(item.priority || item.requestPriority),
       dateCreated: new Date(item.dateCreated || item.createdDate || Date.now()),
-      requestedBy: item.requestedBy || item.requesterName,
+      requestedBy: item.requestedBy || item.requesterName || '',
       assignedTo: item.assignedTo || item.assigneeUser,
     };
   }
@@ -45,7 +77,7 @@ export class ServiceRequestAdapter {
    * @param request The ServiceRequest to adapt
    * @returns The request formatted for the API
    */
-  adaptToApi(request: ServiceRequest): any {
+  adaptToApi(request: ServiceRequest): ServiceRequestApiPayload {
     return {
       requestId: request.id,
       title: request.title,
@@ -65,7 +97,7 @@ export class ServiceRequestAdapter {
    * @private
    */
   private normalizeStatus(status: string): ServiceRequestStatus {
-    const statusMap: { [key: string]: ServiceRequestStatus } = {
+    const statusMap: Record<string, ServiceRequestStatus> = {
       open: 'new',
       in_progress: 'in-progress',
       'in progress': 'in-progress',
@@ -93,7 +125,7 @@ export class ServiceRequestAdapter {
    * @private
    */
   private normalizePriority(priority: string): ServiceRequestPriority {
-    const priorityMap: { [key: string]: ServiceRequestPriority } = {
+    const priorityMap: Record<string, ServiceRequestPriority> = {
       '1': 'urgent',
       '2': 'high',
       '3': 'medium',

@@ -34,8 +34,8 @@ class MockAuthService {
   isAuthenticated$ = of(false);
   user$ = of(null);
 
-  login() {}
-  logout() {}
+  login() { /* mock */ }
+  logout() { /* mock */ }
   getUser() {
     return of(null);
   }

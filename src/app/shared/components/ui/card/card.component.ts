@@ -13,6 +13,6 @@ export class CardComponent {
   @Input() footer?: boolean = false;
   @Input() shadow: 'none' | 'sm' | 'md' | 'lg' | 'xl' = 'md';
   @Input() rounded: 'none' | 'sm' | 'md' | 'lg' | 'xl' = 'lg';
-  @Input() border: boolean = true;
+  @Input() border = true;
   @Input() padding?: number;
 }

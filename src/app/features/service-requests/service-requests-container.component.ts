@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
@@ -13,15 +13,17 @@ import { ServiceRequestAdapter } from './adapters/service-request.adapter';
 @Component({
   selector: 'app-service-requests-container',
   template: `
-    <app-service-requests
-      [serviceRequests]="(viewModel$ | async)?.serviceRequests || []"
-      [isLoading]="(viewModel$ | async)?.isLoading || false"
-      [error]="(viewModel$ | async)?.error"
-      (openNewRequest)="onOpenNewRequest()"
-      (viewRequestDetails)="onViewRequestDetails($event)"
-      (retryLoad)="loadServiceRequests()"
-    >
-    </app-service-requests>
+    <ng-container *ngIf="viewModel$ | async as vm">
+      <app-service-requests
+        [serviceRequests]="vm.serviceRequests || []"
+        [isLoading]="vm.isLoading || false"
+        [error]="vm.error"
+        (openNewRequest)="onOpenNewRequest()"
+        (viewRequestDetails)="onViewRequestDetails($event)"
+        (retryLoad)="loadServiceRequests()"
+      >
+      </app-service-requests>
+    </ng-container>
   `,
   styles: [],
   standalone: true,
@@ -29,14 +31,12 @@ import { ServiceRequestAdapter } from './adapters/service-request.adapter';
   providers: [ServiceRequestRepository, ServiceRequestAdapter],
 })
 export class ServiceRequestsContainerComponent implements OnInit {
-  viewModel$: Observable<ServiceRequestViewModel>;
+  private store = inject(Store);
+  private router = inject(Router);
 
-  constructor(
-    private store: Store,
-    private router: Router,
-  ) {
-    this.viewModel$ = this.store.select(selectServiceRequestsViewModel);
-  }
+  viewModel$: Observable<ServiceRequestViewModel> = this.store.select(
+    selectServiceRequestsViewModel
+  );
 
   ngOnInit(): void {
     this.loadServiceRequests();

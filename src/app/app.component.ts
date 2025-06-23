@@ -2,10 +2,7 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import {
   Router,
   RouterOutlet,
-  NavigationStart,
-  NavigationEnd,
-  NavigationCancel,
-  NavigationError,
+
 } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LoadingComponent } from './shared/components/loading/loading.component';

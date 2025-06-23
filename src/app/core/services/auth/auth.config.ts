@@ -12,7 +12,7 @@ export const AUTH_CONFIG: AuthConfig = {
   authorizationParams: {
     redirect_uri: window.location.origin + '/callback',
     scope: environment.auth.scope,
-    audience: environment.auth.audience,
+    audience: environment.auth.apiAudience,
   },
 
   // Token configuration
@@ -24,12 +24,8 @@ export const AUTH_CONFIG: AuthConfig = {
     allowedList: [
       {
         uri: `${environment.apiUrl}/*`,
-        tokenOptions: {
-          authorizationParams: {
-            audience: environment.auth.apiAudience, // Use apiAudience for consistency
-            scope: environment.auth.scope,
-          },
-        },
+        // The interceptor will use the root-level authorizationParams by default,
+        // so tokenOptions are not needed here unless overriding.
       },
     ],
   },

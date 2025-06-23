@@ -2,11 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { selectUserLastLoaded } from '../selectors/user.selectors';
 import { of } from 'rxjs';
-import { catchError, map, withLatestFrom, mergeMap, filter, switchMap } from 'rxjs/operators';
+import { catchError, map, withLatestFrom, mergeMap, switchMap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { UserActions } from '../actions/user.actions';
 import { UserService } from '../../core/services/user/user.service';
-import { transformUserToViewModel, transformViewModelToUser } from '../../core/models/user.model';
+import { transformViewModelToUser } from '../../core/models/user.model';
 
 @Injectable()
 export class UserEffects {
@@ -18,7 +18,7 @@ export class UserEffects {
     this.actions$.pipe(
       ofType(UserActions.loadUsers),
       withLatestFrom(this.store.select(selectUserLastLoaded)),
-      switchMap(([action, lastLoaded]) => {
+      switchMap(([, lastLoaded]) => {
         // Fetch if data has never been loaded or is older than 5 minutes
         if (!lastLoaded || Date.now() - lastLoaded.getTime() > 5 * 60 * 1000) {
           return this.userService.getUsers().pipe(

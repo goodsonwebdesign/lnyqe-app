@@ -6,7 +6,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 })
 export class LoadingService {
   private loadingSubject = new BehaviorSubject<boolean>(false);
-  public loading$: Observable<boolean> = this.loadingSubject.asObservable();
+  readonly loading$: Observable<boolean> = this.loadingSubject.asObservable();
 
   /**
    * Show the loading indicator
@@ -22,10 +22,4 @@ export class LoadingService {
     this.loadingSubject.next(false);
   }
 
-  /**
-   * Get the current loading state
-   */
-  isLoading(): boolean {
-    return this.loadingSubject.value;
-  }
 }

@@ -7,8 +7,7 @@ export const environment = {
   auth: {
     domain: 'dev-j6xaaxargtg5y78x.us.auth0.com',
     clientId: 'jaxCqNsBtZmpnpbjXBsAzYkhygDKg4TM',
-    audience: 'https://api.lynqe.com', // Changed to use only the API audience
-    apiAudience: 'https://api.lynqe.com',
+    apiAudience: 'https://api.lynqe.com', // Use a single, clear audience for the API
     scope: 'openid profile email offline_access',
   },
 

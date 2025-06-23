@@ -3,8 +3,8 @@ import { AuthService } from '../services/auth/auth.service';
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, of } from 'rxjs';
-import { catchError, map, switchMap, take, timeout } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { map, switchMap, take, timeout } from 'rxjs/operators';
 
 /**
  * Improved Auth Guard
@@ -13,16 +13,19 @@ import { catchError, map, switchMap, take, timeout } from 'rxjs/operators';
  * It now checks both the store state and the Auth0 service to determine authentication status,
  * providing more resilient routing protection.
  */
-export const authGuard: CanActivateFn = (route, state) => {
+interface CustomWindow extends Window {
+  Cypress?: unknown;
+}
+
+export const authGuard: CanActivateFn = () => {
   // E2E bypass: If running under Cypress and e2e-auth flag is set, allow access
-  if ((window as any).Cypress && localStorage.getItem('e2e-auth') === 'admin') {
+  if ((window as CustomWindow).Cypress && localStorage.getItem('e2e-auth') === 'admin') {
     return of(true);
   }
 
   const store = inject(Store);
   const router = inject(Router);
   const authService = inject(AuthService);
-  const targetRoute = state.url;
 
 
   // First check the store state (fast)

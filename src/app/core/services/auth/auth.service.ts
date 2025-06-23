@@ -2,8 +2,8 @@ import { Injectable, inject, NgZone } from '@angular/core';
 import { AuthService as Auth0Service } from '@auth0/auth0-angular';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, from, firstValueFrom, of } from 'rxjs';
-import { filter, take, distinctUntilChanged, map, switchMap, catchError } from 'rxjs/operators';
+import { Observable, firstValueFrom } from 'rxjs';
+import { filter, distinctUntilChanged, map } from 'rxjs/operators';
 import * as AuthActions from '../../../store/actions/auth.actions';
 import {
   selectIsAuthenticated,
@@ -27,7 +27,6 @@ export class AuthService {
   private router = inject(Router);
   private store = inject(Store);
   private ngZone = inject(NgZone);
-  // private usersService = inject(UsersService); // NOTE: UsersService seems unused in this file after review
   private isInitialAuthCheck = true;
 
   constructor() {
@@ -122,12 +121,6 @@ export class AuthService {
         throw new Error('No access token received');
       }
 
-      // Log the token type to verify it's suitable for API calls (but don't log the actual token)
-      console.debug('Token received for API authorization', {
-        tokenLength: accessToken.length,
-        tokenType: 'Bearer',
-      });
-
       return {
         accessToken, // This is the raw JWT token to send to your API
         expiresIn: claims?.exp ? claims.exp * 1000 - Date.now() : 3600 * 1000,
@@ -137,7 +130,8 @@ export class AuthService {
       };
     } catch (error) {
       console.error('Failed to get token silently:', error);
-      throw new Error('Failed to get token silently: ' + error);
+      // Re-throw the original error to preserve stack trace and context
+      throw error;
     }
   }
 
@@ -164,55 +158,8 @@ export class AuthService {
       return token;
     } catch (error) {
       console.error('Failed to get API token:', error); // Keep this error log for all environments
-      throw new Error('Failed to get API token: ' + error);
-    }
-  }
-
-  /**
-   * Test method to explicitly request an API token
-   * This helps verify if Auth0 is properly configured to issue API tokens
-   * This method should ideally be for development/testing purposes only.
-   */
-  async testApiTokenRequest(apiAudience: string = environment.auth.apiAudience): Promise<void> {
-    if (environment.production) {
-      // console.warn('testApiTokenRequest should not be called in production.');
-      return;
-    }
-    try {
-
-
-
-      const token = await this.getApiAccessToken(apiAudience);
-
-      if (token) {
-
-
-        // Decode token to verify audience
-        try {
-          const tokenParts = token.split('.');
-          if (tokenParts.length === 3) {
-            // const payload = JSON.parse(atob(tokenParts[1]));
-
-
-
-
-          }
-        } catch (e) {
-          // console.error('AUTH TEST: Error decoding token:', e);
-        }
-      }
-    } catch (error) {
-      // console.error('AUTH TEST: Failed to get API token:', error);
-
-      // Provide more helpful error information
-      // const errorMessage = String(error);
-      // if (errorMessage.includes('Missing Refresh Token')) {
-        // console.error('AUTH TEST: This error typically occurs when:');
-        // console.error('1. The user has not completed authentication');
-        // console.error('2. Auth0 application settings do not allow offline access');
-        // console.error('3. The token storage is being cleared between operations');
-        // console.error('→ Try logging out and logging back in with the offline_access scope');
-      // }
+      // Re-throw the original error to preserve stack trace and context
+      throw error;
     }
   }
 

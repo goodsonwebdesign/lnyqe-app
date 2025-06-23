@@ -1,7 +1,9 @@
 <!-- Global loading component -->
 <div class="relative h-full">
-  <app-loading *ngIf="isLoading$ | async"></app-loading>
-
-  <!-- Main app content -->
-  <router-outlet *ngIf="!(isLoading$ | async)"></router-outlet>
+  <ng-container *ngIf="isLoading$ | async; else mainContent">
+    <app-loading></app-loading>
+  </ng-container>
+  <ng-template #mainContent>
+    <router-outlet></router-outlet>
+  </ng-template>
 </div>

@@ -1,0 +1,111 @@
+.flyout-container {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.flyout-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.flyout-panel {
+  position: relative;
+  width: calc(100% - 2rem);
+  max-width: 32rem;
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border-radius: 0.75rem;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideUp 0.3s ease-out;
+}
+
+@media (min-width: 640px) {
+  .flyout-panel {
+    width: 90%;
+    max-width: 38rem;
+  }
+}
+
+.flyout-header {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--border-color-soft);
+}
+
+.flyout-body {
+  padding: 1.25rem;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.flyout-footer {
+  padding: 1.25rem;
+  border-top: 1px solid var(--border-color-soft);
+}
+
+:host-context(.dark) .flyout-panel {
+  background-color: var(--background-color-dark);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile enhancements */
+@media (max-width: 639px) {
+  .flyout-panel {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+  }
+
+  .flyout-body {
+    padding-bottom: 2rem;
+  }
+}
+
+/* Ensure touch targets are at least 44x44px on mobile */
+@media (max-width: 767px) {
+  .touch-manipulation {
+    touch-action: manipulation;
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

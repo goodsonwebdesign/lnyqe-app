@@ -16,7 +16,7 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   user: User | null; // Store the User object directly
-  error: any | null;
+  error: string | null;
   organizationId: string | null;
   isEnterpriseSSOEnabled: boolean;
   token: AuthToken | null;

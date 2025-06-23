@@ -8,12 +8,12 @@ export const AuthActions = createActionGroup({
   events: {
     'Login Request': props<{ organization?: string }>(),
     'Login Success': props<{ user: User; token: AuthToken }>(),
-    'Login Failure': props<{ error: any }>(),
+    'Login Failure': props<{ error: string }>(),
     Logout: emptyProps(),
     'Check Auth': emptyProps(),
     'Load User': emptyProps(), // For fetching user profile
     'Load User Success': props<{ user: User }>(),
-    'Load User Failure': props<{ error: any }>(),
+    'Load User Failure': props<{ error: string }>(),
     'Set Organization': props<{ organizationId: string }>(),
     'Set Enterprise SSO Enabled': props<{ enabled: boolean }>(),
     'Set Auth State': props<{ isAuthenticated: boolean }>(),

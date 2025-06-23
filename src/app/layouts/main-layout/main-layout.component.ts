@@ -21,6 +21,7 @@ import { Router } from '@angular/router';
 import { FlyoutPosition } from '../../shared/components/ui/toolbar/toolbar.component';
 import { ServiceRequestComponent } from '../../features/service-request/service-request.component';
 import { UI_COMPONENTS } from '../../shared/components/ui';
+import { User } from '@auth0/auth0-angular';
 
 
 
@@ -37,7 +38,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   buildInfo = '';
   deployedOn = '';
   isLoggedIn = false;
-  user: any = null;
+  user: User | null = null;
 
 
   isMobileView = window.innerWidth < 1024;

@@ -5,9 +5,7 @@ import {
   effect,
   afterNextRender,
   inject,
-  runInInjectionContext,
   DestroyRef,
-  Injector,
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 
@@ -17,47 +15,47 @@ export type Theme = 'light' | 'dark' | 'system';
   providedIn: 'root',
 })
 export class ThemeService {
-  private document = inject(DOCUMENT);
-  private window = this.document.defaultView;
-  private destroyRef = inject(DestroyRef);
-  private injector = inject(Injector);
+  private readonly document = inject(DOCUMENT);
+  private readonly window = this.document.defaultView;
+  private readonly destroyRef = inject(DestroyRef);
 
-  private prefersDarkMedia = this.window?.matchMedia('(prefers-color-scheme: dark)');
-  private storageKey = 'lnyqe-theme';
+  private readonly storageKey = 'lnyqe-theme';
+  private readonly prefersDarkMedia = this.window?.matchMedia('(prefers-color-scheme: dark)');
 
-  // Use signals for reactive state management
-  private theme = signal<Theme>(this.getInitialTheme());
+  // Reactive state management with signals
+  private readonly theme = signal<Theme>(this.getInitialTheme());
+  private readonly systemPrefersDark = signal(this.prefersDarkMedia?.matches ?? false);
 
   // Computed value to determine if dark mode is active
   readonly isDarkMode = computed(() => {
-    const theme = this.theme();
-    if (theme === 'system') {
-      return this.prefersDarkMedia?.matches ?? false;
+    const currentTheme = this.theme();
+    if (currentTheme === 'system') {
+      return this.systemPrefersDark();
     }
-    return theme === 'dark';
+    return currentTheme === 'dark';
   });
 
   // Expose the current theme as a readable computed signal
   readonly currentTheme = computed(() => this.theme());
 
   constructor() {
-    // Set up the effect to apply theme changes to the DOM
-    afterNextRender(() => {
-      // Initialize theme based on stored preference or system default
+    // This effect runs on initialization and whenever isDarkMode changes,
+    // ensuring the theme is always in sync with the state.
+    effect(() => {
       this.applyTheme(this.isDarkMode());
+    });
 
-      // Listen for system theme changes
-      this.prefersDarkMedia?.addEventListener('change', (e) => {
-        if (this.theme() === 'system') {
-          this.applyTheme(e.matches);
-        }
-      });
+    // Use afterNextRender for browser-specific APIs
+    afterNextRender(() => {
+      const mediaQueryListener = (e: MediaQueryListEvent) => {
+        this.systemPrefersDark.set(e.matches);
+      };
 
-      // Set up the effect to handle theme changes - using runInInjectionContext
-      runInInjectionContext(this.injector, () => {
-        effect(() => {
-          this.applyTheme(this.isDarkMode());
-        });
+      this.prefersDarkMedia?.addEventListener('change', mediaQueryListener);
+
+      // Clean up the listener when the service is destroyed
+      this.destroyRef.onDestroy(() => {
+        this.prefersDarkMedia?.removeEventListener('change', mediaQueryListener);
       });
     });
   }

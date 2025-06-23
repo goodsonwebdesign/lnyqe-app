@@ -34,56 +34,16 @@
           </div>
         </div>
 
-        <!-- Right side: Sign-up form -->
+        <!-- Right side: Enterprise Login -->
         <div class="rounded-lg bg-white/10 p-6 shadow-xl backdrop-blur-md">
-          <form [formGroup]="form" class="space-y-4">
-            <h2 class="mb-4 text-center text-xl font-bold">Create Your Account</h2>
-            <div>
-              <input
-                formControlName="username"
-                type="text"
-                placeholder="Username"
-                class="w-full rounded-md border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-                aria-label="Username"
-              />
-            </div>
-            <div>
-              <input
-                formControlName="email"
-                type="email"
-                placeholder="Email"
-                class="w-full rounded-md border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-                aria-label="Email"
-              />
-            </div>
-            <div>
-              <input
-                formControlName="password"
-                type="password"
-                placeholder="Password"
-                class="w-full rounded-md border border-white/30 bg-white/20 px-4 py-3 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-                aria-label="Password"
-              />
-            </div>
-            <button
-              type="submit"
-              class="w-full touch-manipulation rounded-md bg-primary-500 py-3 font-medium text-white transition-colors hover:bg-primary-600"
-            >
-              Sign Up
-            </button>
-            <div class="my-2 flex items-center">
-              <div class="flex-grow border-t border-white/30"></div>
-              <span class="px-3 text-sm text-white/70">OR</span>
-              <div class="flex-grow border-t border-white/30"></div>
-            </div>
-            <button
-              (click)="onEnterpriseLogin()"
-              type="button"
-              class="w-full touch-manipulation rounded-md border border-white/30 bg-transparent py-3 font-medium text-white transition-colors hover:bg-white/10"
-            >
-              Continue with Enterprise SSO
-            </button>
-          </form>
+          <h2 class="mb-4 text-center text-xl font-bold">Already have an account?</h2>
+          <button
+            (click)="onEnterpriseLogin()"
+            type="button"
+            class="w-full touch-manipulation rounded-md border border-white/30 bg-transparent py-3 font-medium text-white transition-colors hover:bg-white/10"
+          >
+            Continue with Enterprise SSO
+          </button>
         </div>
       </div>
     </div>

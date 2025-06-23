@@ -13,6 +13,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { APP_INITIALIZER, ApplicationConfig, importProvidersFrom, isDevMode } from '@angular/core';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { CorsInterceptor } from './core/interceptors/cors.interceptor';
+import { HttpErrorInterceptor } from './core/interceptors/http-error.interceptor';
 import { BrowserModule } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { AuthModule } from '@auth0/auth0-angular';
@@ -37,7 +38,7 @@ export function initializeAuth(authService: AuthService) {
         .isAuthenticated()
         .pipe(take(1))
         .subscribe({
-          next: (isAuthenticated) => {
+          next: () => {
             resolve();
           },
           error: (err) => {
@@ -78,6 +79,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: CorsInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: HttpErrorInterceptor,
       multi: true,
     },
     {

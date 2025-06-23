@@ -7,6 +7,7 @@ import { ClickOutsideDirective } from '../../directives/click-outside.directive'
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { selectIsAuthenticated, selectCurrentUser } from '../../../store/selectors/auth.selectors';
 import { IconComponent } from '../ui/icon/icon.component';
+import { User } from '../../../core/models/user.model';
 
 @Component({
   selector: 'app-user-menu',
@@ -16,12 +17,12 @@ import { IconComponent } from '../ui/icon/icon.component';
   styleUrls: ['./user-menu.component.scss'],
 })
 export class UserMenuComponent implements OnInit, OnDestroy {
-  @Input() userName: string = '';
-  @Input() isLoggedIn: boolean = false;
+  @Input() userName = '';
+  @Input() isLoggedIn = false;
   @Output() loginClick = new EventEmitter<void>();
 
   isMenuOpen = false;
-  user: any = null;
+  user: User | null = null;
   private store = inject(Store);
   private authService = inject(AuthService);
   private subscriptions = new Subscription();

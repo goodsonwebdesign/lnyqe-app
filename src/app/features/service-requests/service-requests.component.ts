@@ -5,6 +5,9 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
   HostListener,
+  ViewChildren,
+  QueryList,
+  ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -24,7 +27,7 @@ import { UI_COMPONENTS } from '../../shared/components/ui';
 })
 export class ServiceRequestsComponent {
   @Input() serviceRequests: ServiceRequest[] = [];
-  @Input() isLoading: boolean = false;
+  @Input() isLoading = false;
   @Input() error: Error | null = null;
 
   @Output() openNewRequest = new EventEmitter<void>();
@@ -32,7 +35,10 @@ export class ServiceRequestsComponent {
   @Output() retryLoad = new EventEmitter<void>();
 
   // Accessibility: track focused item for keyboard navigation
-  focusedRequestIndex: number = -1;
+  focusedRequestIndex = -1;
+
+  @ViewChildren('requestItem', { read: ElementRef })
+  requestItems!: QueryList<ElementRef>;
 
   // Keyboard navigation for the service requests list
   @HostListener('keydown', ['$event'])
@@ -76,10 +82,11 @@ export class ServiceRequestsComponent {
   focusRequestItem(index: number): void {
     if (index < 0 || index >= this.serviceRequests.length) return;
 
+    // Use setTimeout to ensure items are rendered before focusing
     setTimeout(() => {
-      const element = document.getElementById(`request-${index}`);
-      if (element) {
-        element.focus();
+      const itemToFocus = this.requestItems.get(index);
+      if (itemToFocus) {
+        itemToFocus.nativeElement.focus();
       }
     });
   }

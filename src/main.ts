@@ -2,16 +2,16 @@ import '@angular/compiler';
 import { AppComponent } from './app/app.component';
 import { appConfig } from './app/app.config';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { inject } from '@angular/core';
+
 import { Store } from '@ngrx/store';
 import { AuthActions } from './app/store/actions/auth.actions';
 
 // Simple bootstrap without emergency fixes
 bootstrapApplication(AppComponent, appConfig).then((ref) => {
   // Cypress E2E: Listen for ngrx-mock-auth event to set auth state in the store
-  if (window && (window as any).Cypress) {
+  if (window && (window as { Cypress?: object }).Cypress) {
     const store = ref.injector.get(Store);
-    window.addEventListener('ngrx-mock-auth', (event: any) => {
+    window.addEventListener('ngrx-mock-auth', (event: CustomEvent) => {
       const user = event.detail.user;
       // Provide a dummy token for the test
       const token = {

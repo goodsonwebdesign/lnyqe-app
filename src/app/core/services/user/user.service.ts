@@ -9,39 +9,39 @@ import { User } from '../../models/user.model';
 })
 export class UserService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/v1/users';
+  private readonly apiUrl = '/api/v1/users';
 
   getUsers(): Observable<User[]> {
-    return this.http.get<{ data: User[] }>(this.apiUrl).pipe(
-      map(response => response.data)
+    return this.http.get<{ users: User[] }>(this.apiUrl).pipe(
+      map((response) => response.users)
     );
   }
 
   getMe(): Observable<User> {
     return this.http.get<{ user: User }>(`${this.apiUrl}/me`).pipe(
-      map(response => response.user)
+      map((response) => response.user)
     );
   }
 
   getUser(id: number): Observable<User> {
     return this.http.get<{ user: User }>(`${this.apiUrl}/${id}`).pipe(
-      map(response => response.user)
+      map((response) => response.user)
     );
   }
 
   createUser(user: Partial<User>): Observable<User> {
     return this.http.post<{ user: User }>(this.apiUrl, user).pipe(
-      map(response => response.user)
+      map((response) => response.user)
     );
   }
 
-  updateUser(id: number, user: Partial<User>): Observable<User> {
+  updateUser(id: string, user: Partial<User>): Observable<User> {
     return this.http.put<{ user: User }>(`${this.apiUrl}/${id}`, user).pipe(
-      map(response => response.user)
+      map((response) => response.user)
     );
   }
 
-  deleteUser(id: number): Observable<void> {
+  deleteUser(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

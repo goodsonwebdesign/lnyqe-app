@@ -1,6 +1,5 @@
 import { authGuard } from './core/guards/auth.guard';
 import { homeGuard } from './core/guards/home.guard';
-import { AuthDebugComponent } from './features/auth/auth-debug/auth-debug.component';
 import { CallbackComponent } from './features/auth/callback/callback.component';
 import { HomeContainerComponent } from './features/home/home-container.component';
 import { UserPreferencesComponent } from './features/user-preferences/user-preferences.component';
@@ -31,12 +30,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
         title: 'LNYQE - User Preferences',
       },
-      {
-        path: 'auth-debug',
-        component: AuthDebugComponent,
-        canActivate: [authGuard],
-        title: 'LNYQE - Auth Debugging',
-      },
+
       // Lazy-load feature routes under the main layout
       {
         path: 'dashboard',

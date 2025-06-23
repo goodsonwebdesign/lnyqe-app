@@ -1,11 +1,17 @@
-<div class="flex flex-col gap-3">
-  <div *ngFor="let message of messages" class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0">
-    <div class="flex-grow">
-      <div class="font-semibold text-gray-800 dark:text-gray-100">{{ message.from }}</div>
-      <div class="text-sm text-gray-500 dark:text-gray-400">{{ message.subject }}</div>
-    </div>
-    <div class="text-xs text-gray-400 dark:text-gray-500 mt-1 sm:mt-0 sm:text-right">
-      {{ message.time }}
-    </div>
+@if (messages().length > 0) {
+  <div class="flex flex-col gap-3">
+    @for (message of messages(); track message.id) {
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0 last:pb-0">
+        <div class="flex-grow">
+          <div class="font-semibold text-gray-800 dark:text-gray-100">{{ message.from }}</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">{{ message.subject }}</div>
+        </div>
+        <div class="text-xs text-gray-400 dark:text-gray-500 mt-1 sm:mt-0 sm:text-right">
+          {{ message.time }}
+        </div>
+      </div>
+    }
   </div>
-</div>
+} @else {
+  <p class="text-center text-gray-500 dark:text-gray-400">You have no messages.</p>
+}

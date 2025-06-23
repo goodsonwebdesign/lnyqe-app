@@ -1,6 +1,6 @@
 import { selectIsAuthenticated } from '../../store/selectors/auth.selectors';
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { map, take } from 'rxjs/operators';
 
@@ -10,7 +10,7 @@ import { map, take } from 'rxjs/operators';
  * A simplified guard for the home route that redirects authenticated users to dashboard.
  * This guard has been simplified to avoid refresh loops.
  */
-export const homeGuard: CanActivateFn = (route, state) => {
+export const homeGuard = () => {
   const store = inject(Store);
   const router = inject(Router);
 

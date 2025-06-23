@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
-import { catchError, delay, map } from 'rxjs/operators';
+import { catchError, delay } from 'rxjs/operators';
 import { ServiceRequest } from '../service-requests.types';
 import { environment } from '../../../../environments/environment';
 
@@ -69,7 +69,7 @@ export class ServiceRequestsRepository {
     },
   ];
 
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   /**
    * Get all service requests
@@ -185,7 +185,7 @@ export class ServiceRequestsRepository {
    * @param error Error object
    * @returns Observable that errors
    */
-  private handleError(error: any): Observable<never> {
+  private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Repository error:', error);
     return throwError(() => new Error(error.message || 'Server error'));
   }

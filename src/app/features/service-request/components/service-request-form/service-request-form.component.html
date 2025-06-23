@@ -1,0 +1,224 @@
+<form [formGroup]="requestForm" (ngSubmit)="onSubmit()" class="space-y-6">
+  <!-- Service Request Type Selection - Enhanced for mobile -->
+  <div class="space-y-1.5">
+    <label
+      for="request-type"
+      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+    >
+      Request Type <span class="text-red-500">*</span>
+    </label>
+    <div class="relative">
+      <select
+        id="request-type"
+        formControlName="type"
+        class="block w-full cursor-pointer appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-neutral-900 shadow-sm outline-none transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+        [class.border-red-500]="isFieldInvalid('type')"
+      >
+        <option value="" disabled selected>Select Request Type</option>
+        <option *ngFor="let type of requestTypes" [value]="type.value">
+          {{ type.label }}
+        </option>
+      </select>
+      <div
+        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500 dark:text-neutral-400"
+      >
+        <app-icon name="mdi:chevron-down" size="xs"></app-icon>
+      </div>
+    </div>
+    <div *ngIf="isFieldInvalid('type')" class="mt-1 text-sm text-red-500">
+      Please select a request type
+    </div>
+  </div>
+
+  <!-- Title field - Better mobile padding -->
+  <div class="space-y-1.5">
+    <label
+      for="request-title"
+      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+    >
+      Title <span class="text-red-500">*</span>
+    </label>
+    <input
+      type="text"
+      id="request-title"
+      formControlName="title"
+      placeholder="Brief description of your request"
+      class="block w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-neutral-900 shadow-sm outline-none transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+      [class.border-red-500]="isFieldInvalid('title')"
+    />
+    <div *ngIf="isFieldInvalid('title')" class="mt-1 text-sm text-red-500">
+      Please enter a title for your request
+    </div>
+  </div>
+
+  <!-- Two column layout that stacks on mobile -->
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+    <!-- Priority selection -->
+    <div class="space-y-1.5">
+      <label
+        for="request-priority"
+        class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+      >
+        Priority <span class="text-red-500">*</span>
+      </label>
+      <div class="relative">
+        <select
+          id="request-priority"
+          formControlName="priority"
+          class="block w-full cursor-pointer appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-neutral-900 shadow-sm outline-none transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+          [class.border-red-500]="isFieldInvalid('priority')"
+        >
+          <option *ngFor="let priority of priorities" [value]="priority.value">
+            {{ priority.label }}
+          </option>
+        </select>
+        <div
+          class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500 dark:text-neutral-400"
+        >
+          <app-icon name="mdi:chevron-down" size="xs"></app-icon>
+        </div>
+      </div>
+      <div *ngIf="isFieldInvalid('priority')" class="mt-1 text-sm text-red-500">
+        Please select a priority level
+      </div>
+    </div>
+
+    <!-- Department selection -->
+    <div class="space-y-1.5">
+      <label
+        for="request-department"
+        class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+      >
+        Department <span class="text-red-500">*</span>
+      </label>
+      <div class="relative">
+        <select
+          id="request-department"
+          formControlName="department"
+          class="block w-full cursor-pointer appearance-none rounded-lg border border-neutral-300 bg-white px-4 py-3 text-neutral-900 shadow-sm outline-none transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+          [class.border-red-500]="isFieldInvalid('department')"
+        >
+          <option value="" disabled selected>Select Department</option>
+          <option *ngFor="let dept of departments" [value]="dept.value">
+            {{ dept.label }}
+          </option>
+        </select>
+        <div
+          class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500 dark:text-neutral-400"
+        >
+          <app-icon name="mdi:chevron-down" size="xs"></app-icon>
+        </div>
+      </div>
+      <div *ngIf="isFieldInvalid('department')" class="mt-1 text-sm text-red-500">
+        Please select a department
+      </div>
+    </div>
+  </div>
+
+  <!-- Description textarea - Larger on mobile for easier text input -->
+  <div class="space-y-1.5">
+    <label
+      for="request-description"
+      class="block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+    >
+      Description <span class="text-red-500">*</span>
+    </label>
+    <textarea
+      id="request-description"
+      formControlName="description"
+      rows="4"
+      placeholder="Please provide as much detail as possible"
+      class="block w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-neutral-900 shadow-sm outline-none transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500 focus:ring-opacity-20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+      [class.border-red-500]="isFieldInvalid('description')"
+    ></textarea>
+    <div *ngIf="isFieldInvalid('description')" class="mt-1 text-sm text-red-500">
+      Please provide a description
+    </div>
+  </div>
+
+  <!-- Mobile-friendly File upload area -->
+  <div class="space-y-1.5">
+    <span class="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+      Attachments
+    </span>
+    <div
+      role="button"
+      tabindex="0"
+      aria-label="File upload area: Click or drag and drop to attach files"
+      class="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-primary-600 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-900"
+      (click)="fileInput.click()"
+      (keydown.enter)="fileInput.click()"
+      (keydown.space)="fileInput.click()"
+      [class.border-primary-500]="isDragging"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+    >
+      <input
+        #fileInput
+        type="file"
+        multiple
+        class="hidden"
+        (change)="onFileSelected($event)"
+        accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
+      />
+      <div class="text-center text-neutral-500 dark:text-neutral-400">
+        <app-icon name="mdi:cloud-upload-outline" size="lg" className="mx-auto mb-2"></app-icon>
+        <span class="font-semibold text-primary-600 dark:text-primary-400"
+          >Click to upload</span
+        >
+        or drag and drop
+        <p class="mt-1">PNG, JPG, PDF, DOC, XLS (max 5MB each)</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- File list with previews -->
+  <div *ngIf="files.length > 0" class="mt-3 space-y-2">
+    <div
+      *ngFor="let file of files; let i = index"
+      class="group flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-3 transition-all duration-200 hover:shadow-sm dark:border-neutral-700 dark:bg-neutral-800"
+    >
+      <div class="flex min-w-0 items-center gap-3">
+        <div
+          class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-700"
+        >
+          <app-icon
+            *ngIf="isImageFile(file)"
+            name="mdi:file-image-outline"
+            size="md"
+            className="text-neutral-500 dark:text-neutral-400"
+          ></app-icon>
+          <app-icon
+            *ngIf="isPdfFile(file)"
+            name="mdi:file-pdf-box"
+            size="md"
+            className="text-red-500"
+          ></app-icon>
+          <app-icon
+            *ngIf="!isImageFile(file) && !isPdfFile(file)"
+            name="mdi:file-document-outline"
+            size="md"
+            className="text-neutral-500 dark:text-neutral-400"
+          ></app-icon>
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="truncate-text text-sm font-medium text-neutral-800 dark:text-neutral-200">
+            {{ file.name }}
+          </p>
+          <p class="text-xs text-neutral-500 dark:text-neutral-400">
+            {{ formatFileSize(file.size) }}
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="removeFile(i)"
+        class="touch-manipulation rounded-full p-2 text-neutral-400 transition-colors duration-200 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400"
+        aria-label="Remove file"
+      >
+        <app-icon name="mdi:close" size="sm"></app-icon>
+      </button>
+    </div>
+  </div>
+</form>

@@ -40,7 +40,7 @@
     <div *ngIf="!isLoggedIn">
       <a
         class="flex cursor-pointer items-center px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-        (click)="handleLogin()"
+        (click)="handleLogin()" (keydown.enter)="handleLogin()" role="button" tabindex="0"
         aria-label="Log In"
         data-testid="user-menu-login"
       >
@@ -49,7 +49,7 @@
       </a>
       <a
         class="flex cursor-pointer items-center px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-        (click)="handleLogin()"
+        (click)="handleLogin()" (keydown.enter)="handleLogin()" role="button" tabindex="0"
         aria-label="Sign Up"
         data-testid="user-menu-signup"
       >
@@ -80,7 +80,7 @@
       </a>
       <a
         class="flex cursor-pointer items-center px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-        (click)="logout()"
+        (click)="logout()" (keydown.enter)="logout()" role="button" tabindex="0"
         aria-label="Sign Out"
         data-testid="user-menu-signout"
       >

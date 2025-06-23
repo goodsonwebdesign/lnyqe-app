@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { AuthService as Auth0Service } from '@auth0/auth0-angular';
 import { Store } from '@ngrx/store';
-import { of, timer, iif, from } from 'rxjs';
+import { of, from } from 'rxjs';
 import {
   catchError,
   exhaustMap,
@@ -11,7 +11,6 @@ import {
   switchMap,
   tap,
   finalize,
-  debounceTime,
   filter,
 } from 'rxjs/operators';
 import { AuthActions } from '../actions/auth.actions';
@@ -21,7 +20,7 @@ import { UserService } from '../../core/services/user/user.service';
 import { User } from '../../core/models/user.model';
 import { environment } from '../../../environments/environment';
 
-import { selectIsAuthenticated } from '../selectors/auth.selectors';
+
 
 @Injectable()
 export class AuthEffects {
@@ -57,21 +56,17 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
 
-        tap(({ user }) => {
+        tap(() => {
           // Removed the initial check for AuthEffects.actionInProgress to ensure navigation logic always runs on loginSuccess.
           // The actionInProgress flag is still set here to signal to other effects that a login process is active.
           AuthEffects.actionInProgress = true;
-          
+
           // Hide loading state, typically set by checkAuth$
           this.store.dispatch(AppActions.appLoaded());
 
           // Careful with navigation - don't redirect if we're already on the dashboard
-
-                    if (!window.location.pathname.startsWith('/dashboard')) {
-
+          if (!window.location.pathname.startsWith('/dashboard')) {
             this.router.navigate(['/dashboard']);
-          } else {
-
           }
 
           // Reset the action flag after a short delay
@@ -87,7 +82,7 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginFailure),
-        tap(({ error }) => {
+        tap(() => {
           if (AuthEffects.actionInProgress) {
             return;
           }

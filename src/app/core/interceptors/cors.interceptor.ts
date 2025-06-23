@@ -4,7 +4,7 @@ import { Observable, from } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { AuthService } from '../services/auth/auth.service';
 import { environment } from '../../../environments/environment';
-import { take, switchMap, tap } from 'rxjs/operators';
+import { switchMap } from 'rxjs/operators';
 
 /**
  * HTTP interceptor for handling API requests
@@ -18,17 +18,17 @@ export class CorsInterceptor implements HttpInterceptor {
   // Get API identifier from environment config
   private apiIdentifier = environment.auth.apiAudience;
 
-  constructor() {}
 
 
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+
+  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const isApiUrl = request.url.includes(environment.apiUrl); // Use environment.apiUrl for matching
 
     // Only modify API requests
     if (isApiUrl) {
       return from(this.authService.getApiAccessToken(this.apiIdentifier)).pipe(
         switchMap((token) => {
-          const headers: { [key: string]: string } = {};
+                    const headers: Record<string, string> = {};
 
           // Set Content-Type if not already set. Some requests (like FormData for file uploads) 
           // rely on the browser to set the Content-Type with the correct boundary.

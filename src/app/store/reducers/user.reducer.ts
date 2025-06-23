@@ -2,11 +2,12 @@ import { createFeature, createReducer, on } from '@ngrx/store';
 import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
 import { User } from '../../core/models/user.model';
 import { UserActions } from '../actions/user.actions';
+import { HttpErrorResponse } from '@angular/common/http';
 
 export interface UserState extends EntityState<User> {
   selectedUserId: number | null;
   loading: boolean;
-  error: any;
+  error: HttpErrorResponse | null;
   lastLoaded: Date | null;
 }
 
@@ -58,7 +59,12 @@ export const userFeature = createFeature({
     ),
     on(UserActions.deleteUserSuccess, (state, { id }) =>
       userAdapter.removeOne(id, state)
-    )
+    ),
+    on(UserActions.resetUserState, (state) => ({
+      ...state,
+      loading: false,
+      error: null,
+    }))
   ),
 });
 

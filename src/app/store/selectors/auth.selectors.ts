@@ -1,4 +1,5 @@
 import { createSelector } from '@ngrx/store';
+
 import { AuthToken } from '../../core/models/auth.model';
 import { User } from '../../core/models/user.model';
 import {
@@ -35,7 +36,7 @@ export interface AuthViewModel {
   user: User | null;
   token: AuthToken | null;
   isLoading: boolean;
-  error: any | null;
+  error: string | null;
   organizationId: string | null;
   isEnterpriseSSOEnabled: boolean;
   role: string | null;

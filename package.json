@@ -15,7 +15,9 @@
     "ci:test": "ng test --watch=false --browsers=ChromeHeadless",
     "ci:lint": "ng lint",
     "ci:build": "ng build --configuration production",
-    "format": "prettier --write \"src/**/*.{ts,js,json,scss,css,html,md}\""
+    "format": "prettier --write \"src/**/*.{ts,js,json,scss,css,html,md}\"",
+    "prepare": "husky",
+    "lint": "ng lint"
   },
   "private": true,
   "dependencies": {
@@ -31,7 +33,6 @@
     "@angular/service-worker": "^19.2.8",
     "@auth0/auth0-angular": "^2.2.3",
     "@iconify-icons/mdi": "^1.2.48",
-    "@iconify/react": "^6.0.0",
     "@ngrx/effects": "^19.1.0",
     "@ngrx/entity": "^19.1.0",
     "@ngrx/router-store": "^19.1.0",
@@ -52,8 +53,11 @@
     "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
     "@tailwindcss/forms": "^0.5.10",
     "@types/jasmine": "~5.1.0",
+    "angular-eslint": "20.1.1",
     "autoprefixer": "^10.4.17",
     "cypress": "^14.4.0",
+    "eslint": "^9.29.0",
+    "husky": "^9.1.7",
     "jasmine-core": "~5.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
@@ -63,6 +67,7 @@
     "postcss": "^8.4.35",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "typescript": "~5.7.2"
+    "typescript": "~5.7.2",
+    "typescript-eslint": "8.34.1"
   }
 }
