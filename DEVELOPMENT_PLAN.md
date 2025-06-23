@@ -4,11 +4,49 @@
 
 This plan synthesizes the `CODING_STANDARDS.md` and `design-doc.txt` to provide a singular, actionable roadmap. All development must adhere to the following core principles:
 
-- **Architecture**: A strict feature-based modularity using Standalone Components, NgRx for state management, and a `core`/`features`/`shared`/`layouts` structure.
-- **User Experience**: A mobile-first design approach, ensuring intuitive navigation, accessibility (WCAG AA), and consistent theming (including mandatory dark mode support).
-- **Performance**: Optimized for fast load times (FCP/TTI) through lazy loading, `OnPush` change detection, and efficient rendering strategies.
-- **Code Quality**: High standards for code consistency, readability, and maintainability, enforced through linting, PR reviews, and comprehensive testing (80% unit test coverage minimum).
-- **Security**: Adherence to OWASP best practices, including secure authentication, input validation, and protection against common vulnerabilities.
+- **Architecture**: A strict, feature-based modular architecture is mandatory.
+    - **Structure**: Adhere to the `core`, `features`, `shared`, and `layouts` directory structure.
+    - **Modularity**: All features must be implemented in lazy-loaded, standalone components.
+    - **Component Pattern**: Strictly enforce the **Smart (Container) / Dumb (Presentational)** pattern. Containers manage state and data fetching, while presentational components are pure, receiving data via `@Input()` and emitting events via `@Output()`.
+    - **Component File Structure**: Every component must include four distinct files: a template (`.html`), a stylesheet (`.scss`), the component logic (`.ts`), and a corresponding unit test file (`.spec.ts`). This ensures a consistent and complete structure for all components.
+    - **State Management**: Use NgRx for global state and Signals for local, component-level state.
+    - **Separation of Concerns**: Externalize all models, configurations, and constants into dedicated files (e.g., `feature.models.ts`, `feature.config.ts`) to keep components clean.
+    - **API Abstraction Layer**: Insulate the application from backend data structures by using a dedicated repository or adapter layer. This layer is responsible for fetching data and transforming it into clean, frontend-specific view models, ensuring a stable contract for the UI components.
+    - **Dependency Injection**: Use the `inject()` function for all dependency injection to maintain consistency and improve testability.
+
+- **User Experience (UX) & Accessibility (a11y)**: The application must be intuitive, accessible, and visually consistent.
+    - **Design**: Implement a mobile-first, responsive design using TailwindCSS utility classes.
+    - **Accessibility**: Ensure WCAG AA compliance by using semantic HTML, ARIA attributes, and providing full keyboard navigability. All UI components must be designed with accessibility as a primary requirement.
+    - **Theming**: A reactive theme service must support both light and dark modes, automatically responding to user system preferences and providing a manual toggle.
+    - **Error Handling**: Implement a universal error handling service to provide consistent, user-friendly feedback for all API errors and application exceptions.
+
+- **Performance**: Build for speed and efficiency to ensure a fluid user experience.
+    - **Lazy & Deferred Loading**: Lazy-load all feature modules. Use the `@defer` block to defer-load heavy components (e.g., charts, complex widgets) until they are visible in the viewport.
+    - **Image Optimization**: Use the `NgOptimizedImage` directive for all images and include `<link rel="preconnect">` tags for external image origins in `index.html` to prioritize loading.
+    - **Change Detection**: Default to `OnPush` change detection for all components to minimize re-rendering cycles.
+    - **State Management**: Prevent memory leaks by cleaning up subscriptions and resetting NgRx state slices when components are destroyed (e.g., clearing a `loading` flag).
+
+- **Code Quality & Maintainability**: Write clean, readable, and robust code that is easy to test and refactor.
+    - **Strict Typing**: The `any` type is forbidden. All variables, function parameters, and return types must be explicitly typed using specific models and interfaces.
+    - **Signals for State**: Use Angular Signals for component-level state. Adopt `input.required<T>()` for all presentational component inputs to ensure clear contracts.
+    - **Modern Control Flow**: Use the built-in `@for` and `@if` control flow syntax in templates. The `*ngFor` and `*ngIf` directives are deprecated.
+    - **Template Safety**: Never bind a signal or an observable directly to a component input that expects a raw value. Always unwrap the value first by invoking the signal (`mySignal()`) or using the `async` pipe (`myObservable$ | async`).
+    - **Robust Testing**:
+        - Simulate real user interactions in tests (`dispatchEvent`). Do not call component methods directly.
+        - Use `fixture.componentRef.setInput()` for signal inputs.
+        - Properly mock all services and dependencies.
+    - **Immutability**: Treat data as immutable. Use `readonly` properties and avoid mutating `@Input()` data.
+
+- **Security**: A security-first mindset must be applied throughout the development lifecycle.
+    - **Authentication**: Use the `auth0-angular` SDK for robust, token-based authentication. Secure all necessary routes with the `AuthGuard`.
+    - **API Communication**: Use an `HttpInterceptor` to automatically attach authentication tokens to all outgoing API requests.
+    - **Error Handling**: Ensure that services re-throw original errors to preserve stack traces for effective debugging, but never expose sensitive error details to the end-user.
+    - **Code Hygiene**: Remove all debug code, console logs, and test-specific logic (e.g., hardcoded tokens) from production builds.
+
+- **Automated Quality & Security Gates**: The CI/CD pipeline is the ultimate guardian of code quality and must be strictly enforced.
+    - **CI/CD Enforcement**: All code must pass automated checks in the CI/CD pipeline before being eligible for merging. This includes, at a minimum, linting, unit tests with sufficient coverage, and a successful build.
+    - **Pre-commit Hooks**: Utilize local pre-commit hooks (e.g., Husky) to run linters and tests, providing immediate feedback to developers and preventing broken code from entering the repository.
+    - **Dependency Audits**: Regularly run automated security audits on third-party dependencies to identify and remediate vulnerabilities.
 
 ---
 
