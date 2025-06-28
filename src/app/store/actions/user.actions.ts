@@ -8,27 +8,27 @@ export const UserActions = createActionGroup({
     'Load Users': emptyProps(),
     'Load Users No Op': emptyProps(),
     'Load Users Success': props<{ users: User[] }>(),
-    'Load Users Failure': props<{ error: any }>(),
+    'Load Users Failure': props<{ error: unknown }>(),
 
     // Create User
     'Create User': props<{ user: Partial<User> }>(),
     'Create User Success': props<{ user: User }>(),
-    'Create User Failure': props<{ error: any }>(),
+    'Create User Failure': props<{ error: unknown }>(),
 
     // Update User
     'Update User': props<{ id: number; user: Partial<User> }>(),
     'Update User Success': props<{ user: User }>(),
-    'Update User Failure': props<{ error: any }>(),
+    'Update User Failure': props<{ error: unknown }>(),
 
     // Update Me
     'Update Me': props<{ user: Partial<User> }>(),
     'Update Me Success': props<{ user: User }>(),
-    'Update Me Failure': props<{ error: any }>(),
+    'Update Me Failure': props<{ error: unknown }>(),
 
     // Delete User
     'Delete User': props<{ id: number }>(),
     'Delete User Success': props<{ id: number }>(),
-    'Delete User Failure': props<{ error: any }>(),
+    'Delete User Failure': props<{ error: unknown }>(),
 
     // Select User
     'Select User': props<{ id: number }>(),

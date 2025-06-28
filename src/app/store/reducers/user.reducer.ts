@@ -38,11 +38,18 @@ export const userFeature = createFeature({
         lastLoaded: new Date(),
       })
     ),
-    on(UserActions.loadUsersFailure, (state, { error }) => ({
-      ...state,
-      loading: false,
-      error,
-    })),
+    on(
+      UserActions.loadUsersFailure,
+      UserActions.createUserFailure,
+      UserActions.updateUserFailure,
+      UserActions.updateMeFailure,
+      UserActions.deleteUserFailure,
+      (state, { error }) => ({
+        ...state,
+        loading: false,
+        error: error instanceof HttpErrorResponse ? error : null,
+      })
+    ),
     on(UserActions.selectUser, (state, { id }) => ({
       ...state,
       selectedUserId: id,
@@ -60,12 +67,6 @@ export const userFeature = createFeature({
     on(UserActions.updateUserSuccess, (state, { user }) =>
       userAdapter.updateOne({ id: String(user.id), changes: user }, state)
     ),
-    on(UserActions.updateUserFailure, (state, { error }) => {
-      // For now, we'll just log the error. In a real app, you might want to
-      // revert the optimistic update or show a notification to the user.
-      console.error('Error updating user:', error);
-      return state; // Or revert the state if you have the original user data
-    }),
     on(UserActions.updateMeSuccess, (state, { user }) =>
       userAdapter.updateOne({ id: String(user.id), changes: user }, state)
     ),

@@ -1,4 +1,4 @@
-import { Directive, ElementRef, EventEmitter, HostListener, Output, OnInit } from '@angular/core';
+import { Directive, ElementRef, EventEmitter, HostListener, Output, OnInit, inject } from '@angular/core';
 
 @Directive({
   selector: '[appClickOutside]',
@@ -9,7 +9,7 @@ export class ClickOutsideDirective implements OnInit {
 
   private listening = false;
 
-  constructor(private elementRef: ElementRef) {}
+  private elementRef = inject(ElementRef);
 
   ngOnInit(): void {
     // Delay setting the listening flag to ignore the click that created the component
