@@ -1,0 +1,42 @@
+<form #userForm="ngForm" (ngSubmit)="onSubmit()" class="space-y-6">
+  @if (editableUser) {
+    <!-- Email -->
+    <div>
+      <label for="email" class="block text-sm font-medium leading-6 text-neutral-900 dark:text-neutral-100">Email address</label>
+      <div class="mt-2">
+        <input id="email" name="email" [(ngModel)]="editableUser.email" type="email" autocomplete="email" required email
+               class="form-input block w-full rounded-lg border-0 py-2.5 px-4 text-neutral-900 ring-1 ring-inset ring-neutral-300 placeholder:text-neutral-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 dark:bg-neutral-800 dark:text-white dark:ring-neutral-700 dark:placeholder:text-neutral-400 dark:focus:ring-primary-500 sm:text-sm sm:leading-6">
+      </div>
+    </div>
+
+    <!-- First Name -->
+    <div>
+      <label for="first_name" class="block text-sm font-medium leading-6 text-neutral-900 dark:text-neutral-100">First Name</label>
+      <div class="mt-2">
+        <input id="first_name" name="first_name" [(ngModel)]="editableUser.first_name" type="text" autocomplete="given-name" required
+               class="form-input block w-full rounded-lg border-0 py-2.5 px-4 text-neutral-900 ring-1 ring-inset ring-neutral-300 placeholder:text-neutral-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 dark:bg-neutral-800 dark:text-white dark:ring-neutral-700 dark:placeholder:text-neutral-400 dark:focus:ring-primary-500 sm:text-sm sm:leading-6">
+      </div>
+    </div>
+
+    <!-- Last Name -->
+    <div>
+      <label for="last_name" class="block text-sm font-medium leading-6 text-neutral-900 dark:text-neutral-100">Last Name</label>
+      <div class="mt-2">
+        <input id="last_name" name="last_name" [(ngModel)]="editableUser.last_name" type="text" autocomplete="family-name" required
+               class="form-input block w-full rounded-lg border-0 py-2.5 px-4 text-neutral-900 ring-1 ring-inset ring-neutral-300 placeholder:text-neutral-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 dark:bg-neutral-800 dark:text-white dark:ring-neutral-700 dark:placeholder:text-neutral-400 dark:focus:ring-primary-500 sm:text-sm sm:leading-6">
+      </div>
+    </div>
+
+    <!-- Role -->
+    <div>
+      <label for="role" class="block text-sm font-medium leading-6 text-neutral-900 dark:text-neutral-100">Role</label>
+      <div class="mt-2">
+        <select id="role" name="role" [(ngModel)]="editableUser.role" required
+                class="form-select block w-full rounded-lg border-0 py-2.5 pl-4 pr-8 text-neutral-900 ring-1 ring-inset ring-neutral-300 focus:ring-2 focus:ring-inset focus:ring-primary-600 dark:bg-neutral-800 dark:text-white dark:ring-neutral-700 dark:focus:ring-primary-500 sm:text-sm sm:leading-6">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+  }
+</form>

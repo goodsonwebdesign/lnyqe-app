@@ -1,123 +1,182 @@
-# LNYQE Application Development Plan
+# LNYQE Application Development Plan: The Single Source of Truth
 
-## 1. Guiding Principles
+**Version: 1.0** | **Last Updated: 2025-06-27**
 
-This plan synthesizes the `CODING_STANDARDS.md` and `design-doc.txt` to provide a singular, actionable roadmap. All development must adhere to the following core principles:
+## 1. Introduction
 
-- **Architecture**: A strict, feature-based modular architecture is mandatory.
-    - **Structure**: Adhere to the `core`, `features`, `shared`, and `layouts` directory structure.
-    - **Modularity**: All features must be implemented in lazy-loaded, standalone components.
-    - **Component Pattern**: Strictly enforce the **Smart (Container) / Dumb (Presentational)** pattern. Containers manage state and data fetching, while presentational components are pure, receiving data via `@Input()` and emitting events via `@Output()`.
-    - **Component File Structure**: Every component must include four distinct files: a template (`.html`), a stylesheet (`.scss`), the component logic (`.ts`), and a corresponding unit test file (`.spec.ts`). This ensures a consistent and complete structure for all components.
-    - **State Management**: Use NgRx for global state and Signals for local, component-level state.
-    - **Separation of Concerns**: Externalize all models, configurations, and constants into dedicated files (e.g., `feature.models.ts`, `feature.config.ts`) to keep components clean.
-    - **API Abstraction Layer**: Insulate the application from backend data structures by using a dedicated repository or adapter layer. This layer is responsible for fetching data and transforming it into clean, frontend-specific view models, ensuring a stable contract for the UI components.
-    - **Dependency Injection**: Use the `inject()` function for all dependency injection to maintain consistency and improve testability.
+**THIS GUIDE MUST BE FOLLOWED AT ALL TIMES WITHOUT EXCEPTION.**
 
-- **User Experience (UX) & Accessibility (a11y)**: The application must be intuitive, accessible, and visually consistent.
-    - **Design**: Implement a mobile-first, responsive design using TailwindCSS utility classes.
-    - **Accessibility**: Ensure WCAG AA compliance by using semantic HTML, ARIA attributes, and providing full keyboard navigability. All UI components must be designed with accessibility as a primary requirement.
-    - **Theming**: A reactive theme service must support both light and dark modes, automatically responding to user system preferences and providing a manual toggle.
-    - **Error Handling**: Implement a universal error handling service to provide consistent, user-friendly feedback for all API errors and application exceptions.
+This document is the **definitive and single source of truth** for all development within the LNYQE application. It supersedes all previous planning and standards documents. Its purpose is to eliminate inconsistency and ensure every line of code adheres to the highest standards of quality, performance, and maintainability.
 
-- **Performance**: Build for speed and efficiency to ensure a fluid user experience.
-    - **Lazy & Deferred Loading**: Lazy-load all feature modules. Use the `@defer` block to defer-load heavy components (e.g., charts, complex widgets) until they are visible in the viewport.
-    - **Image Optimization**: Use the `NgOptimizedImage` directive for all images and include `<link rel="preconnect">` tags for external image origins in `index.html` to prioritize loading.
-    - **Change Detection**: Default to `OnPush` change detection for all components to minimize re-rendering cycles.
-    - **State Management**: Prevent memory leaks by cleaning up subscriptions and resetting NgRx state slices when components are destroyed (e.g., clearing a `loading` flag).
+**Adherence to this plan is not optional.** It is the blueprint for building a sophisticated, scalable, and robust application.
 
-- **Code Quality & Maintainability**: Write clean, readable, and robust code that is easy to test and refactor.
-    - **Strict Typing**: The `any` type is forbidden. All variables, function parameters, and return types must be explicitly typed using specific models and interfaces.
-    - **Signals for State**: Use Angular Signals for component-level state. Adopt `input.required<T>()` for all presentational component inputs to ensure clear contracts.
-    - **Modern Control Flow**: Use the built-in `@for` and `@if` control flow syntax in templates. The `*ngFor` and `*ngIf` directives are deprecated.
-    - **Template Safety**: Never bind a signal or an observable directly to a component input that expects a raw value. Always unwrap the value first by invoking the signal (`mySignal()`) or using the `async` pipe (`myObservable$ | async`).
-    - **Robust Testing**:
-        - Simulate real user interactions in tests (`dispatchEvent`). Do not call component methods directly.
-        - Use `fixture.componentRef.setInput()` for signal inputs.
-        - Properly mock all services and dependencies.
-    - **Immutability**: Treat data as immutable. Use `readonly` properties and avoid mutating `@Input()` data.
+### 1.1. Application Purpose & Vision
 
-- **Security**: A security-first mindset must be applied throughout the development lifecycle.
-    - **Authentication**: Use the `auth0-angular` SDK for robust, token-based authentication. Secure all necessary routes with the `AuthGuard`.
-    - **API Communication**: Use an `HttpInterceptor` to automatically attach authentication tokens to all outgoing API requests.
-    - **Error Handling**: Ensure that services re-throw original errors to preserve stack traces for effective debugging, but never expose sensitive error details to the end-user.
-    - **Code Hygiene**: Remove all debug code, console logs, and test-specific logic (e.g., hardcoded tokens) from production builds.
+**The "Why": Providing the IT for the OT**
 
-- **Automated Quality & Security Gates**: The CI/CD pipeline is the ultimate guardian of code quality and must be strictly enforced.
-    - **CI/CD Enforcement**: All code must pass automated checks in the CI/CD pipeline before being eligible for merging. This includes, at a minimum, linting, unit tests with sufficient coverage, and a successful build.
-    - **Pre-commit Hooks**: Utilize local pre-commit hooks (e.g., Husky) to run linters and tests, providing immediate feedback to developers and preventing broken code from entering the repository.
-    - **Dependency Audits**: Regularly run automated security audits on third-party dependencies to identify and remediate vulnerabilities.
+LNYQE (pronounced "link") was born from a simple necessity: to create the powerful, intuitive, and unified software that operations teams deserve. In many fields—from facilities management to project management, in both the private and public sectors—teams are forced to rely on a patchwork of disconnected, cumbersome, and ill-performing applications to manage their critical workflows.
+
+This fragmentation leads to inefficiency, frustration, and anxiety. LNYQE exists to solve this. Our core mission is to be the **link** that brings everything together.
+
+We are building a single, beautiful, and reliable platform to seamlessly manage:
+- Workloads & Project Tracking
+- User & Vendor Management
+- Client & Contact Relationships
+- Contracts & Documentation
+- And much more, with a long-term vision to expand into HR, Finance, and other departments.
+
+Every feature, design choice, and line of code in this project must serve our ultimate goal: **to empower users by removing pain points and making their work effortless.** The application must always be:
+
+- **Powerful & Reliable**: Capable of handling complex workflows without failure.
+- **Intuitive & Effortless**: Easy to learn and a pleasure to navigate, minimizing cognitive load.
+- **Beautiful & Modern**: Delivering a user experience that is as aesthetically pleasing as it is functional.
 
 ---
 
-## 2. Development Phases
+To minimize errors and reduce rework, all developers **must** adhere to the following process:
+1.  **Review Before Coding**: Before writing or modifying any code, thoroughly review all related files, components, services, and models to fully understand the context and potential impact of your changes.
+2.  **Mandatory Self-Review**: After making any change, you are required to perform a thorough review of all edited files. This is not optional and serves as a critical quality gate before committing code.
+3.  **Model Integrity**: Absolutely **NO** changes are to be made to data models (`src/app/core/models/**/*.model.ts`) without express permission. These models represent the data contract with the backend and must remain stable.
+4.  **No Data Transformation Mismatches**: The use of client-side data transformation functions (e.g., `transformData`) to patch or alter the backend data contract is strictly forbidden. If a model from the backend does not fit the frontend's needs, the discrepancy must be discussed and resolved with the backend team. The frontend model must always be a true reflection of the API response.
+5.  **Adherence to Scope**: No functionality is to be introduced without express permission. Unsolicited features lead to unnecessary refactoring, code bloat, and misalignment with backend capabilities. All development must be strictly aligned with the defined tasks and roadmap. If you believe a new feature is necessary, it must be proposed, discussed, and approved before any implementation begins.
 
-### Phase 1: Project Foundation & CI/CD
+---
 
-- **Objective**: Establish a robust and automated foundation for the project.
-- **Tasks**:
-    - **Directory Structure**: Confirm the `core`, `features`, `shared`, `store`, and `layouts` directories are in place.
-    - **Configuration**: Set up base configurations for TailwindCSS (`tailwind.config.js`) with the project's color scheme, fonts, and spacing.
-    - **CI/CD Pipeline**: Configure a CI pipeline (e.g., GitHub Actions) to automatically run on every push/PR:
-        - Linting (`ng lint`)
-        - Unit Tests (`ng test`)
-        - E2E Tests (`cypress run`)
-        - Build (`ng build`)
-    - **Environment**: Ensure `environment.ts` and `environment.prod.ts` are configured for API endpoints and Auth0 settings.
+## 2. The Developer's Non-Negotiable Pre-Commit Checklist
 
-### Phase 2: Core Infrastructure
+Before any `git commit` is made, every developer **must** verify their changes against this checklist. This is our first line of defense against inconsistency and technical debt.
 
-- **Objective**: Build the essential, non-feature-specific parts of the application.
-- **Tasks**:
-    - **Authentication**: 
-        - Implement Auth0 authentication using the `auth0-angular` SDK.
-        - Create `AuthGuard` to protect routes.
-        - Implement an `HttpInterceptor` to attach JWTs to API requests.
-        - Mock auth services for testing purposes.
-        - Verified and refined the post-login user profile fetching and NgRx store update mechanism.
-        - Removed development-specific logging from authentication services, guards, and effects.
-    - **State Management (NgRx)**: 
-        - Initialize the root NgRx store.
-        - Define the initial global state structure.
-        - Ensured reliable update of authentication state (user, token, isAuthenticated) in the NgRx store after login.
-    - **Layouts & Core UI**: 
-        - Create main application layouts (e.g., a primary layout with navigation and a simple layout for auth pages).
-        - Develop a core set of shared, reusable, and accessible UI components (buttons, inputs, modals) in the `/shared` directory.
-    - **Core Services**:
-        - Develop singleton services (`providedIn: 'root'`) for logging, error handling, and API communication.
+**Code Quality & Structure**
+- [ ] **No `any` type**: Have all `any` types been eliminated and replaced with specific interfaces or types?
+- [ ] **Single Responsibility**: Does every function/method do only one thing and is it under the 30-line soft limit?
+- [ ] **Immutability**: Is state from NgRx or services treated as `readonly`? Are you dispatching actions to update state rather than mutating data directly?
+- [ ] **Naming Conventions**: Do all files, classes, methods, variables, and constants follow the official Angular Style Guide?
+- [ ] **Styling**: Have TailwindCSS classes been auto-formatted by the Prettier plugin?
+- [ ] **Code Readability**: Is all code (HTML, TypeScript) formatted cleanly, logically, and in a human-readable way? (e.g., no broken tags, consistent indentation).
+- [ ] **Leverage Angular Features**: Have you researched and used Angular's powerful, built-in tools and best practices (e.g., data binding, interpolation, `async` pipe) to accomplish the task, rather than implementing a custom or less-efficient solution?
+- [ ] **Holistic UI/UX Standards**: Does the component's UI/UX adhere to all styling guidelines? This includes being: **mobile-first, clean, modern, impactful, consistent, performant, distinctive, compliant (WCAG), and logical**. Does it fully support **light mode, dark mode, and system preferences**?
 
-### Phase 3: Feature Development (Iterative Cycle)
+**Component Architecture**
+- [ ] **Dumb Component Purity**: If this is a presentational component, is it **100% stateless** (i.e., contains no internal `signal()` declarations)?
+- [ ] **Required Inputs**: Do all `@Input()`s on dumb components use `input.required<T>()`?
+- [ ] **Typed Outputs**: Does every `@Output()` have a specific, typed payload interface (e.g., `EventEmitter<UserDeletePayload>`)?
 
-- **Objective**: Build and integrate individual application features in a consistent and scalable manner.
-- **For each new feature, follow these steps**:
-    1.  **Module**: Create a new, lazy-loaded directory in `/features`.
-    2.  **Components**: 
-        - Build components using the **Standalone Components** pattern.
-        - Adhere to the **Smart (Container) / Dumb (Presentational)** pattern. Container components manage state and logic, while presentational components handle the UI.
-    3.  **State (NgRx)**: 
-        - Define feature-specific state, actions, reducers, effects, and selectors.
-        - Use facade services to simplify component interaction with the store.
-    4.  **Styling**: Use TailwindCSS utility classes, ensuring mobile-first responsiveness and dark mode support (`dark:`).
-    5.  **Testing**:
-        - Write unit tests for all new components, services, and NgRx logic, aiming for >80% coverage.
-        - Write Cypress E2E tests for the feature's critical user flows, using `data-testid` attributes for reliable element selection.
+**Accessibility & UX**
+- [ ] **Keyboard Navigation**: Is the new feature or component fully and logically navigable using only the keyboard?
+- [ ] **Focus Management**: If a modal/flyout was added, is focus correctly trapped and returned on close?
+- [ ] **Semantic HTML & ARIA**: Are appropriate ARIA roles and attributes used? Is HTML semantic (`<nav>`, `<button>`, etc.)?
+- [ ] **Image Alt Tags**: Does every `<img>` tag have a descriptive `alt` attribute?
+- [ ] **Cognitive Ease & Intuition**: Is the UI intuitive and effortless to reason about? Does it follow established UX psychology principles (e.g., clear feedback, consistency, minimal cognitive load) to prevent user confusion or frustration?
 
-### Phase 4: Quality Assurance & Optimization
+**Testing**
+- [ ] **Unit Tests**: Have unit tests been written for all new logic, achieving >80% coverage?
+- [ ] **E2E Tests**: Have critical user flows been covered with Cypress E2E tests using `data-testid` selectors?
+- [ ] **Mobile Compatibility**: Has the feature been thoroughly tested on mobile viewports to ensure full functionality and a seamless user experience?
 
-- **Objective**: Ensure the application is performant, secure, and bug-free before release.
-- **Tasks**:
-    - **Performance Audit**: Profile the application using Lighthouse and Angular DevTools. Optimize bundle sizes, check for memory leaks, and ensure smooth rendering.
-    - **Security Review**: Conduct a review against OWASP Top 10. Verify that all security standards from the documentation are met.
-    - **Cross-Browser/Device Testing**: Manually test critical flows on major browsers (Chrome, Firefox, Safari) and mobile devices.
-    - **Documentation Review**: Ensure all public APIs, component inputs/outputs, and complex logic are documented with JSDoc comments.
+---
 
-### Phase 5: Release & Deployment
+## 3. Core Principles & Standards
 
-- **Objective**: Deploy the application reliably and maintain a clear version history.
-- **Tasks**:
-    - **Versioning**: Use Semantic Versioning (Major.Minor.Patch) for all releases.
-    - **Changelog**: Maintain a `CHANGELOG.md` file to document changes in each release.
-    - **Deployment**: Use the documented deployment process, including running production builds and deploying to the target environment.
+### 3.1. Code Quality & Maintainability
+
+- **Naming Conventions**: We strictly follow the [**Angular Style Guide**](https://angular.dev/guide/styleguide). This is enforced by the linter.
+  - **Files**: `feature.component.ts`, `feature.service.ts`, etc.
+  - **Classes/Interfaces**: `PascalCase`
+  - **Methods/Properties**: `camelCase`
+  - **Observables**: `camelCase$`
+  - **Constants**: `UPPER_SNAKE_CASE`
+- **Code Style**: We use a [**Prettier plugin for TailwindCSS**](https://github.com/tailwindlabs/prettier-plugin-tailwindcss) to automatically sort utility classes in a consistent, logical order. This is enforced via pre-commit hooks.
+- **Single Responsibility Principle (SRP)**: Every function, method, or class must have one and only one reason to change. Functions **must not exceed a soft limit of 30 lines**. If they do, they must be refactored.
+- **Strict Typing (No `any`)**: The `any` type is forbidden. All variables, function parameters, and return types must be explicitly and strongly typed.
+- **Immutability**: Data must be treated as immutable.
+  - **NgRx Reducers**: Must **never** mutate the `state` object. Always return a new state object using the spread syntax (`...state`).
+  - **Services & Components**: Data selected from the store or returned from a service must be treated as `readonly`. To change data, an action must be dispatched to the store.
+
+### 3.2. Architecture
+
+- **Standalone Components**: All new components, directives, and pipes **must** be created as `standalone`. This is the default for the application and enforces a modular, `NgModule`-free architecture.
+- **Application Directory Structure**: All code must be placed according to this structure. The `users-management` feature is the canonical example.
+  ```
+  src/
+  └── app/
+      ├── core/
+      │   ├── guards/
+      │   ├── interceptors/
+      │   ├── models/ (Global models: user.model.ts, auth.model.ts)
+      │   └── services/ (Singleton services: auth.service.ts, api.service.ts)
+      ├── features/
+      │   └── [feature-name]/ (e.g., users-management/)
+      │       ├── components/ (Smart/Container components)
+      │       ├── facades/ (Optional: feature.facade.ts)
+      │       ├── store/ (actions, reducer, effects, selectors)
+      │       ├── [feature-name].routes.ts
+      │       └── [feature-name].types.ts
+      ├── layouts/
+      │   └── main-layout/
+      └── shared/
+          ├── components/ (Pure, dumb, reusable components: button, input)
+          ├── directives/
+          ├── pipes/
+          └── utils/
+  ```
+- **Component Pattern: Smart (Container) / Dumb (Presentational)**
+  - **Smart Components**: The only components that can inject services, facades, or the NgRx Store. They manage state and pass it down to dumb components.
+  - **Dumb Components**: Must be **100% stateless**. Their state is derived entirely from `@Input()` signals. They are pure, reusable UI building blocks.
+    - All `@Input()`s **must** use `input.required<T>()`.
+    - All `@Output()`s **must** be strictly typed with a payload interface.
+- **State Management**
+  - **Global State (NgRx)**: For state shared across features (e.g., auth, user profile). We use `createFeature` for encapsulation and `createActionGroup` for actions.
+  - **Component State (Signals)**: For state that is local and specific to a single component (e.g., a dropdown's open/closed status), use Angular Signals. This state **must** reside in the Smart/Container component.
+- **Optimistic Updates**: All data manipulation actions (create, update, delete) **must** be implemented optimistically in NgRx. The UI updates instantly, the API call is made in the background, and the state is rolled back on failure with a user notification.
+
+### 3.3. User Experience & Accessibility (a11y)
+
+- **WCAG AA Compliance**: All development must meet WCAG 2.1 AA standards.
+- **Focus Management**: For dynamic UI (modals, flyouts), focus **must** be programmatically trapped and returned to the trigger element on close. The Angular CDK's `FocusTrap` is recommended.
+- **Automated Testing**: We use **`axe-core`** integrated with Cypress E2E tests. Builds will fail on critical accessibility violations.
+- **Global Search**: Key display elements (user names, item titles) must include the `data-searchable="true"` attribute to support a future global search feature.
+- **User Feedback**: All asynchronous actions (API calls, background processes) that the user initiates **must** provide feedback on their status (e.g., success, failure, loading). A global toast/notification component must be used for this purpose to ensure consistency.
+
+### 3.4. Testing
+
+- **Unit Tests**: All components, services, and NgRx logic must have unit tests with **>80% code coverage**.
+- **E2E Tests**: Critical user flows must be covered by Cypress E2E tests. Use `data-testid` attributes for reliable element selection, not CSS classes or tag names.
+
+### 3.5. Mobile-Specific Interactions
+
+- **Touch Gestures**: When implementing touch-based controls (e.g., swipe-to-delete), gestures must be intuitive, provide clear visual feedback, and have accessible, non-touch alternatives (e.g., a visible button).
+- **Hardware Access (Camera, GPS, etc.)**: Access to device hardware must be requested with a clear, user-friendly explanation of why it's needed. The application must handle permission denial gracefully and provide alternative functionality where possible. All access must be implemented securely.
+
+### 3.6. Code Hygiene & Refactoring
+
+- **Dead Code Elimination**: Regularly inspect and remove any code that is unused, orphaned, or was created solely for debugging purposes. This must be done with extreme care and verification to ensure no active functionality is broken.
+- **Continuous Refactoring**: Code is not static. Any method or component that no longer meets the standards outlined in this document, has become overly complex, or violates the SRP must be proactively refactored.
+- **Core Dependency Audit**: Before and after refactoring any core service (`src/app/core/services/**`), shared module, or data model, a global search (`grep`) **must** be performed across the entire codebase. This is to identify every single usage and ensure all dependent components, services, and templates are updated accordingly. Failure to do so can lead to widespread compilation errors and runtime failures. This is a non-negotiable step for any significant architectural change.
+- **Subscription Management**: All `subscribe()` calls must be managed to prevent memory leaks. Use `takeUntilDestroyed` from `@angular/core/rxjs-interop` as the default best practice in components and services.
+- **Memory Leak Detection**: Be vigilant for potential memory leaks, especially those caused by subscriptions, detached DOM elements, or improper use of closures.
+- **Test Coverage Verification**: Before considering a feature complete, verify that both unit tests (`>80%`) and critical path E2E tests are written and passing.
+- **Test Data Management**: For complex components or services requiring mock data for testing, create a dedicated `*.test-data.ts` file within the component's directory. This keeps test data organized and reusable.
+
+### 3.7. Implementation Plan
+
+- **Current Goal**: Verify the complete authentication flow, including the user menu fix, and ensure logout is only triggered on genuine authentication failures.
+
+- **Task List**:
+    - [x] **Fix Auth Race Condition**: Refactored NgRx auth effects to split token storage and user profile fetching into sequential actions (`Set Auth Token` -> `Fetch User Profile`), preventing 401 errors from premature API calls.
+    - [x] **Fix User Menu UI Bug**: Updated `UserService`'s `getMe()` method to robustly handle both nested (`{ user: ... }`) and direct (`...`) API responses, ensuring the user object is always correctly stored in the NgRx state.
+    - [x] **Fix Infinite Loading Screen**: The `isAuthLoading` implementation was flawed, causing unauthenticated users to be stuck on a loading screen. The auth effects have been refactored to correctly handle both authenticated and unauthenticated states, ensuring the loading screen only shows when appropriate.
+    - [x] **End-to-End Test**: Manually test the full login flow: Login -> Auth0 -> Callback -> Token Stored -> User Profile Fetched -> Dashboard & Header UI Updated.
+    - [x] **Verify Logout Behavior**: Confirm that logout actions are only dispatched on genuine authentication failures or explicit user action, not as a result of the fixed race condition.
+
+### User Management UI/UX
+
+- [x] **Fix User Name Sync**: In the user edit flyout, the `name` field is not being updated when `first_name` or `last_name` are changed. The `name` property is now correctly recalculated (`firstName + ' ' + lastName`) before the update is dispatched, and the store is updated optimistically.
+
+---
+
+## 4. Development Phases & In-Progress Work
+
+*(This section is preserved from the previous plan and will be updated as work progresses)*
 
 ### Phase 6: Dashboard Overhaul (In Progress)
 
@@ -126,19 +185,18 @@ This plan synthesizes the `CODING_STANDARDS.md` and `design-doc.txt` to provide 
     - **Grid System**: `angular-gridster2` for a dynamic, resizable, and draggable grid layout.
     - **Data Visualization**: `ngx-charts` for creating modular and interactive charts and graphs.
 - **Tasks**:
-    1.  **Foundation**:
-        - Remove the previous dashboard implementation while preserving routing.
-        - Install and configure `angular-gridster2` and `ngx-charts`.
-        - Create a new `DashboardContainerComponent` to host the grid.
-    2.  **Core UI Components**:
-        - Develop a `RibbonComponent` to house primary user actions, inspired by familiar interfaces like Microsoft Outlook.
-        - Create a generic `DashboardWidgetComponent` to serve as a standardized wrapper for all dashboard widgets, handling resize and interaction logic.
-    3.  **Widget Development (Iterative)**:
-        - Re-implement existing functionality (user tasks, messages, etc.) as individual, self-contained widgets.
-        - Develop new data visualization widgets (e.g., performance charts, activity graphs).
-    4.  **State Management (NgRx)**:
-        - Define state for managing the dashboard layout (widget positions, sizes).
-        - Ensure widget-specific state is handled cleanly within their respective feature stores.
-    5.  **Responsiveness & Performance**:
-        - Ensure the grid and all widgets are fully responsive and optimized for mobile devices.
-        - Profile and optimize the performance of the dashboard, especially with a large number of widgets.
+    1.  **Foundation**: Remove previous implementation, install dependencies, create `DashboardContainerComponent`.
+    2.  **Core UI**: Develop `RibbonComponent` and generic `DashboardWidgetComponent`.
+    3.  **Widget Development**: Re-implement existing functionality as widgets.
+    4.  **State Management**: Define NgRx state for dashboard layout and widget data.
+    5.  **Responsiveness & Performance**: Ensure the grid is responsive and performant.
+
+---
+
+## 5. Appendix: External Resources
+
+- [**Angular Style Guide**](https://angular.dev/guide/styleguide)
+- [**WCAG 2.1 Guidelines**](https://www.w3.org/TR/WCAG21/)
+- [**axe-core Documentation**](https://github.com/dequelabs/axe-core)
+- [**NgRx Style Guide**](https://ngrx.io/guide/styleguide)
+

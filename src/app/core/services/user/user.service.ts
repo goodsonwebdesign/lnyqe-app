@@ -18,8 +18,16 @@ export class UserService {
   }
 
   getMe(): Observable<User> {
-    return this.http.get<{ user: User }>(`${this.apiUrl}/me`).pipe(
-      map((response) => response.user)
+    // The API is expected to return a nested user object.
+    // The CorsInterceptor handles attaching the Authorization header.
+    return this.http.get<User | { user: User }>(`${this.apiUrl}/me`).pipe(
+      map(response => ('user' in response ? response.user : response))
+    );
+  }
+
+  updateMe(user: Partial<User>): Observable<User> {
+    return this.http.patch<User | { user: User }>(`${this.apiUrl}/me`, user).pipe(
+      map(response => ('user' in response ? response.user : response))
     );
   }
 
@@ -36,8 +44,8 @@ export class UserService {
   }
 
   updateUser(id: string, user: Partial<User>): Observable<User> {
-    return this.http.put<{ user: User }>(`${this.apiUrl}/${id}`, user).pipe(
-      map((response) => response.user)
+    return this.http.patch<User>(`${this.apiUrl}/${id}`, user).pipe(
+      map(() => user as User) // Return the user data sent in the request
     );
   }
 

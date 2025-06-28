@@ -1,6 +1,6 @@
 import { routes } from './app.routes';
 import { AUTH_CONFIG } from './core/services/auth/auth.config';
-import { AuthService } from './core/services/auth/auth.service';
+
 import { setupIconify } from './shared/utils/iconify';
 import { AppEffects } from './store/effects/app.effects';
 import { AuthEffects } from './store/effects/auth.effects';
@@ -21,34 +21,10 @@ import { provideEffects } from '@ngrx/effects';
 import { provideRouterStore } from '@ngrx/router-store';
 import { provideState, provideStore } from '@ngrx/store';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
-import { take } from 'rxjs/operators';
+
 import { provideServiceWorker } from '@angular/service-worker';
 
-// Factory function to handle authentication state on app initialization
-export function initializeAuth(authService: AuthService) {
-  return () => {
-    return new Promise<void>((resolve) => {
-      if (window.location.pathname === '/callback') {
-        resolve();
-        return;
-      }
 
-      // Check auth state and dispatch appropriate action
-      authService
-        .isAuthenticated()
-        .pipe(take(1))
-        .subscribe({
-          next: () => {
-            resolve();
-          },
-          error: (err) => {
-            console.error('Auth initialization error:', err);
-            resolve();
-          },
-        });
-    });
-  };
-}
 
 // Iconify initialization function for APP_INITIALIZER
 export function initializeIconify() {
@@ -86,12 +62,7 @@ export const appConfig: ApplicationConfig = {
       useClass: HttpErrorInterceptor,
       multi: true,
     },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initializeAuth,
-      deps: [AuthService],
-      multi: true,
-    },
+
     {
       provide: APP_INITIALIZER,
       useFactory: initializeIconify,

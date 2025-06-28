@@ -6,43 +6,6 @@ import { environment } from './src/environments/environment';
 /**
  * Custom plugin to safely handle URI parsing and prevent malformed URI errors
  */
-function safeUriPlugin(): Plugin {
-  return {
-    name: 'safe-uri-handling',
-    configureServer(server) {
-      // Add a middleware that runs before Vite's internal middleware
-      server.middlewares.use((req, res, next) => {
-        // Skip processing or sanitize URLs with problematic characters
-        if (req.url && (req.url.includes('%') || req.url.includes('+'))) {
-          console.warn('Potentially problematic URL detected:', req.url);
-
-          // Remove query parameters which often contain special characters
-          const url = req.url.split('?')[0];
-          req.url = url;
-
-          // Also override the URL parsing function to prevent errors
-          const originalParseUrl = req.parseUrl;
-          req.parseUrl = function safeParseUrl() {
-            try {
-              return originalParseUrl.call(this);
-            } catch (err) {
-              console.warn('URL parsing error suppressed');
-              return {
-                pathname: url || '/',
-                search: '',
-                query: {},
-                raw: ''
-              };
-            }
-          };
-        }
-
-        next();
-      });
-    }
-  };
-}
-
 /**
  * Plugin to override global decodeURI function to prevent errors
  */
@@ -53,12 +16,12 @@ function safeDecodeUriPlugin(): Plugin {
     apply: 'serve',
     configResolved() {
       // Only override during development
-      if (process.env.NODE_ENV !== 'production') {
+            if (process.env['NODE_ENV'] !== 'production') {
         const originalDecodeURI = global.decodeURI;
         global.decodeURI = function safeDecodeURI(encodedURI: string): string {
           try {
             return originalDecodeURI(encodedURI);
-          } catch (err) {
+          } catch {
             console.warn('DecodeURI error prevented for:', encodedURI);
             return encodedURI; // Return the input unchanged instead of throwing
           }
@@ -87,6 +50,14 @@ export default defineConfig({
     watch: {
       usePolling: true, // More reliable file watching
       interval: 1000 // Check for changes every second
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        secure: false,
+        changeOrigin: true,
+        logLevel: 'debug'
+      }
     }
   },
   resolve: {
@@ -103,7 +74,6 @@ export default defineConfig({
     include: ['@angular/common', '@angular/core', '@auth0/auth0-angular']
   },
   plugins: [
-    safeDecodeUriPlugin(),
-    safeUriPlugin()
+    safeDecodeUriPlugin()
   ]
 });

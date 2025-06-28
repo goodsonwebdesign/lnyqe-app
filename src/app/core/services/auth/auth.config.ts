@@ -17,7 +17,7 @@ export const AUTH_CONFIG: AuthConfig = {
 
   // Token configuration
   useRefreshTokens: true,
-  cacheLocation: 'memory',
+  cacheLocation: 'localstorage',
 
   // HTTP API protection
   httpInterceptor: {

@@ -1,36 +1,21 @@
 import { createFeature, createReducer, on } from '@ngrx/store';
 import { AuthState } from '../../core/models/auth.model';
-import { AppActions } from '../actions/app.actions';
 import { AuthActions } from '../actions/auth.actions';
 
 export const initialAuthState: AuthState = {
   isAuthenticated: false,
-  isLoading: false,
-  isRedirecting: false,
   user: null,
+  token: null,
+  isLoading: false,
+  isAuthLoading: true,
+  isRedirecting: false,
   error: null,
   organizationId: null,
   isEnterpriseSSOEnabled: false,
-  token: null,
 };
 
 export const authReducer = createReducer(
   initialAuthState,
-  // Handle global loading state for non-redirect actions
-  on(AppActions.loadingStarted, (state) => ({ ...state, isLoading: true })),
-  on(AppActions.loadingCompleted, (state) => ({ ...state, isLoading: false })),
-
-  // Handle auth-specific actions
-  on(AuthActions.checkAuth, (state) => ({ ...state, isLoading: true, error: null })),
-
-  on(AuthActions.setAuthState, (state, { isAuthenticated }) => ({
-    ...state,
-    isAuthenticated,
-    isLoading: false,
-  })),
-
-  on(AuthActions.authCallbackStarted, (state) => ({ ...state, isLoading: true, isRedirecting: true })),
-
   on(AuthActions.loginRequest, (state, { organization }) => ({
     ...state,
     isLoading: true,
@@ -39,58 +24,46 @@ export const authReducer = createReducer(
     organizationId: organization || state.organizationId,
   })),
 
-  on(AuthActions.loginSuccess, (state, { user, token }) => ({
+  on(AuthActions.loginSuccess, (state, { payload }) => ({
     ...state,
+    ...payload,
     isAuthenticated: true,
     isLoading: false,
     isRedirecting: false,
-    user,
-    token,
     error: null,
   })),
 
   on(AuthActions.loginFailure, (state, { error }) => ({
     ...state,
-    isAuthenticated: false,
-    isLoading: false,
-    isRedirecting: false,
-    user: null,
-    token: null,
-    error,
-  })),
-
-  on(AuthActions.loadUser, (state) => ({
-    ...state,
-    isLoading: true,
-    error: null,
-  })),
-
-  on(AuthActions.loadUserSuccess, (state, { user }) => ({
-    ...state,
-    isLoading: false,
-    user,
-  })),
-
-  on(AuthActions.loadUserFailure, (state, { error }) => ({
-    ...state,
-    isLoading: false,
+    ...initialAuthState,
     error,
   })),
 
   on(AuthActions.logout, () => ({
     ...initialAuthState,
+  })),
+
+  on(AuthActions.authCheckStart, (state) => ({
+    ...state,
+    isAuthLoading: true,
+  })),
+
+  on(AuthActions.authCheckEnd, (state) => ({
+    ...state,
+    isAuthLoading: false,
+  })),
+
+  on(AuthActions.checkAuth, (state) => ({
+    ...state,
     isLoading: true,
-    isRedirecting: true,
+    error: null,
   })),
 
-  on(AuthActions.setOrganization, (state, { organizationId }) => ({
+  on(AuthActions.setAuthToken, (state, { token }) => ({
     ...state,
-    organizationId,
-  })),
-
-  on(AuthActions.setEnterpriseSSOEnabled, (state, { enabled }) => ({
-    ...state,
-    isEnterpriseSSOEnabled: enabled,
+    isAuthenticated: true,
+    token,
+    error: null,
   }))
 );
 
@@ -100,14 +73,19 @@ export const authFeature = createFeature({
 });
 
 export const {
-  name, // feature name
-  reducer, // feature reducer
-  selectAuthState, // feature selector
+  name,
+  reducer,
+  selectAuthState,
   selectIsAuthenticated,
-  selectIsLoading,
   selectUser,
+  selectToken,
+  selectIsLoading,
+  selectIsAuthLoading,
   selectError,
   selectOrganizationId,
   selectIsEnterpriseSSOEnabled,
-  selectToken,
+  selectIsRedirecting,
 } = authFeature;
+
+
+

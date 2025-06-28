@@ -10,11 +10,8 @@
   </div>
   <!-- Main Header - Using our toolbar component -->
   <app-toolbar
-    [isLoggedIn]="isLoggedIn"
     [lightModeLogo]="lightModeLogo"
     [darkModeLogo]="darkModeLogo"
-    [userName]="getUserFirstName()"
-    [greeting]="getGreeting()"
     (openServiceRequest)="openServiceRequestFlyout($event)"
     (login)="login()"
   >

@@ -54,11 +54,23 @@ export const userFeature = createFeature({
     on(UserActions.createUserSuccess, (state, { user }) =>
       userAdapter.addOne(user, state)
     ),
+    on(UserActions.updateUser, (state, { id, user }) =>
+      userAdapter.updateOne({ id: String(id), changes: user }, state)
+    ),
     on(UserActions.updateUserSuccess, (state, { user }) =>
       userAdapter.updateOne({ id: String(user.id), changes: user }, state)
     ),
+    on(UserActions.updateUserFailure, (state, { error }) => {
+      // For now, we'll just log the error. In a real app, you might want to
+      // revert the optimistic update or show a notification to the user.
+      console.error('Error updating user:', error);
+      return state; // Or revert the state if you have the original user data
+    }),
+    on(UserActions.updateMeSuccess, (state, { user }) =>
+      userAdapter.updateOne({ id: String(user.id), changes: user }, state)
+    ),
     on(UserActions.deleteUserSuccess, (state, { id }) =>
-      userAdapter.removeOne(id, state)
+      userAdapter.removeOne(String(id), state)
     ),
     on(UserActions.resetUserState, (state) => ({
       ...state,

@@ -17,12 +17,12 @@ bootstrapApplication(AppComponent, appConfig).then((ref) => {
       // Provide a dummy token for the test
       const token = {
         accessToken: 'test-token',
+        idToken: 'test-id-token',
         expiresIn: 3600,
         tokenType: 'Bearer',
         scope: 'openid profile email'
       };
-      store.dispatch(AuthActions.loginSuccess({ user, token }));
-      store.dispatch(AuthActions.setAuthState({ isAuthenticated: true }));
+      store.dispatch(AuthActions.loginSuccess({ payload: { user, token } }));
     });
   }
 }).catch((err) => console.error(err));

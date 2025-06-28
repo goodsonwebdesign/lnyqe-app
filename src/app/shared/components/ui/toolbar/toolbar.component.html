@@ -28,23 +28,14 @@
 
     <!-- Right Section - Actions -->
     <div class="flex items-center justify-end space-x-2 sm:space-x-3">
-      <!-- User greeting only visible on small mobile -->
-      <div
-        *ngIf="isLoggedIn"
-        class="user-name max-w-[100px] truncate rounded-full border border-neutral-200/50 bg-white/90 px-2.5 py-1.5 text-xs text-neutral-600 backdrop-blur-sm dark:border-neutral-700/50 dark:bg-neutral-800/90 dark:text-neutral-300 sm:hidden"
-      >
-        {{ userName }}
-      </div>
-
-      <!-- Service Request button - Floating action button on mobile, text button on desktop -->
+      <!-- Service Request button -->
       <button
-        *ngIf="isLoggedIn"
+        *ngIf="isLoggedIn$ | async"
         (click)="onOpenServiceRequest('right')"
         class="group relative flex touch-manipulation items-center justify-center rounded-full bg-primary-600 p-3 text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md sm:rounded-lg sm:px-3.5 sm:py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
         aria-label="Create service request"
         data-testid="toolbar-service-request-btn"
       >
-        <!-- Background glow effect for emphasis -->
         <div
           class="absolute -inset-0.5 rounded-full bg-primary-400 opacity-0 blur-md transition-opacity duration-200 group-hover:opacity-30 sm:rounded-lg"
         ></div>
@@ -57,7 +48,7 @@
       <app-theme-toggle></app-theme-toggle>
 
       <!-- User Menu Component - Handles login/logout through dropdown -->
-      <app-user-menu [userName]="userName" [isLoggedIn]="isLoggedIn" (loginClick)="login.emit()">
+      <app-user-menu (loginClick)="login.emit()">
       </app-user-menu>
     </div>
   </div>

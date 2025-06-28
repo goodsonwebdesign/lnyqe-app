@@ -6,15 +6,16 @@ import {
 } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LoadingComponent } from './shared/components/loading/loading.component';
+import { ToastComponent } from './shared/components/ui/toast/toast.component';
 import { Observable, Subscription } from 'rxjs'; // Removed BehaviorSubject, filter; Added Observable
 import { Store } from '@ngrx/store';
 import { AuthActions } from './store/actions/auth.actions';
-import { selectAuthLoading } from './store/selectors/auth.selectors'; // Import selectAuthLoading
+import { selectAuthLoading } from './store/selectors/auth.selectors';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, LoadingComponent],
+  imports: [CommonModule, RouterOutlet, LoadingComponent, ToastComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
@@ -29,7 +30,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.isLoading$ = this.store.select(selectAuthLoading);
-    this.store.dispatch(AuthActions.checkAuth());
+    this.store.dispatch(AuthActions.initAuth());
 
     // Router event-based loading logic has been removed.
     // NgRx store (selectAuthLoading) now drives the global loading indicator

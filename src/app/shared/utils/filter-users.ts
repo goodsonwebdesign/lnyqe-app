@@ -1,7 +1,7 @@
-import { UserView } from '../../core/models/user.model';
+import { User } from '../../core/models/user.model';
 import { UserFilters } from '../../features/users-management/users-management.types';
 
-export function filterUsers(users: UserView[], filters: UserFilters): UserView[] {
+export function filterUsers(users: User[], filters: UserFilters): User[] {
   let filtered = users;
   if (filters.search) {
     const search = filters.search.toLowerCase();

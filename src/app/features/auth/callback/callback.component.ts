@@ -1,95 +1,61 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { AuthService as AppAuthService } from '../../../core/services/auth/auth.service'; // Renamed to avoid conflict
 import { Store } from '@ngrx/store';
 import { AuthActions } from '../../../store/actions/auth.actions';
 import { AuthService as Auth0Service } from '@auth0/auth0-angular';
-import { take, switchMap, catchError, map } from 'rxjs/operators';
-import { from, of, Observable } from 'rxjs';
-import { AuthToken } from '../../../core/models/auth.model';
-import { User } from '../../../core/models/user.model';
-import { UserService } from '../../../core/services/user/user.service'; // Added UserService
+import { take, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-callback',
   standalone: true,
   imports: [CommonModule],
-  template: `<div></div>`, // Empty template since we're using global loading
+  template: `
+    <div class="flex h-screen w-full items-center justify-center">
+      <svg
+        class="-ml-1 mr-3 h-8 w-8 animate-spin text-primary"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="4"
+        ></circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        ></path>
+      </svg>
+    </div>
+  `,
 })
 export class CallbackComponent implements OnInit {
-  private router = inject(Router);
-  private auth0Service = inject(Auth0Service);
   private store = inject(Store);
-  private appAuthService = inject(AppAuthService);
-  private userService = inject(UserService); // Injected UsersService
+  private auth0 = inject(Auth0Service);
+  private router = inject(Router);
 
   ngOnInit(): void {
-    this.store.dispatch(AuthActions.authCallbackStarted());
-    // The auth0Service.handleRedirectCallback() below is designed to be called on the callback route.
-    // It will process the authentication result. If a user is already authenticated and lands here,
-    // the handleRedirectCallback might be a no-op or re-confirm, then the subsequent checkUserStatus
-    // and loginSuccess action dispatch will ensure the user is correctly routed by effects.
-    this.handleCallback();
-  }
-
-  private handleCallback(): void {
-    this.auth0Service
-      .handleRedirectCallback()
-      .pipe(
-        take(1),
-        switchMap(() => {
-          return this.checkUserStatus(); // Returns Observable<{ user: UserApiResponse; token: AuthToken }>
-        }),
-        map(({ user, token }: { user: User; token: AuthToken }) => { // user is now User
-          this.store.dispatch(AuthActions.loginSuccess({ user, token })); // Dispatch User
-          return user; // Return User for further processing
-        }),
-        // Removed tap operator that previously navigated. Navigation is now handled by loginSuccess$ effect.
-                catchError((error: unknown) => {
-          const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-          this.store.dispatch(AuthActions.loginFailure({ error: errorMessage }));
-          this.router.navigate(['/']); // Navigate to a safe page on error
-          return of(null); // Handle error gracefully
-        })
-      )
-      .subscribe();
-  }
-
-  private checkUserStatus(): Observable<{ user: User; token: AuthToken }> {
-    return this.auth0Service.isAuthenticated$.pipe(
+    this.auth0.handleRedirectCallback().pipe(
       take(1),
-      switchMap(isAuthenticated => {
-        if (!isAuthenticated) {
-          throw new Error('User not authenticated');
-        }
-        return this.auth0Service.user$.pipe(
-          take(1),
-          switchMap(auth0User => {
-            if (!auth0User) {
-              throw new Error('No Auth0 user information available');
-            }
-            // Get the complete AuthToken object for our API
-            return from(this.appAuthService.getTokenSilently()).pipe(
-              take(1),
-              switchMap((authToken: AuthToken) => {
-                if (!authToken || !authToken.accessToken) {
-                  throw new Error('AuthToken or its accessToken is null or undefined.');
-                }
-                // Fetch backend user profile
-                return this.userService.getMe().pipe(
-                  map((backendUser: User) => {
-                    if (!backendUser) {
-                      throw new Error('Backend user profile is missing or undefined.');
-                    }
-                    return { user: backendUser, token: authToken };
-                  })
-                );
-              })
-            );
-          })
-        );
+      catchError((error: unknown) => {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during login.';
+        this.store.dispatch(AuthActions.loginFailure({ error: errorMessage }));
+        this.router.navigate(['/']); // On failure, redirect to a safe page.
+        return of(null); // Gracefully handle the error stream.
       })
-    );
+    ).subscribe(result => {
+      // Only dispatch checkAuth if handleRedirectCallback was successful.
+      // If an error occurred, the stream emits null and we do nothing further.
+      if (result !== null) {
+        this.store.dispatch(AuthActions.checkAuth());
+      }
+    });
   }
 }

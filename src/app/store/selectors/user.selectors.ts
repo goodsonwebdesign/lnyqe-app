@@ -1,6 +1,5 @@
 import { createSelector, createFeatureSelector } from '@ngrx/store';
 import { userAdapter, UserState, userFeature } from '../reducers/user.reducer';
-import { transformUserToViewModel } from '../../core/models/user.model';
 
 export const selectUsersState = createFeatureSelector<UserState>(userFeature.name);
 
@@ -52,10 +51,6 @@ export const selectUserLastLoaded = createSelector(
     (state: UserState) => state.lastLoaded
 );
 
-export const selectUserViews = createSelector(
-    selectAllUsers,
-    (users) => users.map(user => transformUserToViewModel(user))
-);
 
 // selectUsers is now an alias for selectAllUsers, which returns User[]
 export const selectUsers = selectAllUsers;

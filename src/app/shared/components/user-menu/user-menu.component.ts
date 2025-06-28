@@ -1,12 +1,13 @@
-import { Component, Input, Output, EventEmitter, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
-import { AuthService } from '../../../core/services/auth/auth.service';
+
 import { selectIsAuthenticated, selectCurrentUser } from '../../../store/selectors/auth.selectors';
 import { IconComponent } from '../ui/icon/icon.component';
 import { User } from '../../../core/models/user.model';
+import { AuthActions } from '../../../store/actions/auth.actions';
 
 @Component({
   selector: 'app-user-menu',
@@ -16,14 +17,14 @@ import { User } from '../../../core/models/user.model';
   styleUrls: ['./user-menu.component.scss'],
 })
 export class UserMenuComponent implements OnInit, OnDestroy {
-  @Input() userName = '';
-  @Input() isLoggedIn = false;
   @Output() loginClick = new EventEmitter<void>();
 
   isMenuOpen = false;
   user: User | null = null;
+  isLoggedIn = false;
+
   private store = inject(Store);
-  private authService = inject(AuthService);
+
   private subscriptions = new Subscription();
 
   ngOnInit(): void {
@@ -31,17 +32,15 @@ export class UserMenuComponent implements OnInit, OnDestroy {
     this.subscriptions.add(
       this.store.select(selectIsAuthenticated).subscribe((isAuthenticated) => {
         this.isLoggedIn = isAuthenticated;
-      }),
+      })
     );
 
-    // Subscribe to user data from the store if we don't have it from input
-    if (!this.userName) {
-      this.subscriptions.add(
-        this.store.select(selectCurrentUser).subscribe((user) => {
-          this.user = user;
-        }),
-      );
-    }
+    // Subscribe to user data from the store
+    this.subscriptions.add(
+      this.store.select(selectCurrentUser).subscribe((user) => {
+        this.user = user;
+      })
+    );
   }
 
   ngOnDestroy(): void {
@@ -59,16 +58,16 @@ export class UserMenuComponent implements OnInit, OnDestroy {
     this.isMenuOpen = false;
   }
 
-  // Login method - uses Auth0 service
-  handleLogin(): void {
-    this.authService.login();
+  // Login method - dispatches login action
+  login(): void {
+    this.store.dispatch(AuthActions.loginRequest({}));
     this.closeMenu();
     this.loginClick.emit();
   }
 
-  // Logout method - uses Auth0 service
+  // Logout method - dispatches logout action
   logout(): void {
-    this.authService.logout();
+    this.store.dispatch(AuthActions.logout());
     this.closeMenu();
   }
 

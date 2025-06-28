@@ -10,10 +10,11 @@ import {
   selectError,
   selectOrganizationId,
   selectIsEnterpriseSSOEnabled,
-  selectAuthState, // Import the feature state selector
+  selectIsRedirecting,
 } from '../reducers/auth.reducer';
 
-// Re-exporting for global use
+// Re-export base selectors for global use.
+// This file becomes the single source of truth for auth-related selectors.
 export {
   selectIsAuthenticated,
   selectUser,
@@ -22,13 +23,14 @@ export {
   selectError,
   selectOrganizationId,
   selectIsEnterpriseSSOEnabled,
+  selectIsRedirecting,
 };
 
 // Aliases for consistency
 export const selectCurrentUser = selectUser;
 export const selectAuthToken = selectToken;
 export const selectAuthLoading = selectIsLoading;
-export const selectIsRedirecting = createSelector(selectAuthState, (state) => state.isRedirecting);
+export { selectIsAuthLoading } from '../reducers/auth.reducer';
 
 export const selectUserRole = createSelector(selectUser, (user: User | null) => user?.role || null);
 
@@ -56,8 +58,8 @@ export interface AuthViewModel {
 
 export const selectAuthViewModel = createSelector(
   selectIsAuthenticated,
-  selectUser,
-  selectToken,
+  selectCurrentUser,
+  selectAuthToken,
   selectIsLoading,
   selectError,
   selectOrganizationId,

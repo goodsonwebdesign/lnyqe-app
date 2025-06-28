@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { UserView } from '../../core/models/user.model';
+import { User } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-users-management',
@@ -18,16 +18,17 @@ import { UserView } from '../../core/models/user.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UsersManagementComponent {
-  @Input() users: UserView[] | null = [];
+  @Input() users: User[] | null = [];
   @Input() isLoading = false;
   @Input() error: string | null = null;
+  @Input() isAdmin = false;
   @Input() filterForm!: FormGroup;
 
   @Output() addUser = new EventEmitter<void>();
-  @Output() editUser = new EventEmitter<UserView>();
-  @Output() deleteUser = new EventEmitter<UserView>();
+  @Output() editUser = new EventEmitter<User>();
+  @Output() deleteUser = new EventEmitter<User>();
 
-  trackByUserId(index: number, user: UserView): number {
-    return user.id;
+  trackByUser(index: number, user: User): string {
+    return user.email;
   }
 }

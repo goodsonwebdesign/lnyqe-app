@@ -1,194 +1,131 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { AuthService as Auth0Service } from '@auth0/auth0-angular';
 import { Store } from '@ngrx/store';
-import { of, from } from 'rxjs';
-import {
-  catchError,
-  exhaustMap,
-  map,
-  switchMap,
-  tap,
-  finalize,
-  filter,
-} from 'rxjs/operators';
-import { AuthActions } from '../actions/auth.actions';
-import * as AppActions from '../actions/app.actions';
+import { AuthService as Auth0Service } from '@auth0/auth0-angular';
+import { of } from 'rxjs';
+import { concatLatestFrom } from '@ngrx/operators';
+import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { UserService } from '../../core/services/user/user.service';
-import { User } from '../../core/models/user.model';
-import { environment } from '../../../environments/environment';
-
-
+import { AuthActions } from '../actions/auth.actions';
+import { selectIsAuthenticated } from '../reducers/auth.reducer';
 
 @Injectable()
 export class AuthEffects {
   private actions$ = inject(Actions);
-  private auth0Service = inject(Auth0Service);
+  private auth0 = inject(Auth0Service);
   private authService = inject(AuthService);
   private userService = inject(UserService);
-  private router = inject(Router);
   private store = inject(Store);
+  private router = inject(Router);
 
-  // Add a flag to prevent loops
-  private static actionInProgress = false;
+  initAuth$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.initAuth),
+      // Don't run on the callback route, as the SDK is still processing
+      filter(() => !this.router.url.includes('/callback')),
+      tap(() => this.store.dispatch(AuthActions.authCheckStart())),
+      switchMap(() => this.auth0.isAuthenticated$),
+      map((isAuthenticated) => {
+        if (isAuthenticated) {
+          return AuthActions.checkAuth();
+        } else {
+          return AuthActions.authCheckEnd();
+        }
+      })
+    )
+  );
 
-  login$ = createEffect(
+  checkAuth$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.checkAuth),
+      switchMap(() =>
+        this.authService.getFreshToken$().pipe(
+          map((token) => AuthActions.setAuthToken({ token })),
+          catchError((error) => {
+            console.error('[AuthEffects] checkAuth$: getFreshToken$ failed', error);
+            return of(AuthActions.logout());
+          })
+        )
+      )
+    )
+  );
+
+  fetchUserProfile$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.setAuthToken),
+      concatLatestFrom(() => this.store.select(selectIsAuthenticated)),
+      filter(([, isAuthenticated]) => isAuthenticated),
+      switchMap(() =>
+        this.userService.getMe().pipe(
+          map((user) => AuthActions.loginSuccess({ payload: { user } })),
+          catchError((error) => {
+            console.error('[AuthEffects] fetchUserProfile$: getMe failed', error);
+            return of(AuthActions.logout());
+          })
+        )
+      )
+    )
+  );
+
+  loginRequest$ = createEffect(
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginRequest),
-        filter(() => !AuthEffects.actionInProgress),
         tap(({ organization }) => {
-          AuthEffects.actionInProgress = true;
-          // Show loading state
-          this.store.dispatch(AppActions.appLoading());
-
-          // Perform login - Auth0 handles the redirect flow
-          this.authService.login(organization);
-        }),
+          this.auth0.loginWithRedirect({
+            appState: { target: '/dashboard' },
+            authorizationParams: {
+              scope: 'openid profile email offline_access',
+              ...(organization ? { organization } : {}),
+            },
+          });
+        })
       ),
-    { dispatch: false },
+    { dispatch: false }
   );
 
-  loginSuccess$ = createEffect(
+  loginSuccessRedirect$ = createEffect(
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
-
         tap(() => {
-          // Removed the initial check for AuthEffects.actionInProgress to ensure navigation logic always runs on loginSuccess.
-          // The actionInProgress flag is still set here to signal to other effects that a login process is active.
-          AuthEffects.actionInProgress = true;
-
-          // Hide loading state, typically set by checkAuth$
-          this.store.dispatch(AppActions.appLoaded());
-
-          // Careful with navigation - don't redirect if we're already on the dashboard
-          if (!window.location.pathname.startsWith('/dashboard')) {
-            this.router.navigate(['/dashboard']);
-          }
-
-          // Reset the action flag after a short delay
-          setTimeout(() => {
-            AuthEffects.actionInProgress = false;
-          }, 1000);
-        }),
+          this.store.dispatch(AuthActions.authCheckEnd());
+          this.router.navigate(['/dashboard']);
+        })
       ),
-    { dispatch: false },
+    { dispatch: false }
   );
 
   loginFailure$ = createEffect(
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginFailure),
-        tap(() => {
-          if (AuthEffects.actionInProgress) {
-            return;
-          }
-
-          AuthEffects.actionInProgress = true;
-          // Hide loading state
-          this.store.dispatch(AppActions.appLoaded());
-
-          // Redirect to home page only if not already there
-          if (window.location.pathname !== '/') {
-            this.router.navigate(['/']);
-          }
-
-          // Reset the action flag after a short delay
-          setTimeout(() => {
-            AuthEffects.actionInProgress = false;
-          }, 1000);
-        }),
+        tap(({ error }) => {
+          console.error('Authentication Error:', error);
+          this.router.navigate(['/']);
+        })
       ),
-    { dispatch: false },
+    { dispatch: false }
   );
 
   logout$ = createEffect(
     () =>
       this.actions$.pipe(
         ofType(AuthActions.logout),
-        filter(() => !AuthEffects.actionInProgress),
         tap(() => {
-          AuthEffects.actionInProgress = true;
-
-          // Navigate to home page if not already there
-          if (window.location.pathname !== '/') {
-            this.router.navigate(['/']);
-          }
-
-          // Perform Auth0 logout
-          this.auth0Service.logout({
+          this.store.dispatch(AuthActions.authCheckEnd());
+          this.router.navigate(['/']);
+          this.auth0.logout({
             logoutParams: {
               returnTo: window.location.origin,
               clientId: environment.auth.clientId,
             },
           });
-
-          // Reset the action flag after a short delay
-          setTimeout(() => {
-            AuthEffects.actionInProgress = false;
-          }, 1000);
-        }),
+        })
       ),
-    { dispatch: false },
-  );
-
-  checkAuth$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.checkAuth),
-      tap(() => this.store.dispatch(AppActions.appLoading())), // Dispatch appLoading
-      exhaustMap(() => {
-        return this.auth0Service.isAuthenticated$.pipe(
-          switchMap((isAuthenticated) => {
-            if (isAuthenticated) {
-              return this.auth0Service.user$.pipe(
-                switchMap((auth0User) => {
-                  if (auth0User) {
-                    return from(this.authService.getTokenSilently()).pipe(
-                      switchMap((token) => {
-                        return this.userService.getMe().pipe(
-                          tap(() => {
-                            AuthEffects.actionInProgress = false;
-
-                          }),
-                          map((backendUser: User) => {
-                            if (!backendUser) {
-                              throw new Error('Backend user profile is missing or undefined.');
-                            }
-
-                            return AuthActions.loginSuccess({ user: backendUser, token });
-                          }),
-                          catchError((getMeError) => {
-                            return of(AuthActions.loginFailure({ error: `Failed to fetch backend user: ${getMeError.message}` }));
-                          })
-                        );
-                      }),
-                      catchError((tokenError) => {
-                        return of(AuthActions.loginFailure({ error: `Failed to get API token: ${tokenError.message}` }));
-                      })
-                    );
-                  }
-                  return of(AuthActions.loginFailure({ error: 'Auth0 user information not available' }));
-                }),
-                catchError((userError) => {
-                  return of(AuthActions.loginFailure({ error: `Failed to get Auth0 user: ${userError.message}` }));
-                })
-              );
-            }
-            return of(AuthActions.loginFailure({ error: 'Not authenticated' }));
-          }),
-          catchError((authCheckError) => {
-            AuthEffects.actionInProgress = false; // Reset flag immediately on error
-            return of(AuthActions.loginFailure({ error: `Authentication check failed: ${authCheckError.message}` }));
-          }),
-          finalize(() => {
-            AuthEffects.actionInProgress = false;
-            this.store.dispatch(AppActions.appLoaded()); // Dispatch appLoaded
-          })
-        );
-      })
-    )
+    { dispatch: false }
   );
 }

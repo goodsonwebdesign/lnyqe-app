@@ -11,6 +11,9 @@ import {
 } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { Observable } from 'rxjs';
+import { selectIsAuthenticated } from '../../../../store/selectors/auth.selectors';
 import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component';
 import { UserMenuComponent } from '../../user-menu/user-menu.component';
 import { ThemeService } from '../../../../core/services/theme.service';
@@ -34,20 +37,17 @@ export type FlyoutPosition = 'right' | 'left' | 'bottom';
 })
 export class ToolbarComponent implements OnInit {
   themeService = inject(ThemeService);
+  private store = inject(Store);
   private elementRef = inject(ElementRef);
   private renderer = inject(Renderer2);
 
-  @Input() isLoggedIn = false;
-
   @Input() lightModeLogo = '';
   @Input() darkModeLogo = '';
-  @Input() userName = '';
-  @Input() userInitials = '';
-  @Input() greeting = '';
-
 
   @Output() openServiceRequest = new EventEmitter<FlyoutPosition>();
   @Output() login = new EventEmitter<void>(); // Added login output emitter
+
+    isLoggedIn$: Observable<boolean> = this.store.select(selectIsAuthenticated);
 
   // Initialize scroll state
   private scrollThreshold = 10;
@@ -84,10 +84,5 @@ export class ToolbarComponent implements OnInit {
   // A helper method to handle service request button click
   onOpenServiceRequest(position: FlyoutPosition): void {
     this.openServiceRequest.emit(position);
-  }
-
-  // Helper for dark mode check
-  get isDarkMode(): boolean {
-    return this.themeService.isDarkMode();
   }
 }

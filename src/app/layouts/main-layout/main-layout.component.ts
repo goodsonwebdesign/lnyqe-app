@@ -16,12 +16,13 @@ import { FlyoutService } from '../../core/services/flyout/flyout.service';
 import { catchError, EMPTY, Subscription } from 'rxjs';
 import { ServiceRequestService } from '../../features/service-request/service-request.service';
 import { selectIsAuthenticated, selectCurrentUser, selectIsRedirecting } from '../../store/selectors/auth.selectors';
-import { AuthService } from '../../core/services/auth/auth.service';
+
 import { Router } from '@angular/router';
 import { FlyoutPosition } from '../../shared/components/ui/toolbar/toolbar.component';
 import { ServiceRequestComponent } from '../../features/service-request/service-request.component';
 import { UI_COMPONENTS } from '../../shared/components/ui';
 import { User } from '@auth0/auth0-angular';
+import { AuthActions } from '../../store/actions/auth.actions';
 
 @Component({
   selector: 'app-main-layout',
@@ -40,7 +41,7 @@ import { User } from '@auth0/auth0-angular';
 export class MainLayoutComponent implements OnInit, OnDestroy {
   // Injected Services
   private store = inject(Store);
-  private authService = inject(AuthService);
+
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private http = inject(HttpClient);
@@ -205,11 +206,11 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   // Logout method for the sidenav
   logout(): void {
-    this.authService.logout();
+    this.store.dispatch(AuthActions.logout());
   }
 
   // Login method for handling login button click in the toolbar
   login(): void {
-    this.authService.login();
+    this.store.dispatch(AuthActions.loginRequest({}));
   }
 }

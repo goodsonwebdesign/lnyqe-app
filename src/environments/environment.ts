@@ -14,15 +14,4 @@ export const environment = {
   // API configuration
   apiUrl: '/api',
 
-  // Vite options to prevent URI issues
-  viteOptions: {
-    // Set to true to disable URI decoding in routing
-    disableUriDecoding: true,
-
-    // Use simple URL parsing to avoid decodeURI calls
-    useSimpleUrlParsing: true,
-
-    // Disable automatic query parameter parsing
-    disableQueryParsing: true,
-  },
 };
